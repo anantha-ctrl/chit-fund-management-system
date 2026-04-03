@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+/* Executive Print Suite */
+@media print {
+    /* SHEET LOCKDOWN: Force 1 page and clean background */
+    html, body {
+        height: auto !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    #sidebar-wrapper, .navbar, .top-header, .base-header, .btn, .breadcrumb, nav, footer, .sidebar, .no-print, .btn-toolbar, .alert {
+        display: none !important;
+        height: 0 !important;
+        visibility: hidden !important;
+    }
+
+    main, .content-wrapper, .container {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        visibility: visible !important;
+    }
+
+    /* Official Analytics Header */
+    #print-analytics-header {
+        display: block !important;
+        border-bottom: 2px solid #2d3748 !important;
+        margin-bottom: 20px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .card {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 15px !important;
+        box-shadow: none !important;
+        margin-bottom: 15px !important;
+        page-break-inside: avoid !important;
+    }
+
+    .card-header {
+        padding: 12px !important;
+        background-color: #f7fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .card-body { padding: 0 !important; }
+
+    /* Analytics Chart Scaling */
+    #branchCollectionsChart {
+        max-height: 250px !important;
+        width: 100% !important;
+    }
+
+    /* High-Density Performance Table */
+    .table th, .table td { 
+        padding: 6px 12px !important; 
+        font-size: 8.5pt !important;
+        border-bottom: 1px solid #edf2f7 !important;
+    }
+    .table thead th { background-color: #edf2f7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+}
+
+/* Screen Only Helper */
+#print-analytics-header { display: none; }
+</style>
+
+<!-- Official Print Header -->
+<div id="print-analytics-header" class="w-100 mb-4">
+    <div class="row align-items-end">
+        <div class="col-8">
+            <h2 class="fw-extrabold text-uppercase mb-1" style="letter-spacing: 1.5px; color: #1a202c;">Chit Fund Management</h2>
+            <h5 class="text-muted mb-0">Official Branch Performance Analytics</h5>
+        </div>
+        <div class="col-4 text-end">
+            <p class="small text-muted mb-1">Generated: {% now "d M Y, h:i A" %}</p>
+            <p class="small fw-bold text-dark mb-0">REPORT ID: CF-BR-{{ now|date:"U" }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="text-muted small">Comparative performance report across all physical locations.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-outline-primary border-0 shadow-sm rounded-pill px-4">
+            <i class="bi bi-printer me-2"></i> Print Report
+        </button>
+        <a href="{% url 'branch_list' %}" class="btn btn-primary shadow-sm rounded-pill px-4">
+            <i class="bi bi-gear me-2"></i> Manage Branches
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Summary Cards -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 15px; background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-success-light p-3 rounded-4" style="background: #f0fdf4;">
+                    <i class="bi bi-house-door-fill text-success fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0 small uppercase fw-bold ls-1">Active Branches</h6>
+                    <h3 class="fw-bold mb-0 mt-1 text-dark">{{ branch_data|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 15px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-3 rounded-4" style="background: #eff6ff;">
+                    <i class="bi bi-people-fill text-primary fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0 small uppercase fw-bold ls-1">Global Members</h6>
+                    <h3 class="fw-bold mb-0 mt-1 text-dark">
+                        {{ branch_data|length }} Branches Total
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 15px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-3 rounded-4" style="background: #fffcf0;">
+                    <i class="bi bi-wallet2 text-warning fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0 small uppercase fw-bold ls-1">Total Collections</h6>
+                    <h3 class="fw-bold mb-0 mt-1 text-dark">
+                        ₹ Monitoring Active
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Chart Column -->
+    <div class="col-lg-12">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 20px;">
+            <h5 class="fw-bold mb-4">Branch-wise Collection Analysis</h5>
+            <div style="height: 350px;">
+                <canvas id="branchCollectionsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Table Column -->
+    <div class="col-lg-12 mt-4">
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
+            <div class="p-4 bg-white border-bottom">
+                <h5 class="fw-bold mb-0">Detailed Branch Performance Table</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Branch Name</th>
+                            <th>Code</th>
+                            <th>Members</th>
+                            <th>Chit Groups</th>
+                            <th>Total Collection</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in branch_data %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-bold text-dark">{{ data.branch.name }}</span>
+                            </td>
+                            <td><code class="text-primary fw-bold">{{ data.branch.code }}</code></td>
+                            <td>{{ data.member_count }}</td>
+                            <td>{{ data.chit_count }}</td>
+                            <td class="fw-bold">₹{{ data.collections|floatformat:2 }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-success-light text-success rounded-pill px-3" style="background: #f0fdf4;">
+                                    <i class="bi bi-graph-up me-1"></i> Global
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="chartLabels" type="application/json">[{% for data in branch_data %}"{{ data.branch.name|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+<script id="chartValues" type="application/json">[{% for data in branch_data %}{{ data.collections|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('branchCollectionsChart').getContext('2d');
+        const branchNames = JSON.parse(document.getElementById('chartLabels').textContent);
+        const collectionsData = JSON.parse(document.getElementById('chartValues').textContent);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: branchNames,
+                datasets: [{
+                    label: 'Collections (₹)',
+                    data: collectionsData,
+                    backgroundColor: 'rgba(22, 163, 74, 0.7)',
+                    borderColor: '#16A34A',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Amount (₹)' }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

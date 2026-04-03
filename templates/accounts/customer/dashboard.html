@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .gradient-card-1 { background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%); }
+    .gradient-card-2 { background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%); }
+    .gradient-card-3 { background: linear-gradient(135deg, #ffffff 0%, #fffcf0 100%); }
+    
+    .stat-card {
+        border-radius: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+    }
+    
+    .quick-action-btn {
+        border-radius: 14px;
+        padding: 12px;
+        transition: all 0.2s;
+        border: 1px solid #eef2f6;
+    }
+    .quick-action-btn:hover {
+        background-color: var(--primary-light);
+        color: var(--primary-green) !important;
+        border-color: var(--primary-green);
+    }
+</style>
+
+<div class="row align-items-center mb-5">
+    <div class="col-md-8">
+        <h1 class="fw-extrabold mb-1" style="font-size: 2.2rem;">Hello, <span class="text-primary">{{ user.member_profile.name }}</span>! 👋</h1>
+        <p class="text-muted lead mb-0">Track your investments and upcoming dues in real-time.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0 d-none d-md-block">
+        <div class="p-3 rounded-4 bg-white shadow-sm border d-inline-block">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem;">Account Status</small>
+            <span class="badge bg-success-light text-success rounded-pill px-3"><i class="bi bi-patch-check-fill me-1"></i> Verified Profile</span>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Summary Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card stat-card h-100 border-0 shadow-sm gradient-card-2">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3 shadow-sm bg-white text-primary">
+                    <i class="bi bi-stack fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted fw-bold text-uppercase mb-1 small" style="letter-spacing: 0.5px;">Active Chits</h6>
+                    <h2 class="mb-0 fw-extrabold text-dark">{{ my_groups_count }} <small class="fw-normal text-muted h6">Groups</small></h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card h-100 border-0 shadow-sm gradient-card-1">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3 shadow-sm bg-white text-success">
+                    <i class="bi bi-wallet2 fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted fw-bold text-uppercase mb-1 small" style="letter-spacing: 0.5px;">Total Contributed</h6>
+                    <h2 class="mb-0 fw-extrabold text-dark text-success">₹{{ total_paid|floatformat:0 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card h-100 border-0 shadow-sm gradient-card-3">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="rounded-circle p-3 me-3 shadow-sm bg-white text-danger">
+                    <i class="bi bi-calendar-check fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="text-danger fw-bold text-uppercase mb-1 small" style="letter-spacing: 0.5px;">Upcoming Dues</h6>
+                    <h2 class="mb-0 fw-extrabold text-dark">₹{{ total_pending|floatformat:0 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Main Interaction Panel -->
+    <div class="col-lg-8">
+        <!-- Quick Actions Grid -->
+        <h6 class="fw-bold text-muted text-uppercase mb-3 small" style="letter-spacing: 1px;">Quick Management</h6>
+        <div class="row g-3 mb-4">
+            <div class="col-4 col-md-3">
+                <a href="{% url 'my_chits' %}" class="card quick-action-btn text-center text-decoration-none shadow-sm bg-white">
+                    <i class="bi bi-grid-3x3-gap-fill fs-3 mb-2"></i>
+                    <span class="small fw-bold text-dark">My Chits</span>
+                </a>
+            </div>
+            <div class="col-4 col-md-3">
+                <a href="{% url 'customer_payment_history' %}" class="card quick-action-btn text-center text-decoration-none shadow-sm bg-white">
+                    <i class="bi bi-clock-history fs-3 mb-2"></i>
+                    <span class="small fw-bold text-dark">History</span>
+                </a>
+            </div>
+            <div class="col-4 col-md-3">
+                <a href="{% url 'customer_reports' %}" class="card quick-action-btn text-center text-decoration-none shadow-sm bg-white">
+                    <i class="bi bi-bar-chart-line-fill fs-3 mb-2"></i>
+                    <span class="small fw-bold text-dark">Reports</span>
+                </a>
+            </div>
+            <div class="col-4 col-md-3 d-none d-md-block">
+                <a href="{% url 'customer_documents' %}" class="card quick-action-btn text-center text-decoration-none shadow-sm bg-white">
+                    <i class="bi bi-file-earmark-lock-fill fs-3 mb-2"></i>
+                    <span class="small fw-bold text-dark">KYC Vault</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Payment Table -->
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
+            <div class="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-extrabold mb-0">Recent Transaction Ledger</h5>
+                <a href="{% url 'customer_payment_history' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All Ledger</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="border-0 ps-4 py-3 small text-uppercase text-muted fw-bold">Chit Group</th>
+                                <th class="border-0 py-3 small text-uppercase text-muted fw-bold">Installment</th>
+                                <th class="border-0 py-3 small text-uppercase text-muted fw-bold text-end pe-4">Amount Paid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pt in recent_payments %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">{{ pt.chit_group.name }}</div>
+                                    <div class="text-muted small">Status: Active Fund</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-3">#{{ pt.installment_number }}</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <span class="fw-extrabold text-success fs-6">₹{{ pt.amount }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-5 text-muted small">Your transaction history will appear here once you make a payment.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Info Panel -->
+    <div class="col-lg-4">
+        <!-- Live Auction Updates -->
+        <h6 class="fw-bold text-muted text-uppercase mb-3 small" style="letter-spacing: 1px;">Auction Alerts</h6>
+        <div class="card border-0 shadow-sm p-4" style="border-radius: 20px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white;">
+            <h6 class="fw-bold mb-4 opacity-75">Latest Group Auctions</h6>
+            <div class="auction-list">
+                {% for auction in recent_auctions %}
+                <div class="d-flex align-items-center mb-3 p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 transition-hover">
+                    <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center me-3" style="min-width:40px; height:40px;">
+                        <i class="bi bi-hammer fs-5"></i>
+                    </div>
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="fw-bold mb-0 text-truncate">{{ auction.chit_group.name }}</div>
+                        <small class="opacity-50">Bid: ₹{{ auction.bid_amount }} • {{ auction.auction_date|date:"D, d M" }}</small>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 opacity-50 small">No recent auction data available for your groups.</div>
+                {% endfor %}
+            </div>
+            <hr class="opacity-10">
+            <p class="small mb-0 opacity-75 d-flex align-items-center">
+                <i class="bi bi-info-circle me-2"></i> Only groups you are part of are shown.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

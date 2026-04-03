@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4 mt-2">
+    <h1 class="page-title h2 fw-bold">Settings</h1>
+    <p class="text-muted small">Manage your account and preferences</p>
+</div>
+
+<!-- Tab Navigation (Rounded Pills) -->
+<div class="d-flex gap-2 mb-4 bg-light p-1 rounded-pill d-inline-flex border tabs-scrollable-container" style="background: rgba(0,0,0,0.02) !important;">
+    <a href="#profile" class="btn border-0 rounded-pill px-4 py-2 fw-bold active-tab" id="tab-profile">Profile</a>
+    <a href="#alerts" class="btn border-0 rounded-pill px-4 py-2 fw-bold text-muted transition hover-bg-light" id="tab-alerts">Alerts</a>
+    <a href="#security" class="btn border-0 rounded-pill px-4 py-2 fw-bold text-muted transition hover-bg-light" id="tab-security">Security</a>
+</div>
+
+<!-- Settings Card Wrap -->
+<div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px; border: 1px solid rgba(0,0,0,0.05) !important;">
+    
+    <!-- Profile Section -->
+    <div id="section-profile" class="settings-section">
+        <div class="p-4 p-md-5">
+            <div class="d-flex align-items-center mb-5">
+                <div class="rounded-3 p-3 me-3" style="background-color: var(--primary-light); color: var(--primary-green); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-person fs-3"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Profile Information</h5>
+                    <p class="text-muted small mb-0">Update your personal details</p>
+                </div>
+            </div>
+
+            <form action="{% url 'profile_view' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-dark small">First Name</label>
+                        <input type="text" name="first_name" class="form-control border-0 bg-light p-3 rounded-3" value="{{ user.first_name }}" placeholder="Enter first name">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-dark small">Last Name</label>
+                        <input type="text" name="last_name" class="form-control border-0 bg-light p-3 rounded-3" value="{{ user.last_name }}" placeholder="Enter last name">
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold text-dark small">Email Address</label>
+                        <input type="email" name="email" class="form-control border-0 bg-light p-3 rounded-3" value="{{ user.email }}" placeholder="Enter email address">
+                    </div>
+                    
+                    <div class="col-12 mt-4 text-end">
+                        <button type="submit" class="btn btn-primary px-5 py-3 rounded-3 fw-bold shadow-sm">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alerts Section -->
+    <div id="section-alerts" class="settings-section d-none">
+        <div class="p-4 p-md-5">
+            <div class="d-flex align-items-center mb-5">
+                <div class="rounded-3 p-3 me-3" style="background-color: #fff7ed; color: #f97316;">
+                    <i class="bi bi-bell fs-3"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Communication Preferences</h5>
+                    <p class="text-muted small mb-0">Choose how you receive alerts</p>
+                </div>
+            </div>
+            
+            <div class="list-group list-group-flush">
+                <div class="list-group-item border-0 px-0 py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-1">Email Notifications</h6>
+                        <p class="text-muted small mb-0">Receive monthly chit statements via email.</p>
+                    </div>
+                    <div class="form-check form-switch fs-4">
+                        <input class="form-check-input pref-toggle" type="checkbox" id="email_notifications" {% if user.email_notifications %}checked{% endif %}>
+                    </div>
+                </div>
+                <div class="list-group-item border-0 px-0 py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-1">Payment Reminders</h6>
+                        <p class="text-muted small mb-0">Get alerted 2 days before your chit due date.</p>
+                    </div>
+                    <div class="form-check form-switch fs-4">
+                        <input class="form-check-input pref-toggle" type="checkbox" id="payment_reminders" {% if user.payment_reminders %}checked{% endif %}>
+                    </div>
+                </div>
+                <div class="list-group-item border-0 px-0 py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-1">Auction Result Alerts</h6>
+                        <p class="text-muted small mb-0">Get notified immediately after an auction winner is declared.</p>
+                    </div>
+                    <div class="form-check form-switch fs-4">
+                        <input class="form-check-input pref-toggle" type="checkbox" id="auction_alerts" {% if user.auction_alerts %}checked{% endif %}>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Section -->
+    <div id="section-security" class="settings-section d-none">
+        <div class="p-4 p-md-5">
+            <div class="d-flex align-items-center mb-5">
+                <div class="rounded-3 p-3 me-3" style="background-color: #fff1f2; color: #e11d48; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-shield-lock-fill fs-3"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Security Settings</h5>
+                    <p class="text-muted small mb-0">Protect your account and password</p>
+                </div>
+            </div>
+            
+            <div class="row g-5">
+                <!-- Change Password Form -->
+                <div class="col-lg-7">
+                    <form action="{% url 'password_reset' %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-dark">Current Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control border-0 bg-light p-3 rounded-start-3" placeholder="••••••••">
+                                <span class="input-group-text border-0 bg-light rounded-end-3 pe-3 toggle-password" style="cursor: pointer;">
+                                    <i class="bi bi-eye text-muted"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-dark">New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control border-0 bg-light p-3 rounded-start-3" placeholder="••••••••">
+                                <span class="input-group-text border-0 bg-light rounded-end-3 pe-3 toggle-password" style="cursor: pointer;">
+                                    <i class="bi bi-eye text-muted"></i>
+                                </span>
+                            </div>
+                            <div class="form-text x-small text-muted mt-2">
+                                Password must be at least 8 characters and include a symbol.
+                            </div>
+                        </div>
+                        <div class="mb-5">
+                            <label class="form-label fw-bold small text-dark">Confirm New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control border-0 bg-light p-3 rounded-start-3" placeholder="••••••••">
+                                <span class="input-group-text border-0 bg-light rounded-end-3 pe-3 toggle-password" style="cursor: pointer;">
+                                    <i class="bi bi-eye text-muted"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100 py-3 rounded-3 fw-bold shadow">
+                            Update Password
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Security Status -->
+                <div class="col-lg-5">
+                    <div class="bg-light p-4 rounded-4 border border-opacity-10 border-dark">
+                        <h6 class="fw-bold mb-4">Security Overview</h6>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle me-3 {% if user.two_factor_enabled %}bg-success{% else %}bg-danger{% endif %}" style="width: 8px; height: 8px;"></div>
+                                <span class="small fw-semibold">2FA Protection</span>
+                            </div>
+                            {% if user.two_factor_enabled %}
+                                <span class="badge bg-success-subtle text-success rounded-pill px-3">Active</span>
+                            {% else %}
+                                <a href="{% url 'enable_2fa' %}" class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 text-decoration-none">Enable Now</a>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success rounded-circle me-3" style="width: 8px; height: 8px;"></div>
+                                <span class="small fw-semibold">Login Alerts</span>
+                            </div>
+                            <span class="badge bg-success-subtle text-success rounded-pill px-3">Enabled</span>
+                        </div>
+
+                        <hr class="my-4 opacity-5">
+
+                        <p class="x-small text-muted mb-0">
+                            <i class="bi bi-info-circle me-1"></i> Your password was last changed 3 months ago. We recommend changing it every 6 months for better security.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .active-tab {
+        background-color: #FFFFFF !important;
+        color: var(--primary-green) !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .hover-bg-light:hover {
+        background-color: rgba(255,255,255,0.5);
+    }
+    .settings-section {
+        animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab switching logic
+        document.querySelectorAll('.btn[href^="#"]').forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Toggle active state on buttons
+                document.querySelectorAll('.btn[href^="#"]').forEach(btn => {
+                    btn.classList.remove('active-tab');
+                    btn.classList.add('text-muted');
+                });
+                this.classList.add('active-tab');
+                this.classList.remove('text-muted');
+                
+                // Toggle visible sections
+                const target = this.getAttribute('href').substring(1);
+                document.querySelectorAll('.settings-section').forEach(sec => {
+                    sec.classList.add('d-none');
+                });
+                document.getElementById('section-' + target).classList.remove('d-none');
+            });
+        });
+
+        // Password Toggle Logic
+        document.querySelectorAll('.toggle-password').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const input = this.parentElement.querySelector('input');
+                const icon = this.querySelector('i');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.replace('bi-eye', 'bi-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.replace('bi-eye-slash', 'bi-eye');
+                }
+            });
+        });
+
+        // Preferences saving logic
+        const toggles = document.querySelectorAll('.pref-toggle');
+        const langSelect = document.querySelector('#languageSelect');
+
+        function savePreference(data) {
+            fetch('{% url "update_preferences" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.status === 'success') {
+                    console.log('Saved:', data);
+                }
+            })
+            .catch(err => console.error('Error saving preference:', err));
+        }
+
+        if (toggles) {
+            toggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const pref = this.id;
+                    const value = this.checked;
+                    savePreference({ [pref]: value });
+                });
+            });
+        }
+
+        if (langSelect) {
+            langSelect.addEventListener('change', function() {
+                savePreference({ 'language': this.value });
+            });
+        }
+    });
+</script>
+{% endblock %}

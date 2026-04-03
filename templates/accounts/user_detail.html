@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4 mt-2 d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title h2 fw-bold mb-0">Customer Details</h1>
+        <p class="text-muted small mb-0">Viewing profile for @{{ target_user.username }}</p>
+    </div>
+    <a href="{% url 'user_list' %}" class="btn btn-light border rounded-pill px-4 py-2 fw-bold small shadow-sm">
+        <i class="bi bi-arrow-left me-2"></i> Back to Directory
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <!-- Profile Card -->
+        <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+            <div class="avatar mx-auto mb-3 shadow" style="width: 100px; height: 100px; font-size: 2.5rem; background-color: var(--primary-green); color: white;">
+                {{ target_user.username|first|upper }}
+            </div>
+            <h4 class="fw-bold mb-1">{{ target_user.first_name }} {{ target_user.last_name|default:"" }}</h4>
+            <span class="badge bg-light text-dark border mb-4 px-3 py-2 rounded-pill small">{{ target_user.role|title }}</span>
+            
+            <div class="text-start mt-4">
+                <div class="mb-3">
+                    <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Email Address</label>
+                    <div class="small fw-semibold text-dark">{{ target_user.email }}</div>
+                </div>
+                <div class="mb-3">
+                    <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Account Status</label>
+                    <div>
+                        {% if target_user.is_active %}
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 fw-bold extra-small">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 fw-bold extra-small">Disabled</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Date Joined</label>
+                    <div class="small fw-semibold text-dark">{{ target_user.date_joined|date:"F d, Y" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Additional Info Card -->
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0">Security & Preferences</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 border border-opacity-10 border-dark h-100">
+                            <h6 class="extra-small text-muted text-uppercase fw-bold ls-1 mb-3">2FA Status</h6>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi {% if target_user.two_factor_enabled %}bi-shield-check text-success{% else %}bi-shield-x text-muted{% endif %} fs-3"></i>
+                                <span class="fw-bold fs-5">{% if target_user.two_factor_enabled %}Active{% else %}Inactive{% endif %}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 border border-opacity-10 border-dark h-100">
+                            <h6 class="extra-small text-muted text-uppercase fw-bold ls-1 mb-3">Notification Logic</h6>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <span>Email Notifications</span>
+                                    <i class="bi {% if target_user.email_notifications %}bi-check-circle-fill text-success{% else %}bi-x-circle-fill text-muted{% endif %}"></i>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <span>Payment Reminders</span>
+                                    <i class="bi {% if target_user.payment_reminders %}bi-check-circle-fill text-success{% else %}bi-x-circle-fill text-muted{% endif %}"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-5 opacity-5">
+
+                <div class="text-center pt-2">
+                    <p class="text-muted small mb-4">To modify this user's administrative settings, please contact the system administrator.</p>
+                    <form method="post" action="{% url 'user_toggle_active' target_user.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn {% if target_user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill px-5 py-2 fw-bold">
+                            {% if target_user.is_active %}Disable Account{% else %}Activate Account{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ls-1 { letter-spacing: 0.05rem; }
+    .avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-weight: 800;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+        <h1 class="page-title">{{ report_title|default:"My Financial Reports" }}</h1>
+        <p class="text-muted small mb-0">Summary of your chit investments and payments</p>
+    </div>
+    <div class="d-none d-md-block">
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i> Download Statement
+        </button>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row g-4 mb-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="rounded-3 p-3" style="background-color: var(--primary-light); color: var(--primary-green);">
+                        <i class="bi bi-cash-stack fs-4"></i>
+                    </div>
+                    <span class="badge bg-success-light text-primary-green small">Completed</span>
+                </div>
+                <h6 class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Paid Amount</h6>
+                <h3 class="mb-0 fw-extrabold">₹{{ total_paid }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="rounded-3 p-3" style="background-color: #fee2e2; color: #dc2626;">
+                        <i class="bi bi-exclamation-circle fs-4"></i>
+                    </div>
+                    <span class="badge bg-danger-light text-danger small">Pending</span>
+                </div>
+                <h6 class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Upcoming / Pending Payments</h6>
+                <h3 class="mb-0 fw-extrabold">₹{{ total_pending }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="rounded-3 p-3" style="background-color: #dbeafe; color: #2563eb;">
+                        <i class="bi bi-wallet2 fs-4"></i>
+                    </div>
+                    <span class="badge bg-info-light text-primary small">Active</span>
+                </div>
+                <h6 class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Active Investments</h6>
+                <h3 class="mb-0 fw-extrabold">{{ chit_breakdown|length }} Groups</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Table -->
+<div class="card border-0 shadow-sm" style="border-radius: 16px;">
+    <div class="card-header border-0 bg-transparent pt-4 px-4">
+        <h5 class="fw-bold mb-0">Investment Breakdown</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-4 py-3">Group Name</th>
+                        <th class="border-0 py-3">Total Value</th>
+                        <th class="border-0 py-3">My Total Paid</th>
+                        <th class="border-0 py-3">Group Status</th>
+                        <th class="border-0 py-3 text-end px-4">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in chit_breakdown %}
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-dark">{{ item.group_name }}</div>
+                        </td>
+                        <td class="py-3 fw-semibold text-muted">₹{{ item.chit_value }}</td>
+                        <td class="py-3 fw-bold text-primary-green">₹{{ item.paid_amount }}</td>
+                        <td class="py-3">
+                            <span class="badge {% if item.status == 'ACTIVE' %}bg-success-light text-primary-green{% else %}bg-secondary text-white{% endif %}">
+                                {{ item.status }}
+                            </span>
+                        </td>
+                        <td class="text-end px-4">
+                            <a href="{% url 'my_chits' %}" class="btn btn-sm btn-light border">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-file-earmark-bar-graph fs-1 d-block mb-3 opacity-25"></i>
+                            No investment records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .mobile-bottom-nav, .sidebar, .top-header, .btn-primary {
+            display: none !important;
+        }
+        .col-md-9 {
+            width: 100% !important;
+            margin-left: 0 !important;
+        }
+        .card {
+            border: 1px solid #eee !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}

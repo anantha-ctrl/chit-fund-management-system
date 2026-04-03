@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Auction Details</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'auction_list' %}" class="btn btn-sm btn-outline-secondary me-2">Back</span></a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Main Auction Card -->
+        <div class="card border-0 shadow-lg mb-4" style="border-radius: 20px; overflow: hidden;">
+            <div class="card-header bg-gradient-primary text-white p-4" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1 fw-bold">Auction Month {{ auction.month_number }}</h4>
+                        <p class="mb-0 opacity-75">{{ auction.chit_group.name }}</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-white text-primary px-3 py-2 rounded-pill shadow-sm">
+                            <i class="fas fa-calendar-alt me-1"></i> {{ auction.auction_date|date:"d M Y" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-4 bg-light bg-opacity-50">
+                <div class="row g-4 text-center mb-4">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white rounded-4 shadow-sm border">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.7rem;">Chit Value</small>
+                            <span class="fs-5 fw-bold text-dark">₹{{ auction.chit_group.amount }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white rounded-4 shadow-sm border border-danger border-opacity-25">
+                            <small class="text-danger text-uppercase fw-bold d-block mb-1" style="font-size: 0.7rem;">Bid Discount</small>
+                            <span class="fs-5 fw-bold text-danger">₹{{ auction.bid_amount }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white rounded-4 shadow-sm border border-info border-opacity-25">
+                            <small class="text-info text-uppercase fw-bold d-block mb-1" style="font-size: 0.7rem;">Foreman Fee ({{ auction.chit_group.commission_percentage }}%)</small>
+                            <span class="fs-5 fw-bold text-info">₹{{ auction.foreman_commission }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white rounded-4 shadow-sm border border-success border-opacity-25" style="background: #f0fdf4;">
+                            <small class="text-success text-uppercase fw-bold d-block mb-1" style="font-size: 0.7rem;">Net Payout</small>
+                            <span class="fs-4 fw-bold text-success">₹{{ auction.payout_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Winner Section -->
+                <div class="p-4 bg-white border rounded-4 mb-4 shadow-sm">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-award text-primary fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Auction Winner</h5>
+                            <span class="text-primary fs-4 fw-bold">{{ auction.winner.name }}</span>
+                        </div>
+                    </div>
+                    <hr class="my-4 opacity-10">
+                    
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 p-2 rounded-3 me-3">
+                                    <i class="fas fa-coins text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Individual Dividend</h6>
+                                    <small class="text-muted">Distributed to each of the {{ auction.chit_group.members.count }} members</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                            <h3 class="fw-bold text-success mb-0">+ ₹{{ auction.dividend_per_member }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="col-lg-4">
+        <!-- Guarantors Card -->
+        <div class="card border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center" style="border-radius: 20px 20px 0 0;">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-user-shield me-2 text-warning"></i>Guarantors
+                </h5>
+                <button class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm hover-scale" data-bs-toggle="modal" data-bs-target="#addGuarantorModal" style="font-size: 0.75rem;">
+                    <i class="fas fa-user-plus me-1"></i> Add
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for guarantor in auction.guarantors.all %}
+                    <div class="list-group-item p-4 border-bottom hover-bg-light transition-all">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle text-center me-3 flex-shrink-0" style="width: 40px; height: 40px; line-height: 40px;">
+                                <i class="fas fa-user-shield text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-extrabold text-dark">{{ guarantor.name }}</h6>
+                                <small class="badge bg-secondary bg-opacity-10 text-secondary border-0 p-1 px-2 fw-normal" style="font-size: 0.65rem;">{{ guarantor.relationship }}</small>
+                            </div>
+                        </div>
+                        <div class="mt-2 ps-5">
+                            <p class="text-muted small mb-1"><i class="fas fa-phone-alt me-2 text-success opacity-50"></i>{{ guarantor.phone }}</p>
+                            {% if guarantor.id_proof_number %}
+                                <div class="bg-light p-2 rounded-3 border-0 small mt-2">
+                                    <span class="text-muted"><i class="fas fa-id-card me-2 opacity-50"></i>{{ guarantor.id_proof_type }}:</span>
+                                    <span class="fw-bold text-dark">{{ guarantor.id_proof_number }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center p-5">
+                        <div class="mb-3 text-muted opacity-25">
+                            <i class="fas fa-user-lock" style="font-size: 3rem;"></i>
+                        </div>
+                        <p class="text-muted mb-0 fw-bold">No High-Security Guarantors</p>
+                        <small class="text-muted d-block mt-1">Required for fund release.</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Guarantor Modal -->
+<div class="modal fade" id="addGuarantorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header bg-dark text-white p-4" style="border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-user-shield me-2 text-warning"></i>New Legal Guarantor
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'guarantor_add' auction.id %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body p-4 bg-light bg-opacity-50">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Full Name</label>
+                            <input type="text" name="name" class="form-control border-0 shadow-sm p-3 rounded-3" placeholder="Enter guarantor name" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Phone Number</label>
+                            <input type="text" name="phone" class="form-control border-0 shadow-sm p-3 rounded-3" placeholder="Phone" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Relationship</label>
+                            <input type="text" name="relationship" class="form-control border-0 shadow-sm p-3 rounded-3" placeholder="e.g. Uncle" required>
+                        </div>
+                        <div class="col-12 mt-4 pt-3 border-top">
+                            <p class="small text-muted mb-3 fw-bold"><i class="fas fa-id-card me-2"></i>IDENTITY VERIFICATION</p>
+                            <div class="row g-3">
+                                <div class="col-5">
+                                    <select name="id_proof_type" class="form-select border-0 shadow-sm p-3 rounded-3">
+                                        <option value="Aadhaar">Aadhaar</option>
+                                        <option value="PAN">PAN Card</option>
+                                        <option value="Voter ID">Voter ID</option>
+                                        <option value="DL">DL</option>
+                                    </select>
+                                </div>
+                                <div class="col-7">
+                                    <input type="text" name="id_proof_number" class="form-control border-0 shadow-sm p-3 rounded-3" placeholder="Enter ID number">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 bg-light bg-opacity-50" style="border-radius: 0 0 20px 20px;">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold text-muted" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-5 fw-bold shadow-sm hover-scale">
+                        <i class="fas fa-check-circle me-1"></i> Save Guarantor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+    .hover-scale { transition: transform 0.2s; }
+    .hover-scale:hover { transform: scale(1.03); }
+    .hover-bg-light:hover { background-color: #f8f9fa; }
+    .transition-all { transition: all 0.3s ease; }
+    .fw-extrabold { font-weight: 800; }
+</style>
+{% endblock %}

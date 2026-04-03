@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">Chit Auctions</h1>
+    <a href="{% url 'auction_create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+        <i class="bi bi-hammer me-2"></i> Record Auction
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 ps-4 py-3 text-uppercase small fw-bold text-muted">Chit Group</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Month</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Date</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Winner</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Bid (Discount)</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Payout</th>
+                        <th class="border-0 pe-4 py-3 text-uppercase small fw-bold text-muted text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for auction in auctions %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ auction.chit_group.name }}</div>
+                            <small class="text-muted">{{ auction.chit_group.branch.name|default:"Main Branch" }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-3 rounded-pill fw-medium">
+                                Month {{ auction.month_number }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="small fw-medium">{{ auction.auction_date|date:"d M Y" }}</div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm rounded-circle bg-primary-light text-primary-green d-flex align-items-center justify-content-center me-2 fw-bold shadow-sm" style="width:30px; height:30px; font-size: 0.75rem;">
+                                    {{ auction.winner.name|make_list|first|upper }}
+                                </div>
+                                <div class="fw-semibold text-primary">{{ auction.winner.name }}</div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-bold text-danger">₹{{ auction.bid_amount }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold border border-success-subtle">
+                                ₹{{ auction.payout_amount }}
+                            </span>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <a href="{% url 'auction_detail' auction.id %}" class="btn btn-white btn-sm rounded-pill border px-3 shadow-sm">
+                                <i class="bi bi-eye me-1"></i> View Results
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-5 text-muted small">No auctions recorded yet. Start by recording a monthly result.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

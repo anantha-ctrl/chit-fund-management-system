@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">Operational Chit Groups</h1>
+    <a href="{% url 'chit_create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+        <i class="bi bi-plus-lg me-2"></i> Create Chit Group
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 ps-4 py-3 text-uppercase small fw-bold text-muted">Group Name</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Value</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Installment</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Duration</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Start Date</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Status</th>
+                        <th class="border-0 pe-4 py-3 text-uppercase small fw-bold text-muted text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for chit in chits %}
+                    <tr>
+                        <td class="ps-4">
+                            <a href="{% url 'chit_detail' chit.id %}" class="text-decoration-none fw-bold text-primary">
+                                {{ chit.name }}
+                            </a>
+                            <div class="text-muted small">ID: CHIT-{{ chit.id|stringformat:"03d" }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-bold text-dark">₹{{ chit.amount }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border px-3 rounded-pill fw-medium">
+                                ₹{{ chit.installment_amount }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="fw-medium text-muted">{{ chit.duration_months }} Months</div>
+                        </td>
+                        <td>
+                            <div class="small fw-medium text-dark">{{ chit.start_date|date:"M Y" }}</div>
+                        </td>
+                        <td>
+                            {% if chit.status == 'ACTIVE' %}
+                                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold border border-success-subtle">
+                                    <i class="bi bi-play-fill"></i> ACTIVE
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-muted px-3 py-2 rounded-pill fw-bold border">
+                                    <i class="bi bi-check-all"></i> COMPLETED
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 text-end">
+                            <div class="btn-group shadow-sm rounded-pill overflow-hidden border">
+                                <a href="{% url 'chit_detail' chit.id %}" class="btn btn-white btn-sm px-3 border-end" title="View Dashboard">
+                                    <i class="bi bi-speedometer2 text-info"></i>
+                                </a>
+                                <a href="{% url 'chit_edit' chit.id %}" class="btn btn-white btn-sm px-3" title="Edit">
+                                    <i class="bi bi-pencil-square text-primary"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-5 text-muted small">No active chit groups found. Initialize your first fund group.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

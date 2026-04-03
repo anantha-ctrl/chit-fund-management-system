@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">Member Universe</h1>
+    <a href="{% url 'member_create' %}" class="btn btn-primary shadow-sm px-4">
+        <i class="bi bi-person-plus me-2"></i> Add New Member
+    </a>
+</div>
+
+<!-- Search Bar -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+    <div class="card-body p-4 bg-light shadow-inner">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search name or phone...">
+                    <button class="btn btn-primary px-4" type="submit">Search</button>
+                </div>
+            </div>
+            {% if query %}
+            <div class="col-md-2">
+                <a href="{% url 'member_list' %}" class="btn btn-link text-muted"><i class="bi bi-x-lg"></i> Clear</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 16px;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3">ID</th>
+                        <th class="py-3">Member Details</th>
+                        <th class="py-3">Branch</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3">Account Type</th>
+                        <th class="py-3">Date Joined</th>
+                        <th class="text-end pe-4 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mem in members %}
+                    <tr>
+                        <td class="ps-4"><span class="text-muted fw-bold">{{ mem.id }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm rounded-circle bg-primary-light text-primary-green d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: 700;">
+                                    {{ mem.name|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">{{ mem.name }}</h6>
+                                    <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ mem.phone }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-dark small fw-medium">{{ mem.branch.name|default:"Main Office" }}</span>
+                        </td>
+                        <td>
+{% if mem.status == 'ACTIVE' %}
+                                <span class="badge bg-success-soft text-success px-3 py-2 rounded-pill">Active</span>
+{% else %}
+                                <span class="badge bg-danger-soft text-danger px-3 py-2 rounded-pill">Inactive</span>
+{% endif %}
+                        </td>
+                        <td>
+                            {% if mem.user %}
+                                <span class="badge bg-info-soft text-info px-2 py-1"><i class="bi bi-person-check me-1"></i>Portal Active</span>
+                            {% else %}
+                                <span class="text-muted small">Walk-in only</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ mem.created_at|date:"M d, Y" }}</td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                <a href="{% url 'member_edit' mem.id %}" class="btn btn-sm btn-light border me-2 rounded-3"><i class="bi bi-pencil-square text-primary"></i></a>
+                                <a href="{% url 'member_delete' mem.id %}" class="btn btn-sm btn-light border rounded-3"><i class="bi bi-trash3 text-danger"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="opacity-25 mb-3"><i class="bi bi-people fs-1"></i></div>
+                            <h5 class="text-muted">No members found in the universe.</h5>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-success-soft { background-color: #dcfce7 !important; }
+    .bg-danger-soft { background-color: #fee2e2 !important; }
+    .bg-info-soft { background-color: #e0f2fe !important; }
+</style>
+{% endblock %}

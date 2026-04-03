@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">{{ title }}</h1>
+    <a href="{% url 'branch_list' %}" class="btn btn-light shadow-sm border rounded-pill px-4">
+        <i class="bi bi-arrow-left me-2"></i> Back to Branches
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-xl-6">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+            <div class="card-header border-0 bg-primary text-white p-4">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 p-3 bg-white bg-opacity-25 me-3">
+                        <i class="bi bi-buildings fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Branch Information</h4>
+                        <p class="mb-0 text-white-50 small">Fill in the details to manage this branch</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4 p-xl-5">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        {% for field in form %}
+                            <div class="col-12 {% if field.name == 'code' or field.name == 'phone' %}col-md-6{% endif %}">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold small text-uppercase" style="letter-spacing: 0.5px; color: var(--text-muted);">{{ field.label }}</label>
+                                
+                                {% if field.name == 'is_active' %}
+                                    <div class="form-check form-switch mt-1 ms-1">
+                                        {{ field }}
+                                        <label class="form-check-label small text-muted ms-2" for="{{ field.id_for_label }}">Grant operational access to this branch</label>
+                                    </div>
+                                {% else %}
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            {% if field.name == 'name' %}<i class="bi bi-tag-fill small"></i>
+                                            {% elif field.name == 'code' %}<i class="bi bi-qr-code-scan small"></i>
+                                            {% elif field.name == 'phone' %}<i class="bi bi-telephone-fill small"></i>
+                                            {% elif field.name == 'email' %}<i class="bi bi-envelope-at-fill small"></i>
+                                            {% elif field.name == 'address' %}<i class="bi bi-geo-alt-fill small"></i>
+                                            {% endif %}
+                                        </span>
+                                        {{ field }}
+                                    </div>
+                                {% endif %}
+                                
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ field.errors|first }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-5 border-top pt-4 d-flex justify-content-end gap-3">
+                        <a href="{% url 'branch_list' %}" class="btn btn-light border rounded-pill px-5 py-2 fw-semibold">Cancel</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow">
+                            <i class="bi bi-check2-circle me-2"></i> {{ title }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-xl-6 d-none d-md-block">
+        <div class="p-5 h-100 d-flex flex-column justify-content-center align-items-center text-center opacity-75">
+            <i class="bi bi-houses fs-1 mb-4 text-primary opacity-25" style="font-size: 8rem !important;"></i>
+            <h3 class="fw-extrabold text-dark opacity-50">Branch Intelligence</h3>
+            <p class="text-muted mw-100 px-lg-5">Centralize your operations. Branches allow you to logically partition members, auctions, and payments across different geographical or business units.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

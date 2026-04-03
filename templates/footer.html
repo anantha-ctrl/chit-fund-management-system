@@ -1,0 +1,138 @@
+{% load static %}
+<footer class="footer-component {% if fixed %}fixed-footer-bottom{% endif %}">
+    <div class="container">
+        {% if not minimal %}
+        <div class="row g-4">
+            <!-- Branding & About -->
+            <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                <div class="footer-brand">
+                    <i class="bi bi-shield-check"></i>
+                    <span>SmartChit</span>
+                </div>
+                <p class="text-muted pe-lg-5">
+                    The next-generation solution for chit fund managers and subscribers. 
+                    Built for transparency, security, and enterprise-grade efficiency.
+                </p>
+                <div class="d-flex gap-4 mt-4 social-links">
+                    <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="col-lg-3 col-md-6 col-12 mb-4 mb-lg-0">
+                <div class="footer-links">
+                    <h5>Navigation</h5>
+                    <a href="{% url 'landing' %}">Home</a>
+                    <a href="/#features">Features</a>
+                    <a href="/#security">Security</a>
+                    <a href="/#faq">FAQ</a>
+                    <a href="{% url 'login' %}">Login</a>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="col-lg-5 col-md-12 footer-contact">
+                <div class="footer-links">
+                    <h5>Connect With Us</h5>
+                    <p class="small text-muted mb-3">
+                        <i class="bi bi-geo-alt"></i> 
+                        123 Financial District, Fintech City, Mumbai 400051
+                    </p>
+                    <p class="small text-muted mb-3">
+                        <i class="bi bi-envelope"></i> 
+                        support@smartchit.com
+                    </p>
+                    <p class="small text-muted mb-4">
+                        <i class="bi bi-telephone"></i> 
+                        +91 98765 43210 (Mon-Fri, 9am-6pm)
+                    </p>
+                    
+                    <div class="mt-4 pt-2">
+                        <h6 class="fw-bold small text-dark mb-2">Subscribe to our Newsletter</h6>
+                        <form id="newsletterForm">
+                            {% csrf_token %}
+                            <div class="d-flex border-bottom pb-1">
+                                <input type="email" name="email" required class="form-control form-control-sm border-0 bg-transparent px-0 shadow-none" placeholder="Enter your email address">
+                                <button class="btn btn-link text-primary text-decoration-none fw-bold p-0 ms-auto shadow-none" type="submit">Join <i class="bi bi-arrow-right-short"></i></button>
+                            </div>
+                        </form>
+                        <div id="newsletterMessage" class="mt-2 small" style="min-height: 20px;"></div>
+                        <p class="x-small text-muted mt-0 mb-0" style="font-size: 0.7rem;">Stay updated with our latest chit group launches and financial tips.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr class="my-5 opacity-10">
+        {% endif %}
+
+        <!-- JavaScript for Newsletter -->
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const newsletterForm = document.getElementById('newsletterForm');
+            const messageDiv = document.getElementById('newsletterMessage');
+            
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const emailInput = newsletterForm.querySelector('input[name="email"]');
+                    const emailValue = emailInput.value;
+                    const csrfToken = newsletterForm.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                    const submitBtn = newsletterForm.querySelector('button[type="submit"]');
+                    
+                    // Loading state
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                    
+                    const formData = new FormData();
+                    formData.append('email', emailValue);
+                    formData.append('csrfmiddlewaretoken', csrfToken);
+                    
+                    fetch("{% url 'subscribe_newsletter' %}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            messageDiv.innerHTML = `<div class="text-success small fw-bold mt-1 animate-up"><i class="bi bi-check2-circle me-1"></i>${data.message}</div>`;
+                            emailInput.value = '';
+                        } else {
+                            messageDiv.innerHTML = `<div class="text-danger small fw-bold mt-1 animate-up"><i class="bi bi-exclamation-circle me-1"></i>${data.message}</div>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        messageDiv.innerHTML = `<div class="text-danger small fw-bold mt-1 animate-up">Something went wrong. Please try again.</div>`;
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Join <i class="bi bi-arrow-right-short"></i>';
+                    });
+                });
+            }
+        });
+        </script>
+
+        <!-- Copyright Info -->
+        <div class="copyright-section {% if minimal %}mt-0 border-0 pt-0{% endif %}">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="text-muted mb-0 small">
+                        © {% now "Y" %} <strong>SmartChit</strong> - Chit Fund Management System. All rights reserved. <br>Designed and Developed By <a href="https://cloudhawk.in/" class="dev-credit-link">CloudHawk</a>
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <span class="text-muted small me-3">Secure Payment Verified</span>
+                    <i class="bi bi-shield-lock-fill text-primary small"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

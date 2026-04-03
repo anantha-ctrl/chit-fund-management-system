@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3 flex-wrap">
+    <div class="flex-grow-1">
+        <h1 class="page-title mb-1 fs-3 fs-md-2" style="line-height: 1.2;">{{ chit.name }} Dashboard</h1>
+        <div class="text-muted small d-flex align-items-center flex-wrap gap-2">
+            <span class="d-flex align-items-center"><i class="bi bi-building me-1"></i> {{ chit.branch.name|default:"Main Branch" }}</span>
+            <span class="text-muted opacity-50 d-none d-sm-inline">•</span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2">Live Status</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-start mt-2 mt-sm-0">
+        <a href="{% url 'chit_list' %}" class="btn btn-light border shadow-sm rounded-pill px-3 py-2 flex-fill flex-sm-grow-0 text-nowrap">
+            <i class="bi bi-arrow-left me-1"></i> <span class="d-none d-md-inline">Back to List</span><span class="d-md-none">Back</span>
+        </a>
+        <a href="{% url 'chit_edit' chit.id %}" class="btn btn-primary shadow-sm rounded-pill px-3 py-2 flex-fill flex-sm-grow-0 text-nowrap">
+            <i class="bi bi-pencil-square me-1"></i> <span class="d-none d-md-inline">Edit Group</span><span class="d-md-none">Edit</span>
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 g-md-4 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm p-3 p-md-4 text-center rounded-4 h-100 bg-white border-bottom border-primary border-4">
+            <div class="avatar-sm rounded-circle bg-primary-light text-primary-green mx-auto mb-2 mb-md-3 d-flex align-items-center justify-content-center" style="width:40px; height:40px; min-width: 40px;">
+                <i class="bi bi-currency-exchange fs-5"></i>
+            </div>
+            <h6 class="text-muted extra-small text-uppercase fw-bold ls-1 mb-1 mb-md-2">Chit Value</h6>
+            <h4 class="fw-extrabold text-dark mb-0">₹{{ chit.amount }}</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm p-3 p-md-4 text-center rounded-4 h-100 bg-white border-bottom border-info border-4">
+            <div class="avatar-sm rounded-circle bg-info-light text-info mx-auto mb-2 mb-md-3 d-flex align-items-center justify-content-center" style="width:40px; height:40px; min-width: 40px; background: #e0f2fe;">
+                <i class="bi bi-wallet2 fs-5"></i>
+            </div>
+            <h6 class="text-muted extra-small text-uppercase fw-bold ls-1 mb-1 mb-md-2">Installment</h6>
+            <h4 class="fw-extrabold text-dark mb-0">₹{{ chit.installment_amount }}</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mt-3 mt-md-0">
+        <div class="card border-0 shadow-sm p-3 p-md-4 text-center rounded-4 h-100 bg-white border-bottom border-warning border-4">
+            <div class="avatar-sm rounded-circle bg-warning-light text-warning mx-auto mb-2 mb-md-3 d-flex align-items-center justify-content-center" style="width:40px; height:40px; min-width: 40px; background: #fef3c7;">
+                <i class="bi bi-calendar3 fs-5"></i>
+            </div>
+            <h6 class="text-muted extra-small text-uppercase fw-bold ls-1 mb-1 mb-md-2">Duration</h6>
+            <h4 class="fw-extrabold text-dark mb-0">{{ chit.duration_months }} <small class="fs-6 fw-bold">M</small></h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mt-3 mt-md-0">
+        <div class="card border-0 shadow-sm p-3 p-md-4 text-center rounded-4 h-100 bg-white border-bottom border-success border-4">
+            <div class="avatar-sm rounded-circle bg-success-light text-success mx-auto mb-2 mb-md-3 d-flex align-items-center justify-content-center" style="width:40px; height:40px; min-width: 40px; background: #dcfce7;">
+                <i class="bi bi-people fs-5"></i>
+            </div>
+            <h6 class="text-muted extra-small text-uppercase fw-bold ls-1 mb-1 mb-md-2">Enrollment</h6>
+            <h4 class="fw-extrabold text-dark mb-0">{{ members.count }}<small class="fs-6 text-muted fw-bold">/{{ chit.duration_months }}</small></h4>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 p-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-list-stars me-2 text-primary"></i> Member Roster</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="ps-4 border-0 py-3 small text-uppercase fw-bold text-muted">Member Details</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted">Phone</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted">Enrollment Date</th>
+                                <th class="border-0 pe-4 py-3 small text-uppercase fw-bold text-muted text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mem in members %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm rounded-circle bg-primary-light text-primary-green d-flex align-items-center justify-content-center me-2 fw-bold" style="width:30px; height:30px; font-size: 0.7rem;">
+                                            {{ mem.member.name|make_list|first|upper }}
+                                        </div>
+                                        <div class="fw-bold text-dark">{{ mem.member.name }}</div>
+                                    </div>
+                                </td>
+                                <td>{{ mem.member.phone }}</td>
+                                <td><span class="small fw-medium text-muted">{{ mem.joined_date|date:"d M Y" }}</span></td>
+                                <td class="pe-4 text-end">
+                                    <form action="{% url 'remove_member' chit.id mem.member.id %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 border-opacity-25" onclick="return confirm('Archive enrollment for this member?');">
+                                            Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-muted text-center py-5 small">No enrollment records found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-success border-4">
+            <div class="card-header bg-white border-0 p-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-person-plus me-2 text-success"></i> New Admission</h5>
+            </div>
+            <div class="card-body p-4 pt-0">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Search Member Database</label>
+                        <select name="member_id" class="form-select bg-light border-0 py-3 px-3 rounded-4" required>
+                            <option value="">-- Choose Member Profile --</option>
+                            {% for m in all_members %}
+                            {% if m.status == 'ACTIVE' %}
+                            <option value="{{ m.id }}">{{ m.name }} ({{ m.phone }})</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if members.count < chit.duration_months %}
+                        <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill py-3 fw-bold shadow">
+                            <i class="bi bi-plus-lg me-2"></i> Confirm Enrollment
+                        </button>
+                    {% else %}
+                        <div class="alert alert-warning border-0 rounded-4 py-3 mb-0 text-center fw-bold bg-warning bg-opacity-10">
+                            <i class="bi bi-exclamation-octagon me-2"></i> Enrollment Limit Reached
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

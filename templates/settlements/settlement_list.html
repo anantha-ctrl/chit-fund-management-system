@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 gap-3">
+    <div>
+        <h2 class="page-title mb-0 fs-4 text-dark">Financial Settlements</h2>
+        <p class="text-muted small mb-0 d-none d-md-block">Manage and audit cycle reconciliation records</p>
+    </div>
+    <div>
+        <a href="{% url 'settlement_create' %}" class="btn btn-primary btn-sm rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2">
+            <i class="bi bi-plus-circle fs-6"></i>
+            <span class="fw-bold" style="font-size: 0.75rem;">New Settlement</span>
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 ps-4 py-3 text-uppercase small fw-bold text-muted">Member</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Chit Group</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Paid</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Received</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Net Amount</th>
+                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Status</th>
+                        <th class="border-0 pe-4 py-3 text-uppercase small fw-bold text-muted text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for settlement in settlements %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm rounded-circle bg-primary-light text-primary-green d-flex align-items-center justify-content-center me-2 fw-bold shadow-sm" style="width:30px; height:30px; font-size: 0.7rem;">
+                                    {{ settlement.member.name|make_list|first|upper }}
+                                </div>
+                                <div class="fw-bold text-dark">{{ settlement.member.name }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-muted small">{{ settlement.chit_group.name }}</div>
+                        </td>
+                        <td class="text-center text-danger fw-bold small">₹{{ settlement.total_paid }}</td>
+                        <td class="text-center text-success fw-bold small">₹{{ settlement.total_received }}</td>
+                        <td class="text-center">
+                            <span class="badge {% if settlement.net_amount < 0 %}bg-danger-subtle text-danger{% else %}bg-success-subtle text-success{% endif %} rounded-pill px-3 py-2 border border-opacity-10 fw-extrabold">
+                                ₹{{ settlement.net_amount }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if settlement.status == 'OPEN' %}
+                                <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-bold border border-warning-subtle">
+                                    <i class="bi bi-unlock-fill"></i> OPEN
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-muted px-3 py-2 rounded-pill fw-bold border">
+                                    <i class="bi bi-lock-fill"></i> CLOSED
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 text-end">
+                            <div class="btn-group shadow-sm rounded-pill overflow-hidden border">
+                                <a href="{% url 'settlement_detail' settlement.id %}" class="btn btn-white btn-sm px-3 border-end" title="Summary View">
+                                    <i class="bi bi-file-text text-info"></i>
+                                </a>
+                                {% if settlement.status == 'OPEN' %}
+                                <a href="{% url 'settlement_edit' settlement.id %}" class="btn btn-white btn-sm px-3" title="Edit">
+                                    <i class="bi bi-pencil-square text-primary"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-5 text-muted small">No financial settlements generated yet. Start by closing a member's cycle.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

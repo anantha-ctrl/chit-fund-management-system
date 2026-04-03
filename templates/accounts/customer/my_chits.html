@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">My Joined Chits</h1>
+</div>
+
+<div class="row g-4">
+    {% for my_chit in my_chits %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden" style="border-radius: 16px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-3 p-3" style="background-color: var(--primary-light); color: var(--primary-green);">
+                        <i class="bi bi-safe2-fill fs-3"></i>
+                    </div>
+                    <span class="badge {% if my_chit.chit_group.status == 'ACTIVE' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ my_chit.chit_group.status }}
+                    </span>
+                </div>
+                <h5 class="fw-bold mb-1">{{ my_chit.chit_group.name }}</h5>
+                <p class="text-muted small mb-4">Joined on {{ my_chit.joined_date|date:"d M Y" }}</p>
+                
+                <div class="row g-2 mb-4">
+                    <div class="col-6">
+                        <div class="p-2 border rounded-3 bg-light">
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">Total Amount</small>
+                            <span class="fw-bold">₹{{ my_chit.chit_group.amount }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 border rounded-3 bg-light">
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">Monthly Due</small>
+                            <span class="fw-bold text-success">₹{{ my_chit.chit_group.installment_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mt-auto">
+                    <div class="text-muted small">
+                        <i class="bi bi-calendar3 me-1"></i> {{ my_chit.chit_group.duration_months }} Months
+                    </div>
+                    <button class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#chitDetail{{ my_chit.chit_group.id }}">
+                        View Detail <i class="bi bi-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Detail Modal -->
+    <div class="modal fade" id="chitDetail{{ my_chit.chit_group.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0 px-4 pt-4">
+                    <h5 class="modal-title fw-extrabold text-dark">{{ my_chit.chit_group.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="avatar-md rounded-4 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                            <i class="bi bi-building fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0 fw-bold text-uppercase">Regional Branch</p>
+                            <h6 class="mb-0 fw-bold text-dark">{{ my_chit.chit_group.branch.name|default:"Main Branch" }}</h6>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded-4 h-100">
+                                <label class="text-muted extra-small d-block fw-bold text-uppercase mb-1">Commission</label>
+                                <span class="fw-extrabold text-dark">{{ my_chit.chit_group.commission_percentage }}%</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded-4 h-100">
+                                <label class="text-muted extra-small d-block fw-bold text-uppercase mb-1">Start Date</label>
+                                <span class="fw-extrabold text-dark">{{ my_chit.chit_group.start_date|date:"M Y" }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Financial Balance Row -->
+                        <div class="col-12 mt-3">
+                            <div class="p-4 bg-danger bg-opacity-10 rounded-4 border border-danger border-opacity-25 shadow-sm text-center">
+                                <label class="text-danger extra-small d-block fw-bold text-uppercase mb-2">Remaining Balance Due</label>
+                                <h2 class="fw-extrabold text-danger mb-0">₹{{ my_chit.remaining_balance|floatformat:2 }}</h2>
+                                <div class="mt-2 pt-2 border-top border-danger border-opacity-10 d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small">Total Paid:</span>
+                                    <span class="fw-bold text-success">₹{{ my_chit.total_paid_in_group|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <div class="p-3 border rounded-4 bg-white" style="border-style: dashed !important; border-width: 2px !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted small">Total Pot Value</span>
+                                    <span class="fw-extrabold text-success fs-5">₹{{ my_chit.chit_group.amount }}</span>
+                                </div>
+                                <div class="progress" style="height: 6px; border-radius: 10px;">
+                                    <div class="progress-bar bg-success" style="width: 100%;"></div>
+                                </div>
+                                <small class="text-muted d-block mt-2 font-italic" style="font-size: 0.65rem;">Active for {{ my_chit.chit_group.duration_months }} months.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold text-muted w-100 py-2 border" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="mb-3"><i class="bi bi-inbox fs-1 opacity-25"></i></div>
+        <h5 class="text-muted">You haven't joined any chit groups yet.</h5>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

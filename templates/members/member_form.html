@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">{{ title }}</h1>
+    <a href="{% url 'member_list' %}" class="btn btn-light border shadow-sm">
+        <i class="bi bi-arrow-left me-2"></i> Back to Members
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+            <div class="card-body p-4 p-md-5">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Section: Basic Info -->
+                    <div class="row g-4 mb-5">
+                        <div class="col-12">
+                            <h5 class="fw-bold mb-4 d-flex align-items-center">
+                                <span class="avatar-sm rounded-3 bg-primary-light text-primary-green me-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-person-badge"></i>
+                                </span>
+                                Basic Information
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="name" class="form-control" id="id_name" placeholder="Full Name" required value="{{ form.name.value|default:'' }}">
+                                <label for="id_name">Full Name</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="phone" class="form-control" id="id_phone" placeholder="Phone Number" required value="{{ form.phone.value|default:'' }}">
+                                <label for="id_phone">Phone Number</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-floating mb-3">
+                                <textarea name="address" class="form-control" id="id_address" placeholder="Address" style="height: 100px;">{{ form.address.value|default:'' }}</textarea>
+                                <label for="id_address">Residential Address</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <select name="branch" class="form-select" id="id_branch">
+                                    <option value="">---------</option>
+                                    {% for branch in form.branch.field.queryset %}
+                                        <option value="{{ branch.pk }}" {% if form.branch.value|stringformat:"s" == branch.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ branch.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <label for="id_branch">Assigned Branch (Optional)</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <select name="status" class="form-select" id="id_status">
+                                    <option value="ACTIVE" {% if form.status.value == 'ACTIVE' %}selected{% endif %}>Active Member</option>
+                                    <option value="INACTIVE" {% if form.status.value == 'INACTIVE' %}selected{% endif %}>Inactive Member</option>
+                                </select>
+                                <label for="id_status">Membership Status</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <select name="chit_group" class="form-select" id="id_chit_group">
+                                    <option value="">---------</option>
+                                    {% for group in form.chit_group.field.queryset %}
+                                        <option value="{{ group.pk }}" {% if form.chit_group.value|stringformat:"s" == group.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ group.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <label for="id_chit_group">Primary Chit Group (Optional)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Nominee Details -->
+                    <div class="row g-4 mb-5 border-top pt-5 mt-2">
+                        <div class="col-12">
+                            <h5 class="fw-bold mb-4 d-flex align-items-center">
+                                <span class="avatar-sm rounded-3 bg-warning-light text-warning-green me-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #fffcf0;">
+                                    <i class="bi bi-person-heart text-warning"></i>
+                                </span>
+                                Nominee Information (Legal Succession)
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="nominee_name" class="form-control" id="id_nominee_name" placeholder="Nominee Name" value="{{ form.nominee_name.value|default:'' }}">
+                                <label for="id_nominee_name">Nominee Full Name</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="nominee_relationship" class="form-control" id="id_nominee_relationship" placeholder="Relationship" value="{{ form.nominee_relationship.value|default:'' }}">
+                                <label for="id_nominee_relationship">Relationship (e.g. Spouse, Son)</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="nominee_phone" class="form-control" id="id_nominee_phone" placeholder="Phone" value="{{ form.nominee_phone.value|default:'' }}">
+                                <label for="id_nominee_phone">Nominee Phone Number</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="nominee_id_number" class="form-control" id="id_nominee_id_number" placeholder="ID Number" value="{{ form.nominee_id_number.value|default:'' }}">
+                                <label for="id_nominee_id_number">Nominee Aadhaar/PAN ID</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Digital Portal -->
+                    <div class="row g-4 mb-4 bg-light rounded-4 p-4 border mx-0">
+                        <div class="col-12">
+                            <h5 class="fw-bold mb-3 d-flex align-items-center">
+                                <span class="avatar-sm rounded-3 bg-info-light text-info me-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #e0f2fe;">
+                                    <i class="bi bi-shield-lock"></i>
+                                </span>
+                                Login Credentials (Optional)
+                            </h5>
+                            <p class="text-muted small">Enable portal access for this customer to view their transactions.</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-2">
+                                <input type="text" name="username" class="form-control" id="id_username" placeholder="Username" 
+                                       value="{{ form.username.value|default:'' }}" 
+                                       {% if form.username.field.widget.attrs.readonly %}readonly{% endif %}>
+                                <label for="id_username">Login Username</label>
+                            </div>
+                            <div class="form-text small opacity-75">{{ form.username.help_text|safe }}</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-2 position-relative">
+                                <input type="password" name="password" class="form-control" id="id_password" placeholder="Password">
+                                <label for="id_password">Set/Reset Password</label>
+                                <i class="bi bi-eye-slash position-absolute" id="togglePassword" 
+                                   style="right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); z-index: 10;"></i>
+                            </div>
+                            <div class="form-text small opacity-75">{{ form.password.help_text|safe }}</div>
+                        </div>
+                    </div>
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger fade show rounded-4 shadow-sm border-0 mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i> <strong>Please fix:</strong>
+                        <ul class="mb-0 mt-2">
+                            {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-3 mt-5">
+                        <button type="submit" class="btn btn-primary shadow-sm px-4 py-2 rounded-3 fw-bold">
+                            <i class="bi bi-check-circle me-2"></i> Save Member Data
+                        </button>
+                        <a href="{% url 'member_list' %}" class="btn btn-light border px-4 py-2 rounded-3">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle Password Visibility
+        const toggleBtn = document.querySelector('#togglePassword');
+        const passwordField = document.querySelector('#id_password');
+        if (toggleBtn && passwordField) {
+            toggleBtn.addEventListener('click', function() {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                this.classList.toggle('bi-eye');
+                this.classList.toggle('bi-eye-slash');
+            });
+        }
+
+        // AUTO-GENERATE USERNAME FROM NAME
+        const nameInput = document.querySelector('#id_name');
+        const usernameInput = document.querySelector('#id_username');
+        
+        if (nameInput && usernameInput && !usernameInput.readOnly) {
+            nameInput.addEventListener('input', function() {
+                // Only auto-fill if the username field is empty or matches previous auto-gen
+                const cleanName = this.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+                usernameInput.value = cleanName;
+            });
+        }
+    });
+</script>
+{% endblock %}

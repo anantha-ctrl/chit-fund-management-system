@@ -1,0 +1,707 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChitFund Management</title>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!--website icon -->
+    <link rel="icon" href="https://res.cloudinary.com/de1tywvqm/image/upload/q_auto/f_auto/v1775131032/Gemini_Generated_Image__1_qoe19x.png">
+    <style>
+        :root {
+            --primary-green: #16A34A;   
+            --primary-light: #DCFCE7;
+            --text-dark: #0F172A;
+            --text-muted: #64748B;
+            --bg-neutral: #F9FAFB;
+            --border-color: #E5E7EB;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-neutral);
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 0;
+            box-shadow: 1px 0 10px rgba(0, 0, 0, 0.05);
+            background-color: #FFFFFF;
+            border-right: 1px solid var(--border-color);
+        }
+        .sidebar-brand {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-color);
+            text-decoration: none;
+        }
+        .sidebar-brand span {
+            color: var(--primary-green);
+        }
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 70px);
+            padding-top: 1.5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-item {
+            margin: 0.2rem 1rem;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: var(--text-muted);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: var(--primary-green);
+            background-color: var(--bg-neutral);
+        }
+        .sidebar .nav-link.active {
+            color: var(--primary-green);
+            background-color: var(--primary-light);
+            font-weight: 600;
+        }
+        
+        .top-header {
+            height: 70px;
+            background-color: #FFFFFF;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        main {
+            padding: 2rem !important;
+        }
+        .card {
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            background: #FFFFFF;
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .card-body {
+            overflow-x: auto;
+        }
+        /* Global Button Scaling - Forced Small Sizes */
+        .btn {
+            font-size: 0.8rem !important;
+            padding: 0.35rem 0.8rem !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background-color: var(--primary-green) !important;
+            border-color: var(--primary-green) !important;
+        }
+        .btn-primary:hover {
+            background-color: #15803d !important;
+            border-color: #15803d !important;
+            box-shadow: 0 4px 10px rgba(22, 163, 74, 0.15) !important;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.6rem !important;
+            font-size: 0.72rem !important;
+            border-radius: 5px !important;
+        }
+        .btn-lg {
+            padding: 0.5rem 1.25rem !important;
+            font-size: 0.9rem !important;
+        }
+        .rounded-pill {
+            border-radius: 50px !important;
+        }
+        .page-title {
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .dropdown-item-danger:hover {
+            background-color: #fee2e2 !important;
+            color: #dc2626 !important;
+        }
+        .hover-bg-light:hover { background-color: #f8fafc; }
+        .bg-danger-light { background-color: #fee2e2; }
+        .bg-warning-light { background-color: #fef3c7; }
+        .bg-info-light { background-color: #e0f2fe; }
+        .transition { transition: all 0.2s ease; }
+        .extra-small { font-size: 0.65rem !important; }
+        .text-nowrap { white-space: nowrap !important; }
+        .ls-1 { letter-spacing: 0.5px; }
+        .table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+        }
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        .badge {
+            border-radius: 6px;
+            padding: 0.4em 0.8em;
+            font-weight: 600;
+        }
+        .badge-success {
+            background-color: var(--primary-light) !important;
+            color: var(--primary-green) !important;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                height: 100vh;
+                z-index: 1045;
+                transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                background: #FFFFFF;
+                display: block !important;
+                visibility: visible !important;
+            }
+            .sidebar.show {
+                left: 0;
+            }
+            .sidebar-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+                display: none;
+                transition: opacity 0.3s ease;
+            }
+            .sidebar-backdrop.show {
+                display: block;
+            }
+            .top-header {
+                justify-content: space-between !important;
+                padding: 0 1rem;
+            }
+            main {
+                padding: 1rem !important;
+            }
+        }
+
+        .hover-text-danger:hover { color: #ef4444 !important; opacity: 1 !important; transform: scale(1.1); }
+        .dropdown-item-group .delete-notif-btn { opacity: 0; }
+        .dropdown-item-group:hover .delete-notif-btn { opacity: 0.6; }
+
+        /* Navigation Animations */
+        @keyframes navPop {
+            0% { transform: scale(0.6); opacity: 0.5; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes slideInUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .mobile-bottom-nav {
+            animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .mobile-nav-item.active i {
+            animation: navPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: var(--primary-green);
+        }
+        
+        .mobile-nav-item i {
+            transition: transform 0.2s ease;
+        }
+        
+        .mobile-nav-item:active i {
+            transform: scale(0.9);
+        }
+
+        /* Mobile Bottom Nav */
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 75px;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.05);
+            z-index: 1030;
+            padding: 0 5%;
+        }
+        .mobile-nav-item {
+            text-align: center;
+            text-decoration: none !important;
+            color: #94a3b8;
+            transition: all 0.3s ease;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .mobile-nav-item i {
+            font-size: 1.4rem;
+            padding: 4px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        .mobile-nav-item span {
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+        .mobile-nav-item.active {
+            color: var(--primary-green);
+        }
+        
+        @media (max-width: 767.98px) {
+            main {
+                padding-bottom: 95px !important; /* Space for bottom nav */
+            }
+            .sidebar {
+                border-right: none;
+                border-radius: 0 24px 24px 0;
+            }
+            .sidebar-brand {
+                border-bottom: none;
+                padding: 1.5rem 1.5rem 1rem 1.5rem;
+            }
+            .top-header {
+                justify-content: space-between !important;
+                padding: 0 1rem;
+                gap: 5px;
+            }
+            main {
+                padding: 1rem !important;
+                padding-bottom: 95px !important; /* Space for bottom nav */
+            }
+            .mobile-search-wrapper {
+                position: relative;
+                flex-grow: 1;
+                max-width: 180px;
+                margin: 0 0.5rem;
+            }
+            .mobile-search-input {
+                background-color: #f1f5f9;
+                border: none;
+                border-radius: 50px;
+                padding: 0.5rem 1rem 0.5rem 2.2rem;
+                font-size: 0.8rem;
+                width: 100%;
+                transition: all 0.3s ease;
+            }
+            .mobile-search-icon {
+                position: absolute;
+                left: 0.8rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #64748b;
+                pointer-events: none;
+                font-size: 0.85rem;
+            }
+            
+            /* Horizontal Scrollable Tabs */
+            .tabs-scrollable-container {
+                display: flex !important;
+                overflow-x: auto !important;
+                flex-wrap: nowrap !important;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none; /* Hide scrollbar for Firefox */
+                padding-bottom: 5px;
+                gap: 8px;
+            }
+            .tabs-scrollable-container::-webkit-scrollbar {
+                display: none; /* Hide scrollbar for Chrome/Safari */
+            }
+            .tabs-scrollable-container .btn {
+                flex: 0 0 auto !important;
+                white-space: nowrap !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        {% if user.is_authenticated %}
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <i class="bi bi-shield-check me-2" style="color: var(--primary-green);"></i> Smart<span>Chit</span>
+            </a>
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <!-- COMMON DASHBOARD -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    </li>
+
+                    {% if user.role == 'SUPERADMIN' or user.role == 'ADMIN' or user.role == 'STAFF' %}
+                    <!-- CRM SECTION -->
+                    <li class="nav-item mt-3">
+                        <small class="text-uppercase text-muted fw-bold ms-3" style="font-size: 0.7rem; opacity: 0.5;">Management</small>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'member_list' %}"><i class="bi bi-people"></i> Members</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'payment_list' %}"><i class="bi bi-cash-stack"></i> Payments</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'kyc' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'kyc_center' %}"><i class="bi bi-shield-check"></i> KYC & Compliance</a>
+                    </li>
+                    {% endif %}
+
+                    {% if user.role == 'SUPERADMIN' or user.role == 'ADMIN' %}
+                    <li class="nav-item mt-3">
+                        <small class="text-uppercase text-muted fw-bold ms-3" style="font-size: 0.7rem; opacity: 0.5;">Chit Operations</small>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'chit' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'chit_list' %}"><i class="bi bi-collection"></i> Chits</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'auction' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'auction_list' %}"><i class="bi bi-hammer"></i> Auctions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'settlement' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'settlement_list' %}"><i class="bi bi-check2-circle"></i> Settlements</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'reports' %}"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a>
+                    </li>
+                    {% endif %}
+
+                    <!-- CUSTOMER SPECIFIC -->
+                    {% if user.role == 'CUSTOMER' %}
+                    <li class="nav-item mt-3">
+                        <small class="text-uppercase text-muted fw-bold ms-3" style="font-size: 0.7rem; opacity: 0.5;">My Financials</small>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'my_chits' %}active{% endif %}" href="{% url 'my_chits' %}"><i class="bi bi-safe"></i> My Chits</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_payment_history' %}active{% endif %}" href="{% url 'customer_payment_history' %}"><i class="bi bi-receipt"></i> Payment History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_reports' %}active{% endif %}" href="{% url 'customer_reports' %}"><i class="bi bi-file-earmark-bar-graph"></i> My Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_documents' %}active{% endif %}" href="{% url 'customer_documents' %}"><i class="bi bi-file-earmark-text"></i> My Documents</a>
+                    </li>
+                    {% endif %}
+
+                    <!-- SYSTEM CONTROL (SUPERADMIN ONLY) -->
+                    {% if user.role == 'SUPERADMIN' %}
+                    <li class="nav-item mt-4">
+                        <small class="text-uppercase text-muted fw-bold ms-3" style="border-top: 1px solid #eee; padding-top: 10px; display: block; font-size: 0.7rem;">System Engine</small>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'branch_list' %}active{% endif %}" href="{% url 'branch_list' %}"><i class="bi bi-buildings"></i> Branches</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'branch_analytics' %}active{% endif %}" href="{% url 'branch_analytics' %}"><i class="bi bi-graph-up-arrow"></i> Branch Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'bulk_notification' %}active{% endif %}" href="{% url 'bulk_notification' %}"><i class="bi bi-megaphone"></i> Bulk Communication Hub</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'user_list' %}"><i class="bi bi-person-gear"></i> User Manager</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'system_settings_view' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'system_settings_view' %}"><i class="bi bi-sliders"></i> Settings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'log_list' %}"><i class="bi bi-shield-check"></i> Audit Logs</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+        {% endif %}
+
+        <div class="col-md-9 ms-sm-auto col-lg-10">
+            {% if user.is_authenticated %}
+            <header class="top-header">
+                <!-- Hamburger for Sidebar -->
+                <button class="btn border-0 d-md-none fs-4 text-dark p-0 me-1" id="sidebarToggle" aria-label="Toggle Navigation">
+                    <i class="bi bi-list"></i>
+                </button>
+                
+                <!-- Mobile Brand Logo (Replaces Search) -->
+                <div class="d-md-none fs-5 fw-bold ms-2" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <i class="bi bi-shield-check" style="color: var(--primary-green);"></i> Smart<span style="color: var(--primary-green);">Chit</span>
+                </div>
+
+                <!-- Global Search Bar (Desktop/Tablet) -->
+                <div class="d-none d-md-flex flex-grow-1 mx-4" style="max-width: 450px;">
+                    <div class="input-group input-group-sm bg-light border-0 rounded-pill px-3" style="height: 38px;">
+                        <span class="input-group-text bg-transparent border-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control bg-transparent border-0 shadow-none ps-0" placeholder="Search members, chits, auctions..." style="font-size: 0.85rem;">
+                    </div>
+                </div>
+
+                <!-- Header Actions -->
+                <div class="d-flex align-items-center gap-2 gap-md-3 ms-auto">
+
+                    <!-- Notification Bell -->
+                    <div class="dropdown">
+                        <div class="position-relative p-2" style="cursor: pointer;" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell-fill fs-5 text-muted"></i>
+                            {% if notifications.count > 0 %}
+                            <span class="notification-badge-dot"></span>
+                            <span class="d-none d-md-inline position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style="font-size: 0.6rem; padding: 0.25rem 0.4rem; transform: translate(-40%, 40%) !important;">
+                                {{ notifications.count }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Notification Dropdown Content -->
+                        <div class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-3 py-0 overflow-hidden" style="border-radius: 20px; min-width: 320px;">
+                            <div class="p-3 bg-primary-light border-bottom d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold text-primary-green">Alert Notifications</h6>
+                                <span class="badge bg-white text-primary-green rounded-pill small">{{ notifications.count }} New</span>
+                            </div>
+                            <div class="overflow-auto" style="max-height: 400px;">
+                                {% for note in notifications %}
+                                <div class="p-3 border-bottom hover-bg-light transition position-relative dropdown-item-group">
+                                    <div class="d-flex align-items-start pe-4">
+                                        <div class="rounded-circle p-2 me-3 flex-shrink-0 
+                                            {% if note.priority == 'danger' %}bg-danger-light text-danger
+                                            {% elif note.priority == 'warning' %}bg-warning-light text-warning
+                                            {% else %}bg-info-light text-info{% endif %}" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi {% if note.priority == 'danger' %}bi-exclamation-octagon{% elif note.priority == 'warning' %}bi-lightning-charge{% else %}bi-info-circle{% endif %} small"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark small mb-1">{{ note.title }}</div>
+                                            <div class="text-muted small mb-1" style="line-height: 1.3;">{{ note.message|truncatechars:80 }}</div>
+                                            <small class="text-muted d-block" style="font-size: 0.65rem;">{{ note.created_at|timesince }} ago</small>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'delete_notification' note.pk %}" class="position-absolute top-0 end-0 p-3 text-muted hover-text-danger transition delete-notif-btn" title="Dismiss">
+                                        <i class="bi bi-x-circle me-1 small"></i>
+                                    </a>
+                                </div>
+                                {% empty %}
+                                <div class="p-5 text-center text-muted small">
+                                    <i class="bi bi-bell-slash fs-1 d-block mb-2 opacity-25"></i>
+                                    No new notifications.
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <a href="{% url 'notification_list' %}" class="dropdown-item text-center py-2 bg-light small fw-bold text-primary-green border-top">View All Alerts</a>
+                        </div>
+                    </div>
+                    
+                    <div class="dropdown user-profile d-flex align-items-center gap-3 ms-1">
+                        <div class="text-end d-none d-md-block" style="cursor: pointer;" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="fw-bold lh-1 mb-1" style="font-size: 0.95rem;">{{ user.first_name|default:user.username }}</div>
+                            <div class="text-muted x-small lh-1" style="font-size: 0.75rem;">
+                                {% if user.role == 'SUPERADMIN' %}Super Admin
+                                {% elif user.role == 'ADMIN' %}Admin
+                                {% elif user.role == 'STAFF' %}Staff
+                                {% else %}Customer{% endif %}
+                            </div>
+                        </div>
+                        <div class="avatar shadow-sm overflow-hidden" style="cursor: pointer; width: 38px; height: 38px; background-color: #10b981; color: white;" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile" class="w-100 h-100 object-fit-cover">
+                            {% else %}
+                                {{ user.username|make_list|first|upper }}
+                            {% endif %}
+                        </div>
+                        
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-3 py-3 px-2" style="border-radius: 16px; min-width: 240px;">
+                            <li class="px-3 pb-3 border-bottom mb-2">
+                                <div class="fw-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="text-muted small">{{ user.email|default:"No email provided" }}</div>
+                                <span class="badge bg-primary-light text-primary-green mt-2 px-3 badge-pill">
+                                    {{ user.role }}
+                                </span>
+                            </li>
+                            <li><a class="dropdown-item rounded-3 py-2" href="{% url 'profile_view' %}"><i class="bi bi-person me-2"></i> My Profile</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2" href="{% url 'system_settings_view' %}"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item rounded-3 py-2 text-danger dropdown-item-danger" href="{% url 'logout' %}">
+                                    <i class="bi bi-box-arrow-right me-2"></i> Sign Out
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+            {% endif %}
+
+            <main class="px-md-4 d-flex flex-column min-vh-100">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert" style="border-radius: 8px;">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="flex-grow-1">
+                    {% block content %}{% endblock %}
+                </div>
+
+                <div class="mb-4"></div> <!-- Small spacing instead of footer -->
+            </main>
+        </div>
+    </div>
+</div>
+
+    {% if user.is_authenticated %}
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav d-md-none">
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="bi {% if request.resolver_match.url_name == 'dashboard' %}bi-grid-fill{% else %}bi-grid{% endif %}"></i>
+            <span>Dashboard</span>
+        </a>
+        
+        {% if user.role == 'SUPERADMIN' or user.role == 'ADMIN' %}
+        <a href="{% url 'user_list' %}" class="mobile-nav-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi {% if 'user' in request.resolver_match.url_name %}bi-person-gear{% else %}bi-people{% endif %}"></i>
+            <span>Users</span>
+        </a>
+        <a href="{% url 'reports' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+            <i class="bi {% if request.resolver_match.url_name == 'reports' %}bi-file-earmark-bar-graph-fill{% else %}bi-file-earmark-bar-graph{% endif %}"></i>
+            <span>Reports</span>
+        </a>
+        <a href="{% url 'system_settings_view' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'system_settings_view' %}active{% endif %}">
+            <i class="bi {% if request.resolver_match.url_name == 'system_settings_view' %}bi-gear-fill{% else %}bi-gear{% endif %}"></i>
+            <span>Settings</span>
+        </a>
+        {% elif user.role == 'STAFF' %}
+        <a href="{% url 'member_list' %}" class="mobile-nav-item {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            <span>Members</span>
+        </a>
+        <a href="{% url 'payment_list' %}" class="mobile-nav-item {% if 'payment' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-cash-stack"></i>
+            <span>Payments</span>
+        </a>
+        <a href="{% url 'profile_view' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile_view' %}active{% endif %}">
+            <i class="bi bi-person"></i>
+            <span>Profile</span>
+        </a>
+        {% else %}
+        <!-- CUSTOMER BOTTOM NAV -->
+        <a href="{% url 'my_chits' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'my_chits' %}active{% endif %}">
+            <i class="bi bi-safe"></i>
+            <span>My Chits</span>
+        </a>
+        <a href="{% url 'customer_reports' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'customer_reports' %}active{% endif %}">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            <span>Reports</span>
+        </a>
+        <a href="{% url 'customer_documents' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'customer_documents' %}active{% endif %}">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Documents</span>
+        </a>
+        <a href="{% url 'profile_view' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile_view' %}active{% endif %}">
+            <i class="bi bi-person"></i>
+            <span>Profile</span>
+        </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebarMenu');
+        const toggle = document.getElementById('sidebarToggle');
+        
+        if (sidebar && toggle) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'sidebar-backdrop';
+            document.body.appendChild(backdrop);
+            
+            toggle.addEventListener('click', () => {
+                sidebar.classList.add('show');
+                backdrop.classList.add('show');
+            });
+            
+            backdrop.addEventListener('click', () => {
+                sidebar.classList.remove('show');
+                backdrop.classList.remove('show');
+            });
+        }
+    });
+</script>
+</body>
+</html>

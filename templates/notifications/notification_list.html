@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}All Notifications - SmartChit{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 py-md-4 px-2 px-md-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="mb-3">
+                <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted small d-flex align-items-center transition hover-text-primary">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+                </a>
+            </div>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <h2 class="page-title mb-1 fs-3">Notifications</h2>
+                    <p class="text-muted small mb-0">Stay updated with your latest alerts and activities</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'mark_all_read' %}" class="btn btn-sm btn-outline-primary px-3 py-2 rounded-pill border-0 bg-primary-light-hover">
+                        <i class="bi bi-check-all me-1"></i> Mark all read
+                    </a>
+                    <a href="{% url 'clear_all_notifications' %}" class="btn btn-sm btn-outline-danger px-3 py-2 rounded-pill border-0 bg-danger-light-hover" onclick="return confirm('Clear all notifications?')">
+                        <i class="bi bi-trash3 me-1"></i> Clear all alerts
+                    </a>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for note in notifications %}
+                        <div class="list-group-item p-3 p-md-4 border-0 border-bottom hover-bg-light transition {% if not note.is_read %}notification-unread{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex align-items-start">
+                                    <div class="rounded-circle me-3 me-md-4 flex-shrink-0 
+                                        {% if note.priority == 'danger' %}bg-danger-light text-danger
+                                        {% elif note.priority == 'warning' %}bg-warning-light text-warning
+                                        {% else %}bg-info-light text-info{% endif %}" 
+                                        style="width: 45px; height: 45px; min-width: 45px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi {% if note.priority == 'danger' %}bi-exclamation-octagon{% elif note.priority == 'warning' %}bi-lightning-charge{% else %}bi-info-circle{% endif %} fs-5"></i>
+                                    </div>
+                                    <div class="pe-2">
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                            <h6 class="mb-0 fw-bold text-dark fs-6">{{ note.title }}</h6>
+                                            {% if not note.is_read %}
+                                            <span class="status-indicator"></span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-muted small mb-2 line-height-sm pe-md-5">{{ note.message }}</p>
+                                        <div class="d-flex flex-wrap align-items-center text-muted gap-x-3" style="font-size: 0.7rem;">
+                                            <span class="d-flex align-items-center"><i class="bi bi-clock me-1"></i> {{ note.created_at|date:"M d, Y" }}</span>
+                                            <span class="d-flex align-items-center"><i class="bi bi-calendar4-event me-1"></i> {{ note.created_at|timesince }} ago</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-light btn-sm rounded-circle p-0" style="width: 32px; height: 32px;" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2 py-2 px-1 rounded-3">
+                                        <li>
+                                            <a class="dropdown-item py-2 rounded-2 small d-flex align-items-center" href="{% url 'toggle_notification_read' note.pk %}">
+                                                {% if note.is_read %}
+                                                <i class="bi bi-envelope me-2"></i> Mark as unread
+                                                {% else %}
+                                                <i class="bi bi-envelope-open me-2"></i> Mark as read
+                                                {% endif %}
+                                            </a>
+                                        </li>
+                                        <li><a class="dropdown-item py-2 rounded-2 text-danger small flex-row d-flex align-items-center" href="{% url 'delete_notification' note.pk %}"><i class="bi bi-trash me-2"></i> Delete alert</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-5 text-center text-muted">
+                            <i class="bi bi-bell-slash fs-1 d-block mb-3 opacity-25"></i>
+                            <h5 class="fw-bold">No Notifications</h5>
+                            <p class="small">You're all caught up! New alerts will appear here.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notification-unread { background-color: rgba(37, 99, 235, 0.03); border-left: 3px solid var(--primary-color) !important; }
+    .status-indicator { width: 8px; height: 8px; background-color: var(--primary-color); border-radius: 50%; display: inline-block; }
+    .bg-primary-light { background-color: rgba(37, 99, 235, 0.03); }
+    .bg-danger-light { background-color: rgba(239, 68, 68, 0.1); }
+    .bg-warning-light { background-color: rgba(245, 158, 11, 0.1); }
+    .bg-info-light { background-color: rgba(59, 130, 246, 0.1); }
+    .bg-primary-light-hover:hover { background-color: rgba(37, 99, 235, 0.1) !important; }
+    .bg-danger-light-hover:hover { background-color: rgba(239, 68, 68, 0.15) !important; }
+    .transition { transition: all 0.2s ease; }
+    .hover-bg-light:hover { background-color: #f8fafc; }
+    .hover-text-primary:hover { color: var(--primary-color) !important; }
+    .line-height-sm { line-height: 1.4; }
+</style>
+{% endblock %}

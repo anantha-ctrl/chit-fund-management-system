@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">Personal Payment Ledger</h1>
+    <div>
+        <button onclick="window.print()" class="btn btn-light border shadow-sm px-4"><i class="bi bi-printer me-2"></i> Print History</button>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 20px;">
+    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+        <h5 class="fw-bold mb-0">List of All Contributions</h5>
+        <p class="text-muted small mb-0">Your verified transaction history</p>
+    </div>
+    <div class="card-body p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-3">Date</th>
+                        <th class="border-0 text-center">Group Name</th>
+                        <th class="border-0 text-center">Installment #</th>
+                        <th class="border-0 text-center">Amount</th>
+                        <th class="border-0 text-center">Status</th>
+                        <th class="border-0 text-end px-3">Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td class="px-3">
+                            <h6 class="fw-bold mb-0">{{ payment.payment_date|date:"M d, Y" }}</h6>
+                            <small class="text-muted opacity-75">{{ payment.created_at|time:"H:i A" }}</small>
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-semibold text-primary">{{ payment.chit_group.name }}</span>
+                        </td>
+                        <td class="text-center fw-bold">#{{ payment.installment_number }}</td>
+                        <td class="text-center fs-5 fw-extrabold text-success">₹{{ payment.amount|floatformat:2 }}</td>
+                        <td class="text-center">
+                            {% if payment.status == 'PAID' %}
+                                <span class="badge bg-success text-white px-3 py-2 rounded-3"><i class="bi bi-check-circle-fill me-1"></i> Paid</span>
+                            {% elif payment.status == 'LATE' %}
+                                <span class="badge bg-danger text-white px-3 py-2 rounded-3"><i class="bi bi-exclamation-triangle-fill me-1"></i> Late</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark px-3 py-2 rounded-3"><i class="bi bi-clock-fill me-1"></i> Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end px-3">
+                            {% if payment.status == 'PAID' %}
+                                <a href="{% url 'payment_receipt' payment.id %}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                    <i class="bi bi-printer-fill me-1"></i> Receipt
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">Not Available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="mb-3 opacity-25"><i class="bi bi-receipt fs-1"></i></div>
+                            <h5 class="text-muted">No transactions found in your history.</h5>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style type="text/css">
+    @media print {
+        .sidebar, .top-header, .d-print-none, .btn { display: none !important; }
+        main { padding: 0 !important; width: 100% !important; margin: 0 !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .table th { background-color: #f8f9fa !important; border: 1px solid #dee2e6 !important; }
+        .bg-success { color: #155724 !important; background-color: #d4edda !important; }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">Branch Management</h1>
+    <a href="{% url 'branch_create' %}" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-lg me-2"></i> Add New Branch
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 16px;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-4 py-3">Branch Name</th>
+                        <th class="border-0 py-3">Code</th>
+                        <th class="border-0 py-3 text-center">Status</th>
+                        <th class="border-0 py-3 text-end px-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for branch in branches %}
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-dark">{{ branch.name }}</div>
+                            <small class="text-muted"><i class="bi bi-geo-alt me-1"></i> {{ branch.address }}</small>
+                        </td>
+                        <td class="fw-medium text-muted">{{ branch.code }}</td>
+                        <td class="text-center">
+                            {% if branch.is_active %}
+                                <span class="badge bg-success-subtle text-success px-3 py-2">ACTIVE</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger px-3 py-2">INACTIVE</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end px-4">
+                            <a href="{% url 'branch_edit' branch.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="bi bi-pencil-square me-1"></i> Edit
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <div class="text-muted mb-3"><i class="bi bi-buildings fs-1 opacity-25"></i></div>
+                            <p class="text-muted">No branches found. Start by adding your first office.</p>
+                            <a href="{% url 'branch_create' %}" class="btn btn-primary btn-sm rounded-pill px-4">Create Branch</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

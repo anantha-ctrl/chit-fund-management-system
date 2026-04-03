@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-7 col-xl-5">
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
+            <div class="card-header bg-primary text-white p-4 text-center border-0">
+                <i class="bi bi-shield-lock-fill fs-1 mb-2 d-inline-block"></i>
+                <h4 class="fw-bold mb-0">Two-Factor Authentication</h4>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <p class="text-muted">Enhance your account security by adding an extra layer of protection using an authenticator app.</p>
+                </div>
+
+                <!-- Step 1: QR Code -->
+                <div class="bg-light p-4 rounded-4 text-center mb-4">
+                    <h6 class="fw-bold mb-3 small text-uppercase">1. Scan this QR Code</h6>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ provisioning_uri }}" alt="QR Code" class="img-fluid rounded shadow-sm mb-3">
+                    <div class="alert alert-info border-0 mb-0 py-2 small">
+                        Using Google Authenticator, Authy, or Microsoft Authenticator
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3 small text-uppercase">2. Manual Entry Key</h6>
+                    <div class="input-group">
+                        <input type="text" value="{{ secret }}" class="form-control border-0 bg-light p-3 rounded-start-3" readonly id="manualSecret">
+                        <button class="btn btn-outline-primary border-0 bg-light rounded-end-3 px-3" onclick="navigator.clipboard.writeText('{{ secret }}'); alert('Key copied!')">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Verification -->
+                <form action="{% url 'verify_2fa' %}" method="post">
+                    {% csrf_token %}
+                    <h6 class="fw-bold mb-3 small text-uppercase">3. Verify 6-Digit Code</h6>
+                    <input type="text" name="otp_token" class="form-control border-0 bg-light p-3 fs-4 text-center fw-bold rounded-4 mb-4" placeholder="000 000" maxlength="6" required autofocus>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow">
+                        Activate 2FA
+                    </button>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <a href="{% url 'system_settings_view' %}" class="btn btn-link text-decoration-none text-muted small">
+                        Cancel and return
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

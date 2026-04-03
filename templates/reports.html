@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+/* Main Print System */
+@media print {
+    /* SHEET LOCKDOWN: Force 1 page and clean background */
+    html, body {
+        height: auto !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    #sidebar-wrapper, .navbar, .top-header, .base-header, .btn, .breadcrumb, nav, footer, .sidebar, .no-print, .btn-toolbar, .alert {
+        display: none !important;
+        height: 0 !important;
+        visibility: hidden !important;
+    }
+
+    main, .content-wrapper, .container {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        visibility: visible !important;
+    }
+
+    /* Professional Top Header (No Office Copy) */
+    #print-report-header {
+        display: block !important;
+        border-bottom: 2px solid #212529 !important;
+        margin-bottom: 20px !important;
+        padding-bottom: 8px !important;
+    }
+
+    .card {
+        border: 1px solid #dee2e6 !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+        margin-bottom: 15px !important;
+        page-break-inside: avoid !important;
+    }
+
+    .card-header {
+        padding: 12px !important;
+        background-color: #f8f9fa !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .card-body { padding: 0 !important; }
+
+    /* Performance Tables */
+    .table th, .table td { 
+        padding: 6px 10px !important; 
+        font-size: 9pt !important;
+    }
+    .table thead th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+}
+
+/* Print Header - Hidden on Web */
+#print-report-header { display: none; }
+</style>
+
+<!-- Clean Print Header -->
+<div id="print-report-header" class="w-100 mb-4">
+    <div class="row align-items-end">
+        <div class="col-8">
+            <h2 class="fw-extrabold text-uppercase mb-1" style="letter-spacing: 1px;">Chit Fund Management</h2>
+            <h5 class="text-muted mb-0">Consolidated Executive Performance Report</h5>
+        </div>
+        <div class="col-4 text-end">
+            <p class="small text-muted mb-0">Report Date: {% now "d M Y, h:i A" %}</p>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <h1 class="page-title">Executive Reports</h1>
+    <button onclick="window.print()" class="btn btn-dark rounded-pill px-4 shadow-sm">
+        <i class="bi bi-printer me-2"></i> Export Data (PDF)
+    </button>
+</div>
+
+<!-- Key Performance Indicators (Visible on Web Only) -->
+<div class="row g-4 mb-5 no-print">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: linear-gradient(135deg, #fff 0%, #fff1f2 100%);">
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Total Arrears</label>
+            <h3 class="fw-bold text-danger mb-0">₹{{ total_late|default:0 }}</h3>
+            <p class="text-muted small mt-1 mb-0"><i class="bi bi-person-exclamation me-1"></i> {{ defaulter_count|default:0 }} Members Pending</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%);">
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Total Collections</label>
+            <h3 class="fw-bold text-success mb-0">₹{{ total_collected|default:0 }}</h3>
+            <p class="text-muted small mt-1 mb-0"><i class="bi bi-wallet2 me-1"></i> Cumulative Life-time</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: linear-gradient(135deg, #fff 0%, #eff6ff 100%);">
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Collection Efficiency</label>
+            <h3 class="fw-bold text-primary mb-0">{{ efficiency|default:100 }}%</h3>
+            <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
+                <div class="progress-bar bg-primary" id="efficiency-bar" data-width="{{ efficiency|default:100 }}" style="height: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Branch Performance Grid -->
+<div class="row g-4 mb-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-success border-4">
+            <div class="card-header bg-white border-0 p-4">
+                <div class="d-flex align-items-center text-success">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3">
+                        <i class="bi bi-buildings fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Branch-wise Collection Performance</h5>
+                        <p class="text-muted small mb-0">Consolidated financial overview of all regional offices</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="ps-4 border-0 py-3 small text-uppercase fw-bold text-muted">Branch Name</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-center">Total Members</th>
+                                <th class="border-0 pe-4 py-3 small text-uppercase fw-bold text-muted text-end">Total Collected</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in branch_stats %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">{{ stat.name }}</div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border rounded-pill px-3">{{ stat.member_count }}</span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <span class="text-success fw-bold">₹{{ stat.total_collected }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-4 text-muted small">No branch data available yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Defaulters Section -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-danger border-4">
+            <div class="card-header bg-white border-0 p-4">
+                <div class="d-flex align-items-center text-danger">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-3">
+                        <i class="bi bi-exclamation-octagon fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Defaulters List & Arrears</h5>
+                        <p class="text-muted small mb-0">Members with overdue installments requiring immediate attention</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="ps-4 border-0 py-3 small text-uppercase fw-bold text-muted">Member Name</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted">Chit Group</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-center">Installment #</th>
+                                <th class="border-0 pe-4 py-3 small text-uppercase fw-bold text-muted text-end">Arrears Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for late in late_payments %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center me-2 fw-bold" style="width:30px; height:30px; font-size: 0.7rem;">
+                                            {{ late.member.name|make_list|first|upper }}
+                                        </div>
+                                        <div class="fw-bold text-dark">{{ late.member.name }}</div>
+                                    </div>
+                                </td>
+                                <td><span class="text-muted small fw-medium">{{ late.chit_group.name }}</span></td>
+                                <td class="text-center font-monospace">{{ late.installment_number }}</td>
+                                <td class="pe-4 text-end">
+                                    <span class="text-danger fw-extrabold">₹{{ late.amount }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-5 text-muted small"><i class="bi bi-check2-circle text-success me-2"></i> No outstanding defaults found in the system.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity Section -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-primary border-4">
+            <div class="card-header bg-white border-0 p-4">
+                <div class="d-flex align-items-center text-primary">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+                        <i class="bi bi-activity fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Global Payment Feed</h5>
+                        <p class="text-muted small mb-0">Real-time audit of the last 10 successful transactions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="ps-4 border-0 py-3 small text-uppercase fw-bold text-muted">Transaction Details</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted">Context</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-center">Receipt #</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted">Collection Date</th>
+                                <th class="border-0 pe-4 py-3 small text-uppercase fw-bold text-muted text-end">Amount Paid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pt in recent_payments %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">{{ pt.member.name }}</div>
+                                    <div class="text-muted small">UID: MEM-{{ pt.member.id|stringformat:"04d" }}</div>
+                                </td>
+                                <td>
+                                    <div class="badge bg-light text-dark border rounded-pill px-3">{{ pt.chit_group.name }}</div>
+                                </td>
+                                <td class="text-center">#{{ pt.installment_number }}</td>
+                                <td><span class="text-muted fw-medium">{{ pt.payment_date|date:"d M, Y" }}</span></td>
+                                <td class="pe-4 text-end">
+                                    <span class="text-primary fw-extrabold">₹{{ pt.amount }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-5 text-muted small">No recent transaction history recorded.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bar = document.getElementById('efficiency-bar');
+    if (bar) {
+        bar.style.width = bar.getAttribute('data-width') + '%';
+    }
+});
+</script>
+{% endblock %}

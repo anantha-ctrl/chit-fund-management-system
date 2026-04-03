@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="page-title mb-4">Export Power Center</h1>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow-sm transition-hover" style="border-radius: 20px;">
+            <div class="card-body p-5 text-center">
+                <div class="rounded-circle p-4 bg-success bg-opacity-10 text-success d-inline-flex mb-4">
+                    <i class="bi bi-people-fill fs-1"></i>
+                </div>
+                <h4 class="fw-extrabold mb-3">Member Ledger</h4>
+                <p class="text-muted px-lg-4 mb-4">Download your complete member database including phone numbers, addresses, and status history.</p>
+                <a href="{% url 'export_members' %}" class="btn btn-success rounded-pill px-5 py-3 fw-bold shadow-sm">
+                    <i class="bi bi-filetype-csv me-2"></i> Download CSV
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow-sm transition-hover" style="border-radius: 20px;">
+            <div class="card-body p-5 text-center">
+                <div class="rounded-circle p-4 bg-primary bg-opacity-10 text-primary d-inline-flex mb-4">
+                    <i class="bi bi-cash-stack fs-1"></i>
+                </div>
+                <h4 class="fw-extrabold mb-3">Transaction Export</h4>
+                <p class="text-muted px-lg-4 mb-4">Export all financial records including paid, pending, and late payments for monthly auditing.</p>
+                <a href="{% url 'export_payments' %}" class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-sm">
+                    <i class="bi bi-filetype-csv me-2"></i> Download CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-hover {
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+{% endblock %}
