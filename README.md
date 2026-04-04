@@ -76,4 +76,3 @@ The system uses a localized data model where every **Member** and **Chit Group**
 
 ---
 
-_Designed and developed by CloudHawk_
