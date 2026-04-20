@@ -1,54 +1,74 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="mb-4 mt-2">
-    <h1 class="page-title h2 fw-bold">Settings</h1>
-    <p class="text-muted small">Manage your account and preferences</p>
+<div class="d-flex justify-content-between align-items-center mb-5 mt-2">
+    <div>
+        <h1 class="page-title h3 fw-extrabold mb-1">System Settings</h1>
+        <p class="text-muted small mb-0">Manage organizational parameters and personal security.</p>
+    </div>
+    <div class="d-none d-md-block">
+        <span class="badge bg-light text-primary border rounded-pill px-3 py-2 fw-bold">
+            <i class="bi bi-shield-lock-fill me-1"></i> Admin Console
+        </span>
+    </div>
 </div>
 
-<!-- Tab Navigation (Rounded Pills) -->
-<div class="d-flex gap-2 mb-4 bg-light p-1 rounded-pill d-inline-flex border tabs-scrollable-container" style="background: rgba(0,0,0,0.02) !important;">
-    <a href="#profile" class="btn border-0 rounded-pill px-4 py-2 fw-bold active-tab" id="tab-profile">Profile</a>
-    <a href="#company" class="btn border-0 rounded-pill px-4 py-2 fw-bold text-muted transition hover-bg-light" id="tab-company">Company</a>
-    <a href="#alerts" class="btn border-0 rounded-pill px-4 py-2 fw-bold text-muted transition hover-bg-light" id="tab-alerts">Alerts</a>
-    <a href="#security" class="btn border-0 rounded-pill px-4 py-2 fw-bold text-muted transition hover-bg-light" id="tab-security">Security</a>
+<!-- Tab Navigation (Modern Scrolling Pills) -->
+<div class="settings-tabs-wrapper mb-5">
+    <div class="d-flex gap-2 bg-white p-2 rounded-pill shadow-sm border tabs-scrollable-container no-scrollbar">
+        <a href="#profile" class="btn border-0 rounded-pill px-4 py-2 fw-extrabold active-tab whitespace-nowrap" id="tab-profile">
+            <i class="bi bi-person-badge-fill me-2 text-inherit"></i>Profile
+        </a>
+        <a href="#company" class="btn border-0 rounded-pill px-4 py-2 fw-extrabold text-muted transition hover-bg-light whitespace-nowrap" id="tab-company">
+            <i class="bi bi-buildings-fill me-2 text-inherit"></i>Company
+        </a>
+        <a href="#alerts" class="btn border-0 rounded-pill px-4 py-2 fw-extrabold text-muted transition hover-bg-light whitespace-nowrap" id="tab-alerts">
+            <i class="bi bi-bell-fill me-2 text-inherit"></i>Alerts
+        </a>
+        <a href="#payments" class="btn border-0 rounded-pill px-4 py-2 fw-extrabold text-muted transition hover-bg-light whitespace-nowrap" id="tab-payments">
+            <i class="bi bi-qr-code me-2 text-inherit"></i>Payments
+        </a>
+        <a href="#security" class="btn border-0 rounded-pill px-4 py-2 fw-extrabold text-muted transition hover-bg-light whitespace-nowrap" id="tab-security">
+            <i class="bi bi-shield-fill-check me-2 text-inherit"></i>Security
+        </a>
+    </div>
 </div>
 
 <!-- Settings Card Wrap -->
-<div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px; border: 1px solid rgba(0,0,0,0.05) !important;">
+<div class="card border-0 shadow-sm overflow-hidden mb-5" style="border-radius: 20px;">
     
     <!-- Profile Section -->
     <div id="section-profile" class="settings-section">
         <div class="p-4 p-md-5">
             <div class="d-flex align-items-center mb-5">
-                <div class="rounded-3 p-3 me-3" style="background-color: var(--primary-light); color: var(--primary-green); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-person fs-3"></i>
+                <div class="rounded-4 p-3 me-4 shadow-sm" style="background: linear-gradient(135deg, #16A34A 0%, #22C55E 100%); color: #ffffff; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-person-vcard fs-2"></i>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0">Profile Information</h5>
-                    <p class="text-muted small mb-0">Update your personal details</p>
+                    <h4 class="fw-extrabold mb-1 text-dark">Profile Information</h4>
+                    <p class="text-muted small mb-0">Personalize your admin identity and contact channels.</p>
                 </div>
             </div>
 
             <form action="{% url 'profile_view' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="row g-4">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold text-dark small">First Name</label>
-                        <input type="text" name="first_name" class="form-control border-0 bg-light p-3 rounded-3" value="{{ user.first_name }}" placeholder="Enter first name">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-extrabold text-uppercase text-muted extra-small" style="letter-spacing: 1px;">First Name</label>
+                        <input type="text" name="first_name" class="form-control border-0 bg-light p-3 rounded-4 fw-bold" value="{{ user.first_name }}" placeholder="Admin First Name">
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold text-dark small">Last Name</label>
-                        <input type="text" name="last_name" class="form-control border-0 bg-light p-3 rounded-3" value="{{ user.last_name }}" placeholder="Enter last name">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-extrabold text-uppercase text-muted extra-small" style="letter-spacing: 1px;">Last Name</label>
+                        <input type="text" name="last_name" class="form-control border-0 bg-light p-3 rounded-4 fw-bold" value="{{ user.last_name }}" placeholder="Admin Last Name">
                     </div>
-                    <div class="col-12 mb-3">
-                        <label class="form-label fw-bold text-dark small">Email Address</label>
-                        <input type="email" name="email" class="form-control border-0 bg-light p-3 rounded-3" value="{{ user.email }}" placeholder="Enter email address">
+                    <div class="col-12 mb-2">
+                        <label class="form-label fw-extrabold text-uppercase text-muted extra-small" style="letter-spacing: 1px;">Primary Email Address</label>
+                        <input type="email" name="email" class="form-control border-0 bg-light p-3 rounded-4 fw-bold" value="{{ user.email }}" placeholder="Enter system email">
                     </div>
                     
-                    <div class="col-12 mt-4 text-end">
-                        <button type="submit" class="btn btn-primary px-5 py-3 rounded-3 fw-bold shadow-sm">
-                            Save Changes
+                    <div class="col-12 mt-5">
+                        <button type="submit" class="btn btn-primary px-5 py-3 rounded-4 fw-extrabold shadow-sm hover-up">
+                            Save Profile Changes
                         </button>
                     </div>
                 </div>
@@ -60,12 +80,12 @@
     <div id="section-company" class="settings-section d-none">
         <div class="p-4 p-md-5">
             <div class="d-flex align-items-center mb-5">
-                <div class="rounded-3 p-3 highlight-box me-3" style="background-color: #eff6ff; color: #2563eb;">
-                    <i class="bi bi-buildings fs-3"></i>
+                <div class="rounded-4 p-3 me-4 shadow-sm" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); color: #ffffff; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-gear-wide-connected fs-2"></i>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0">Company Configuration</h5>
-                    <p class="text-muted small mb-0">Manage global system parameters</p>
+                    <h4 class="fw-extrabold mb-1 text-dark">Enterprise Parameters</h4>
+                    <p class="text-muted small mb-0">Configure global financial and operational rules.</p>
                 </div>
             </div>
             
@@ -75,22 +95,23 @@
                 <div class="row g-4">
                     {% for setting in settings %}
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold text-dark small text-uppercase" style="letter-spacing: 0.5px;">{{ setting.key|title|cut:"_" }}</label>
-                        <input type="text" name="{{ setting.key }}" class="form-control border-0 bg-light p-3 rounded-3" value="{{ setting.value }}" {% if not setting.is_editable %}readonly opacity-75{% endif %}>
-                        <div class="form-text x-small text-muted mt-1">{{ setting.description }}</div>
+                        <label class="form-label fw-extrabold text-uppercase text-muted extra-small" style="letter-spacing: 1px;">{{ setting.key|title|cut:"_" }}</label>
+                        <input type="text" name="{{ setting.key }}" class="form-control border-0 bg-light p-3 rounded-4 fw-bold" value="{{ setting.value }}" {% if not setting.is_editable %}readonly opacity-75{% endif %}>
+                        <div class="form-text x-small text-muted mt-2 fw-bold"><i class="bi bi-info-circle me-1 text-primary"></i> {{ setting.description }}</div>
                     </div>
                     {% endfor %}
-                    <div class="col-12 mt-4 text-end">
-                        <button type="submit" class="btn btn-primary px-5 py-3 rounded-3 fw-bold shadow-sm">
-                            Update Configuration
+                    <div class="col-12 mt-5">
+                        <button type="submit" class="btn btn-primary px-5 py-3 rounded-4 fw-extrabold shadow-sm hover-up">
+                            Commit Settings to Cloud
                         </button>
                     </div>
                 </div>
             </form>
             {% else %}
-            <div class="p-5 text-center text-muted">
-                <i class="bi bi-shield-lock fs-1 opacity-25 mb-3"></i>
-                <p>Only SuperAdmins have permission to modify company configuration.</p>
+            <div class="p-5 text-center bg-light rounded-4 border-dashed">
+                <i class="bi bi-shield-lock fs-1 text-muted opacity-50 mb-3"></i>
+                <h5 class="fw-extrabold text-muted">Permission Restricted</h5>
+                <p class="text-muted small">Only SuperAdmins have permission to modify company configuration.</p>
             </div>
             {% endif %}
         </div>
@@ -100,71 +121,87 @@
     <div id="section-alerts" class="settings-section d-none">
         <div class="p-4 p-md-5">
             <div class="d-flex align-items-center mb-5">
-                <div class="rounded-3 p-3 me-3" style="background-color: #fff7ed; color: #f97316;">
-                    <i class="bi bi-bell fs-3"></i>
+                <div class="rounded-4 p-3 me-4 shadow-sm" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); color: #ffffff; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-chat-dots fs-2"></i>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0">Notification Preferences</h5>
-                    <p class="text-muted small mb-0">Choose how you receive alerts</p>
+                    <h4 class="fw-extrabold mb-1 text-dark">Automated Notifications</h4>
+                    <p class="text-muted small mb-0">Control system triggers and alert frequency.</p>
                 </div>
             </div>
             
             <div class="row g-4">
                 <div class="col-12">
-                    <div class="list-group list-group-flush rounded-4 overflow-hidden border border-opacity-10 border-dark">
-                        <!-- Payment Reminders -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center p-4 bg-white border-bottom border-opacity-10 border-dark">
-                            <div class="pe-4">
-                                <h6 class="mb-1 fw-bold text-dark">Payment Reminders</h6>
-                                <p class="text-muted small mb-0">Get notified about upcoming payment due dates for chits you oversee.</p>
+                    <div class="list-group list-group-flush rounded-4 overflow-hidden border">
+                        <!-- Custom Switch Items -->
+                        {% for icon, title, desc, active, id in alert_configs %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center p-4 bg-white border-bottom transition-hover">
+                            <div class="d-flex align-items-center me-4">
+                                <div class="bg-light p-2 rounded-circle me-3"><i class="bi {{ icon }} text-primary"></i></div>
+                                <div>
+                                    <h6 class="mb-0 fw-extrabold text-dark">{{ title }}</h6>
+                                    <p class="text-muted extra-small mb-0">{{ desc }}</p>
+                                </div>
                             </div>
                             <div class="form-check form-switch fs-4">
-                                <input class="form-check-input" type="checkbox" checked id="admin_payment_reminders">
+                                <input class="form-check-input custom-switch" type="checkbox" {% if active %}checked{% endif %} id="{{ id }}">
                             </div>
                         </div>
-
-                        <!-- Auction Alerts -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center p-4 bg-white border-bottom border-opacity-10 border-dark">
-                            <div class="pe-4">
-                                <h6 class="mb-1 fw-bold text-dark">Auction Alerts</h6>
-                                <p class="text-muted small mb-0">Receive real-time notifications about upcoming auction start times.</p>
+                        {% endfor %}
+                        
+                        <!-- Fallback Hardcoded (If dynamic data not provided) -->
+                        {% if not alert_configs %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center p-4 bg-white border-bottom">
+                            <div>
+                                <h6 class="mb-0 fw-extrabold text-dark">System Monitoring</h6>
+                                <p class="text-muted extra-small mb-0">Track all internal transaction lifecycle events.</p>
                             </div>
                             <div class="form-check form-switch fs-4">
-                                <input class="form-check-input" type="checkbox" checked id="admin_auction_alerts">
+                                <input class="form-check-input" type="checkbox" checked>
                             </div>
                         </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <!-- New Member Joined -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center p-4 bg-white border-bottom border-opacity-10 border-dark">
-                            <div class="pe-4">
-                                <h6 class="mb-1 fw-bold text-dark">New Member Joined</h6>
-                                <p class="text-muted small mb-0">Get alerts whenever a new member successfully joins your chit system.</p>
-                            </div>
-                            <div class="form-check form-switch fs-4">
-                                <input class="form-check-input" type="checkbox" id="admin_new_member">
-                            </div>
+    <!-- Payments Section -->
+    <div id="section-payments" class="settings-section d-none">
+        <div class="p-4 p-md-5">
+            <div class="d-flex align-items-center mb-5">
+                <div class="rounded-4 p-3 me-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color: #ffffff; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-credit-card-2-front fs-2"></i>
+                </div>
+                <div>
+                    <h4 class="fw-extrabold mb-1 text-dark">Payment Configuration</h4>
+                    <p class="text-muted small mb-0">Configure digital collection channels and QR assets.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card border border-2 border-dashed rounded-4 p-4 h-100 text-center transition-hover">
+                        <div class="mb-3">
+                            <i class="bi bi-qr-code-scan display-4 text-primary opacity-50"></i>
                         </div>
-
-                        <!-- Payment Received -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center p-4 bg-white border-bottom border-opacity-10 border-dark">
-                            <div class="pe-4">
-                                <h6 class="mb-1 fw-bold text-dark">Payment Received</h6>
-                                <p class="text-muted small mb-0">Notification once a member payment is successfully processed.</p>
-                            </div>
-                            <div class="form-check form-switch fs-4">
-                                <input class="form-check-input" type="checkbox" checked id="admin_payment_received">
-                            </div>
+                        <h5 class="fw-bold">UPI QR Codes</h5>
+                        <p class="text-muted small">Upload and manage QR codes displayed to customers during checkout.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'manage_payment_qr' %}" class="btn btn-primary rounded-pill px-4 fw-bold">Manage QR Assets</a>
                         </div>
-
-                        <!-- Email Notifications -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center p-4 bg-white">
-                            <div class="pe-4">
-                                <h6 class="mb-1 fw-bold text-dark">Email Notifications</h6>
-                                <p class="text-muted small mb-0">Receive a weekly digest and major account activity via email.</p>
-                            </div>
-                            <div class="form-check form-switch fs-4">
-                                <input class="form-check-input" type="checkbox" checked id="admin_email_notif">
-                            </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border bg-light rounded-4 p-4 h-100 opacity-75">
+                        <div class="mb-3">
+                            <i class="bi bi-bank display-4 text-muted"></i>
+                        </div>
+                        <h5 class="fw-bold text-muted">Bank Integration</h5>
+                        <p class="text-muted small">Direct bank reconciliation and automated payout logic (Coming Soon).</p>
+                        <div class="mt-auto">
+                            <button class="btn btn-secondary rounded-pill px-4 fw-bold" disabled>Setup API</button>
                         </div>
                     </div>
                 </div>
@@ -176,12 +213,12 @@
     <div id="section-security" class="settings-section d-none">
         <div class="p-4 p-md-5">
             <div class="d-flex align-items-center mb-5">
-                <div class="rounded-3 p-3 me-3" style="background-color: #fff1f2; color: #e11d48; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-shield-lock-fill fs-3"></i>
+                <div class="rounded-4 p-3 me-4 shadow-sm" style="background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%); color: #ffffff; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-fingerprint fs-2"></i>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0">Account Security</h5>
-                    <p class="text-muted small mb-0">Protect your admin privileges</p>
+                    <h4 class="fw-extrabold mb-1 text-dark">Admin Fortification</h4>
+                    <p class="text-muted small mb-0">Secure your high-level access with encrypted protocols.</p>
                 </div>
             </div>
             
@@ -190,65 +227,56 @@
                     <form action="{% url 'password_reset' %}" method="post">
                         {% csrf_token %}
                         <div class="mb-4">
-                            <label class="form-label fw-bold small text-dark">Current Password</label>
+                            <label class="form-label fw-extrabold text-uppercase text-muted extra-small" style="letter-spacing: 1px;">Current Passcode</label>
                             <div class="input-group">
-                                <input type="password" class="form-control border-0 bg-light p-3 rounded-start-3" placeholder="••••••••">
-                                <span class="input-group-text border-0 bg-light rounded-end-3 pe-3 toggle-password" style="cursor: pointer;">
-                                    <i class="bi bi-eye text-muted"></i>
+                                <input type="password" class="form-control border-0 bg-light p-3 rounded-start-4 fw-bold" placeholder="••••••••">
+                                <span class="input-group-text border-0 bg-light rounded-end-4 pe-4 toggle-password" style="cursor: pointer;">
+                                    <i class="bi bi-eye text-muted fs-5"></i>
                                 </span>
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold small text-dark">New Password</label>
+                            <label class="form-label fw-extrabold text-uppercase text-muted extra-small" style="letter-spacing: 1px;">New Passcode</label>
                             <div class="input-group">
-                                <input type="password" class="form-control border-0 bg-light p-3 rounded-start-3" placeholder="••••••••">
-                                <span class="input-group-text border-0 bg-light rounded-end-3 pe-3 toggle-password" style="cursor: pointer;">
-                                    <i class="bi bi-eye text-muted"></i>
+                                <input type="password" class="form-control border-0 bg-light p-3 rounded-start-4 fw-bold" placeholder="••••••••">
+                                <span class="input-group-text border-0 bg-light rounded-end-4 pe-4 toggle-password" style="cursor: pointer;">
+                                    <i class="bi bi-eye text-muted fs-5"></i>
                                 </span>
                             </div>
                         </div>
-                        <div class="mb-5">
-                            <label class="form-label fw-bold small text-dark">Confirm New Password</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control border-0 bg-light p-3 rounded-start-3" placeholder="••••••••">
-                                <span class="input-group-text border-0 bg-light rounded-end-3 pe-3 toggle-password" style="cursor: pointer;">
-                                    <i class="bi bi-eye text-muted"></i>
-                                </span>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-dark w-100 py-3 rounded-3 fw-bold shadow">
-                            Update Admin Password
+                        <button type="submit" class="btn btn-dark w-100 py-3 rounded-4 fw-extrabold shadow-lg hover-up">
+                            Renew Security Credentials
                         </button>
                     </form>
                 </div>
                 <div class="col-lg-5">
-                    <div class="bg-light p-4 rounded-4 border border-opacity-10 border-dark">
-                        <h6 class="fw-bold mb-4">Security Overview</h6>
+                    <div class="bg-light p-4 rounded-4 border border-white shadow-sm">
+                        <h6 class="fw-extrabold mb-4 text-dark"><i class="bi bi-shield-shaded me-2 text-primary"></i>Security Audit</h6>
                         
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="d-flex align-items-center">
-                                <div class="rounded-circle me-3 {% if user.two_factor_enabled %}bg-success{% else %}bg-danger{% endif %}" style="width: 8px; height: 8px;"></div>
-                                <span class="small fw-semibold">2FA Protection</span>
+                                <span class="badge rounded-circle me-2 {% if user.two_factor_enabled %}bg-success{% else %}bg-danger{% endif %}" style="width: 10px; height: 10px; padding:0;">&nbsp;</span>
+                                <span class="small fw-bold">Multi-factor (2FA)</span>
                             </div>
                             {% if user.two_factor_enabled %}
-                                <span class="badge bg-success-subtle text-success rounded-pill px-3">Active</span>
+                                <span class="badge bg-success-light text-success rounded-pill px-3 py-2 small">Enabled</span>
                             {% else %}
-                                <a href="{% url 'enable_2fa' %}" class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 text-decoration-none">Enable Now</a>
+                                <a href="{% url 'enable_2fa' %}" class="badge bg-warning-light text-warning rounded-pill px-3 py-2 text-decoration-none small fw-extrabold">Enable Now</a>
                             {% endif %}
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="d-flex align-items-center">
-                                <div class="bg-success rounded-circle me-3" style="width: 8px; height: 8px;"></div>
-                                <span class="small fw-semibold">Login Alerts</span>
+                                <span class="badge bg-success rounded-circle me-2" style="width: 10px; height: 10px; padding:0;">&nbsp;</span>
+                                <span class="small fw-bold">Activity Tracking</span>
                             </div>
-                            <span class="badge bg-success-subtle text-success rounded-pill px-3">Enabled</span>
+                            <span class="badge bg-success-light text-success rounded-pill px-3 py-2 small">Active</span>
                         </div>
 
                         <hr class="my-4 opacity-5">
-                        <p class="x-small text-muted mb-0">
-                            Change your password if you suspect any unauthorized access.
-                        </p>
+                        <div class="alert alert-info border-0 rounded-4 x-small fw-bold mb-0" style="background: rgba(37, 99, 235, 0.05); color: #2563eb;">
+                            <i class="bi bi-info-circle-fill me-2"></i> Password rotate recommended every 90 days.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -257,56 +285,86 @@
 </div>
 
 <style>
+    .settings-tabs-wrapper {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+    }
+    .tabs-scrollable-container {
+        overflow-x: auto;
+        display: flex;
+        flex-wrap: nowrap;
+        max-width: fit-content;
+        margin: 0 auto;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .whitespace-nowrap { white-space: nowrap; }
+    
     .active-tab {
-        background-color: #FFFFFF !important;
-        color: var(--primary-green) !important;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        background-color: var(--primary-green) !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.25);
     }
-    .hover-bg-light:hover {
-        background-color: rgba(255,255,255,0.5);
-    }
-    .settings-section {
-        animation: fadeIn 0.4s ease-out;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
+    .text-inherit { color: inherit !important; }
+    .hover-bg-light:hover { background-color: #f8fafc; }
+    .settings-section { animation: sectionSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes sectionSlide {
+        from { opacity: 0; transform: translateY(15px); }
         to { opacity: 1; transform: translateY(0); }
     }
     .form-control:focus {
         background-color: #FFFFFF !important;
         box-shadow: 0 0 0 4px var(--primary-light) !important;
-        outline: 2px solid var(--primary-green) !important;
+        border: none !important;
     }
+    .custom-switch:checked { background-color: var(--primary-green); border-color: var(--primary-green); }
+    .hover-up { transition: all 0.3s ease; }
+    .hover-up:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
+    .transition-hover { transition: all 0.2s ease; }
+    .transition-hover:hover { background-color: #fcfcfc !important; transform: scale(1.005); }
+    .border-dashed { border: 2px dashed #e2e8f0 !important; }
 </style>
 
 <script>
-    document.querySelectorAll('.btn[href^="#"]').forEach(tab => {
-        tab.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // UI Toggle Tabs
+    // Tab State Management with URL Hash
+    const handleTabSwitch = (hash) => {
+        const target = hash ? hash.substring(1) : 'profile';
+        const tabBtn = document.querySelector(`.btn[href="#${target}"]`);
+        
+        if (tabBtn) {
+            // UI Toggle
             document.querySelectorAll('.btn[href^="#"]').forEach(btn => {
                 btn.classList.remove('active-tab');
                 btn.classList.add('text-muted');
             });
-            this.classList.add('active-tab');
-            this.classList.remove('text-muted');
+            tabBtn.classList.add('active-tab');
+            tabBtn.classList.remove('text-muted');
             
-            // Content Toggle
-            const target = this.getAttribute('href').substring(1);
-            document.querySelectorAll('.settings-section').forEach(sec => {
-                sec.classList.add('d-none');
-            });
-            document.getElementById('section-' + target).classList.remove('d-none');
+            // Section Toggle
+            document.querySelectorAll('.settings-section').forEach(sec => sec.classList.add('d-none'));
+            const section = document.getElementById('section-' + target);
+            if (section) section.classList.remove('d-none');
+        }
+    };
+
+    document.querySelectorAll('.btn[href^="#"]').forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const hash = this.getAttribute('href');
+            window.location.hash = hash;
+            handleTabSwitch(hash);
         });
     });
 
-    // Password Toggle Logic
+    // Initialize from Hash
+    if (window.location.hash) handleTabSwitch(window.location.hash);
+
+    // Password Visibility
     document.querySelectorAll('.toggle-password').forEach(toggle => {
         toggle.addEventListener('click', function() {
             const input = this.parentElement.querySelector('input');
             const icon = this.querySelector('i');
-            
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.classList.replace('bi-eye', 'bi-eye-slash');
@@ -314,6 +372,41 @@
                 input.type = 'password';
                 icon.classList.replace('bi-eye-slash', 'bi-eye');
             }
+        });
+    });
+
+    // Real-time Alert Toggles (AJAX)
+    document.querySelectorAll('.custom-switch').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const key = this.id;
+            const value = this.checked;
+            
+            // UI Feedback (Quick Pulse)
+            const parent = this.closest('.list-group-item');
+            parent.style.opacity = '0.7';
+            
+            fetch("{% url 'update_preferences' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ [key]: value })
+            })
+            .then(response => response.json())
+            .then(data => {
+                parent.style.opacity = '1';
+                if(data.status === 'success') {
+                    // Quick color flash
+                    parent.style.backgroundColor = '#f0fdf4';
+                    setTimeout(() => { parent.style.backgroundColor = '#ffffff'; }, 500);
+                }
+            })
+            .catch(error => {
+                parent.style.opacity = '1';
+                parent.classList.add('bg-danger-light');
+                console.error('Error:', error);
+            });
         });
     });
 </script>

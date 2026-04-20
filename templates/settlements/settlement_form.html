@@ -79,4 +79,49 @@
         </div>
     </div>
 </div>
+{% block extra_js %}
+<script id="membership-data" type="application/json">
+    {{ membership_data_json|safe }}
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const membershipData = JSON.parse(document.getElementById('membership-data').textContent);
+        const memberSelect = document.getElementById('id_member');
+        const groupSelect = document.getElementById('id_chit_group');
+        
+        const paidInput = document.getElementById('id_total_paid');
+        const receivedInput = document.getElementById('id_total_received');
+        const divInput = document.getElementById('id_dividend');
+        const penInput = document.getElementById('id_penalty');
+
+        function autoFill() {
+            const memberId = memberSelect.value;
+            const groupId = groupSelect.value;
+
+            if (memberId && groupId) {
+                const data = membershipData.find(item => item.member_id == memberId && item.group_id == groupId);
+                if (data) {
+                    paidInput.value = data.total_paid.toFixed(2);
+                    receivedInput.value = data.total_received.toFixed(2);
+                    divInput.value = data.dividend.toFixed(2);
+                    penInput.value = data.penalty.toFixed(2);
+                    
+                    // Add a tiny animation highlight
+                    [paidInput, receivedInput, divInput, penInput].forEach(el => {
+                        el.style.backgroundColor = '#f0fdf4';
+                        setTimeout(() => el.style.backgroundColor = '#f8f9fa', 1000);
+                    });
+                } else {
+                    // Reset if no combination found (though unlikely if data exists)
+                    [paidInput, receivedInput, divInput, penInput].forEach(el => el.value = "0.00");
+                }
+            }
+        }
+
+        memberSelect.addEventListener('change', autoFill);
+        groupSelect.addEventListener('change', autoFill);
+    });
+</script>
+{% endblock %}
 {% endblock %}

@@ -5,13 +5,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChitFund Management</title>
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <title>ChitFund Management</title>
     <!-- Google Fonts: Inter & Plus Jakarta Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/footer.css' %}">
+    
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- NProgress for fast visual feedback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+    
     <!--website icon -->
     <link rel="icon" href="https://res.cloudinary.com/de1tywvqm/image/upload/q_auto/f_auto/v1775131032/Gemini_Generated_Image__1_qoe19x.png">
     <style>
@@ -22,13 +34,43 @@
             --text-muted: #64748B;
             --bg-neutral: #F9FAFB;
             --border-color: #E5E7EB;
+            --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        /* Loan module active nav link */
+        .nav-link-loan-active {
+            border-left-color: #6366f1 !important;
+            color: #6366f1 !important;
+            background: rgba(99,102,241,0.08) !important;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-neutral);
             color: var(--text-dark);
             font-size: 0.95rem;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
         }
+
+        /* NProgress customization */
+        #nprogress .bar {
+            background: var(--primary-green) !important;
+            height: 3px !important;
+        }
+        #nprogress .spinner-icon {
+            border-top-color: var(--primary-green) !important;
+            border-left-color: var(--primary-green) !important;
+        }
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -39,14 +81,15 @@
             box-shadow: 1px 0 10px rgba(0, 0, 0, 0.05);
             background-color: #FFFFFF;
             border-right: 1px solid var(--border-color);
+            transition: var(--transition-smooth);
         }
         .sidebar-brand {
-            height: 70px;
+            height: 64px; /* Reduced from 80px */
             display: flex;
             align-items: center;
-            padding: 0 1.5rem;
+            padding: 0 1.25rem;
             font-weight: 800;
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             color: var(--text-dark);
             border-bottom: 1px solid var(--border-color);
             text-decoration: none;
@@ -57,8 +100,8 @@
         .sidebar-sticky {
             position: relative;
             top: 0;
-            height: calc(100vh - 70px);
-            padding-top: 1.5rem;
+            height: calc(100vh - 64px);
+            padding-top: 0.5rem; /* Reduced from 1.5rem */
             overflow-x: hidden;
             overflow-y: auto;
         }
@@ -68,37 +111,63 @@
         .sidebar .nav-link {
             font-weight: 500;
             color: var(--text-muted);
-            padding: 0.75rem 1rem;
+            padding: 0.85rem 1.25rem;
             border-radius: 12px;
-            transition: all 0.2s ease;
+            transition: var(--transition-smooth);
             display: flex;
             align-items: center;
+            border-left: 4px solid transparent;
         }
         .sidebar .nav-link i {
-            margin-right: 0.75rem;
-            font-size: 1.1rem;
+            margin-right: 0.85rem;
+            font-size: 1.15rem;
+            transition: transform 0.2s ease;
         }
         .sidebar .nav-link:hover {
             color: var(--primary-green);
             background-color: var(--bg-neutral);
+            border-left-color: var(--primary-green);
+            transform: translateX(2px);
+        }
+        .sidebar .nav-link:hover i {
+            transform: scale(1.1);
         }
         .sidebar .nav-link.active {
             color: var(--primary-green);
-            background-color: var(--primary-light);
-            font-weight: 600;
+            background: rgba(22, 163, 74, 0.08);
+            border-left: 4px solid var(--primary-green);
+            font-weight: 700;
+            box-shadow: inset 0 0 0 1px rgba(22, 163, 74, 0.05);
+        }
+        .nav-link-danger:hover {
+            color: #dc3545 !important;
+            background-color: rgba(220, 53, 69, 0.05) !important;
+            border-left-color: #dc3545 !important;
+        }
+        .nav-link-danger:hover i {
+            color: #dc3545 !important;
+        }
+        .dropdown-item-danger:hover {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        .dropdown-item-danger:hover i {
+            color: white !important;
         }
         
         .top-header {
-            height: 70px;
-            background-color: #FFFFFF;
-            border-bottom: 1px solid var(--border-color);
+            height: 72px;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             justify-content: flex-end;
             padding: 0 2rem;
             position: sticky;
             top: 0;
-            z-index: 99;
+            z-index: 1010;
         }
         .user-profile {
             display: flex;
@@ -115,17 +184,26 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
+            transition: var(--transition-smooth);
+        }
+        .avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
         }
 
         main {
-            padding: 2rem !important;
+            padding: 1.5rem !important; /* Standardized spacing */
         }
         .card {
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
             background: #FFFFFF;
             margin-bottom: 1.5rem;
+            transition: var(--transition-smooth);
+        }
+        .card:hover {
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
         }
         .card-header {
             background: transparent;
@@ -137,13 +215,17 @@
         .card-body {
             overflow-x: auto;
         }
-        /* Global Button Scaling - Forced Small Sizes */
+        
+        /* Fast Action Buttons */
         .btn {
             font-size: 0.8rem !important;
-            padding: 0.35rem 0.8rem !important;
-            border-radius: 6px !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 10px !important;
             font-weight: 600 !important;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .btn:active {
+            transform: scale(0.96);
         }
         .btn-primary {
             background-color: var(--primary-green) !important;
@@ -152,103 +234,48 @@
         .btn-primary:hover {
             background-color: #15803d !important;
             border-color: #15803d !important;
-            box-shadow: 0 4px 10px rgba(22, 163, 74, 0.15) !important;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2) !important;
         }
-        .btn-sm {
-            padding: 0.25rem 0.6rem !important;
-            font-size: 0.72rem !important;
-            border-radius: 5px !important;
-        }
-        .btn-lg {
-            padding: 0.5rem 1.25rem !important;
-            font-size: 0.9rem !important;
-        }
-        .rounded-pill {
-            border-radius: 50px !important;
-        }
+        
         .page-title {
             font-weight: 800;
             color: var(--text-dark);
             margin-bottom: 0;
             font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.5px;
         }
-        .dropdown-item-danger:hover {
-            background-color: #fee2e2 !important;
-            color: #dc2626 !important;
-        }
-        .hover-bg-light:hover { background-color: #f8fafc; }
-        .bg-danger-light { background-color: #fee2e2; }
-        .bg-warning-light { background-color: #fef3c7; }
-        .bg-info-light { background-color: #e0f2fe; }
-        .transition { transition: all 0.2s ease; }
-        .extra-small { font-size: 0.65rem !important; }
-        .text-nowrap { white-space: nowrap !important; }
-        .ls-1 { letter-spacing: 0.5px; }
-        .table th {
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            padding: 1rem;
-        }
-        .table td {
-            padding: 1rem;
-            vertical-align: middle;
-        }
-        .badge {
-            border-radius: 6px;
-            padding: 0.4em 0.8em;
-            font-weight: 600;
-        }
-        .badge-success {
-            background-color: var(--primary-light) !important;
-            color: var(--primary-green) !important;
-        }
-
-        /* Mobile Adjustments */
+        
+        /* Mobile Adjustments Overrides */
         @media (max-width: 767.98px) {
             .sidebar {
-                position: fixed;
-                top: 0;
-                left: -280px;
-                width: 280px;
-                height: 100vh;
-                z-index: 1045;
-                transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                background: #FFFFFF;
-                display: block !important;
-                visibility: visible !important;
+                left: -300px;
+                width: 300px;
+                border-radius: 0 24px 24px 0;
             }
             .sidebar.show {
                 left: 0;
+                box-shadow: 0 0 40px rgba(0,0,0,0.1);
             }
-            .sidebar-backdrop {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0,0,0,0.5);
-                z-index: 1040;
-                display: none;
-                transition: opacity 0.3s ease;
-            }
-            .sidebar-backdrop.show {
-                display: block;
+            .sidebar-sticky {
+                padding-bottom: 100px;
             }
             .top-header {
-                justify-content: space-between !important;
-                padding: 0 1rem;
+                height: 60px;
+                padding: 0 0.75rem;
             }
             main {
                 padding: 1rem !important;
+                padding-bottom: 100px !important;
             }
         }
 
-        .hover-text-danger:hover { color: #ef4444 !important; opacity: 1 !important; transform: scale(1.1); }
-        .dropdown-item-group .delete-notif-btn { opacity: 0; }
-        .dropdown-item-group:hover .delete-notif-btn { opacity: 0.6; }
+        /* Speed Optimization: Reduced complexity for mobile */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
 
         /* Navigation Animations */
         @keyframes navPop {
@@ -261,44 +288,24 @@
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
 
-        .mobile-bottom-nav {
-            animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .mobile-nav-item.active i {
-            animation: navPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            color: var(--primary-green);
-        }
-        
-        .mobile-nav-item i {
-            transition: transform 0.2s ease;
-        }
-        
-        .mobile-nav-item:active i {
-            transform: scale(0.9);
-        }
-
-        /* Mobile Bottom Nav */
         .mobile-bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 75px;
-            background: #ffffff;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-around;
             align-items: center;
             border-top: 1px solid var(--border-color);
-            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.05);
             z-index: 1030;
-            padding: 0 5%;
+            padding: 0 10px;
+            animation: slideInUp 0.5s var(--transition-smooth);
         }
         .mobile-nav-item {
             text-align: center;
@@ -309,97 +316,187 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 2px;
         }
         .mobile-nav-item i {
-            font-size: 1.4rem;
-            padding: 4px;
-            border-radius: 12px;
-            transition: all 0.2s ease;
+            font-size: 1.3rem;
+            transition: var(--transition-smooth);
         }
         .mobile-nav-item span {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
-            font-family: 'Inter', sans-serif;
         }
         .mobile-nav-item.active {
             color: var(--primary-green);
         }
+        .mobile-nav-item.active i {
+            animation: navPop 0.4s var(--transition-smooth);
+        }
+
+        /* Glass Search */
+        .glass-search {
+            background-color: rgba(241, 245, 249, 0.8);
+            border: 1px solid transparent;
+            border-radius: 32px;
+            padding: 0.65rem 1.25rem 0.65rem 3rem;
+            font-size: 0.85rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .glass-search:focus {
+            background-color: #fff;
+            border-color: var(--primary-green);
+            box-shadow: 0 10px 25px -5px rgba(22, 163, 74, 0.1), 0 0 0 4px rgba(22, 163, 74, 0.05);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        /* Toast Animations */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        @keyframes pulseBadge {
+            0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .pulse-badge {
+            animation: pulseBadge 2s infinite;
+        }
+        .bg-info-light { background-color: rgba(14, 165, 233, 0.1) !important; color: #0ea5e9 !important; }
+        .bg-warning-light { background-color: rgba(245, 158, 11, 0.1) !important; color: #f59e0b !important; }
+        .bg-danger-light { background-color: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; }
+        .bg-success-light { background-color: rgba(16, 185, 129, 0.1) !important; color: #10b981 !important; }
+        .bg-primary-light { background-color: rgba(79, 70, 229, 0.1) !important; color: #4f46e5 !important; }
         
-        @media (max-width: 767.98px) {
-            main {
-                padding-bottom: 95px !important; /* Space for bottom nav */
-            }
-            .sidebar {
-                border-right: none;
-                border-radius: 0 24px 24px 0;
-            }
-            .sidebar-brand {
-                border-bottom: none;
-                padding: 1.5rem 1.5rem 1rem 1.5rem;
-            }
-            .top-header {
-                justify-content: space-between !important;
-                padding: 0 1rem;
-                gap: 5px;
-            }
-            main {
-                padding: 1rem !important;
-                padding-bottom: 95px !important; /* Space for bottom nav */
-            }
-            .mobile-search-wrapper {
-                position: relative;
-                flex-grow: 1;
-                max-width: 180px;
-                margin: 0 0.5rem;
-            }
-            .mobile-search-input {
-                background-color: #f1f5f9;
-                border: none;
-                border-radius: 50px;
-                padding: 0.5rem 1rem 0.5rem 2.2rem;
-                font-size: 0.8rem;
-                width: 100%;
-                transition: all 0.3s ease;
-            }
-            .mobile-search-icon {
-                position: absolute;
-                left: 0.8rem;
-                top: 50%;
-                transform: translateY(-50%);
-                color: #64748b;
-                pointer-events: none;
-                font-size: 0.85rem;
-            }
-            
-            /* Horizontal Scrollable Tabs */
-            .tabs-scrollable-container {
-                display: flex !important;
-                overflow-x: auto !important;
-                flex-wrap: nowrap !important;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none; /* Hide scrollbar for Firefox */
-                padding-bottom: 5px;
-                gap: 8px;
-            }
-            .tabs-scrollable-container::-webkit-scrollbar {
-                display: none; /* Hide scrollbar for Chrome/Safari */
-            }
-            .tabs-scrollable-container .btn {
-                flex: 0 0 auto !important;
-                white-space: nowrap !important;
-            }
+        .search-mobile-container {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            padding: 10px 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+        .search-mobile-container.show {
+            display: block;
+        }
+
+        /* Floating WhatsApp Support */
+        .whatsapp-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #25d366;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1050;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            border: 4px solid #ffffff;
+        }
+        .whatsapp-fab:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+        @keyframes whatsappPulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+        .whatsapp-fab {
+            animation: whatsappPulse 2s infinite;
+        }
+        @media (max-width: 768px) {
+            .whatsapp-fab { bottom: 100px; right: 20px; width: 50px; height: 50px; font-size: 24px; }
+        }
+        /* Global Search Results Dropdown */
+        .search-results-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-top: 12px;
+            z-index: 1050;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .search-results-dropdown.mobile {
+            top: 60px;
+            left: 10px;
+            right: 10px;
+        }
+        .search-item {
+            padding: 12px 20px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .search-item:last-child { border-bottom: 0; }
+        .search-item:hover { background-color: #f8fafc; }
+        
+        .search-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .search-item-info { flex-grow: 1; }
+        .search-item-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 1px; color: var(--text-dark); }
+        .search-item-meta { font-size: 0.75rem; color: var(--text-muted); }
+        .search-item-type { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; opacity: 0.6; }
+        
+        .glass-search:focus + .search-results-dropdown,
+        .search-results-dropdown:hover {
+            display: block !important;
         }
     </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
 
 <div class="container-fluid p-0">
     <div class="row g-0">
         {% if user.is_authenticated %}
-        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-            <a href="{% url 'dashboard' %}" class="sidebar-brand">
-                <i class="bi bi-shield-check me-2" style="color: var(--primary-green);"></i> Smart<span>Chit</span>
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse shadow-sm" style="border-radius: 0 32px 32px 0;">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand d-flex align-items-center" style="height: 64px; border-bottom: none;">
+                <div class="brand-logo-wrapper p-1 rounded-3 me-2" style="background: rgba(22, 163, 74, 0.1);">
+                    <img src="https://res.cloudinary.com/de1tywvqm/image/upload/q_auto/f_auto/v1775131032/Gemini_Generated_Image__1_qoe19x.png" width="30" height="30" class="rounded-2" alt="Logo">
+                </div>
+                <div class="lh-1">
+                    <span class="fw-800 text-dark" style="font-size: 1.15rem; letter-spacing: -0.5px;">Smart<span class="text-primary-green">Chit</span></span>
+                    <small class="d-block text-muted extra-small fw-bold opacity-50 text-uppercase ls-1" style="font-size: 0.55rem;">Management</small>
+                </div>
             </a>
             <div class="sidebar-sticky">
                 <ul class="nav flex-column">
@@ -417,11 +514,18 @@
                         <a class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'member_list' %}"><i class="bi bi-people"></i> Members</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'payment_list' %}"><i class="bi bi-cash-stack"></i> Payments</a>
+                        <a class="nav-link {% if 'payment' in request.resolver_match.url_name and 'field' not in request.path %}active{% endif %}" href="{% url 'payment_list' %}"><i class="bi bi-wallet2"></i> Payments</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'field_collection' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'field_collection' %}"><i class="bi bi-cash-stack text-success"></i> Field Collection</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'staff_report' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'staff_report' %}"><i class="bi bi-person-badge"></i> Daily Collection Report</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if 'kyc' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'kyc_center' %}"><i class="bi bi-shield-check"></i> KYC & Compliance</a>
                     </li>
+                    
                     {% endif %}
 
                     {% if user.role == 'SUPERADMIN' or user.role == 'ADMIN' %}
@@ -438,51 +542,200 @@
                         <a class="nav-link {% if 'settlement' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'settlement_list' %}"><i class="bi bi-check2-circle"></i> Settlements</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if 'handover' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'handover_list' %}"><i class="bi bi-safe-fill text-danger"></i> Branch Handovers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'verifications' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'admin_proof_list' %}">
+                            <i class="bi bi-patch-check-fill text-primary"></i> 
+                            <span>Payment Verifications</span>
+                            {% if pending_verifications_count > 0 %}
+                            <span class="badge rounded-pill bg-danger ms-auto pulse-badge" style="font-size: 0.65rem;">{{ pending_verifications_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'reports' %}"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a>
                     </li>
+                    {% endif %}
+
+                    {% if user.role == 'SUPERADMIN' or user.role == 'ADMIN' or user.role == 'STAFF' %}
+                    <!-- ── LOAN MANAGEMENT (Standalone) ── -->
+                    <li class="nav-item mt-3">
+                        <small class="text-uppercase fw-bold ms-3 d-block pb-1" style="font-size: 0.65rem; letter-spacing: 1px; color: #6366f1; border-bottom: 1px solid rgba(99,102,241,0.15); margin-right: 1.5rem;">
+                            <i class="bi bi-bank me-1"></i> Loan Module
+                        </small>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'loan_dashboard' %}active nav-link-loan-active{% endif %}" href="{% url 'loan_dashboard' %}">
+                            <i class="bi bi-speedometer2" style="color:#6366f1"></i> Loan Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'loan_list' in request.resolver_match.url_name or 'loan_detail' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'loan_list' %}">
+                            <i class="bi bi-file-earmark-text" style="color:#6366f1"></i> Loans
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'loan_customer' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'loan_customer_list' %}">
+                            <i class="bi bi-person-lines-fill" style="color:#6366f1"></i> Loan Customers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'loan_payment_history' in request.resolver_match.url_name or 'record_payment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'loan_payment_history' %}">
+                            <i class="bi bi-cash-coin" style="color:#6366f1"></i> EMI Collections
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'loan_overdue_emis' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'loan_overdue_emis' %}">
+                            <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444"></i> Overdue EMIs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'admin_loan_proof_list' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'admin_loan_proof_list' %}">
+                            <i class="bi bi-patch-check-fill text-primary" style="color:#6366f1"></i> Loan Verifications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'loan_summary_report' in request.resolver_match.url_name or 'loan_branch_performance' in request.resolver_match.url_name or 'loan_monthly_collection' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'loan_summary_report' %}">
+                            <i class="bi bi-bar-chart-line" style="color:#6366f1"></i> Loan Reports
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <!-- STAFF SPECIFIC -->
+                    {% if user.role == 'STAFF' %}
+                    {% if user.loan_agent_profile %}
+                    <!-- ── AGENT PORTAL SIDEBAR ── -->
+                    <li class="nav-item mt-3">
+                        <small class="text-uppercase fw-bold ms-3 d-block pb-1" style="font-size: 0.65rem; letter-spacing: 1px; color: #6366f1; border-bottom: 1px solid rgba(99,102,241,0.15); margin-right: 1.5rem;">
+                            <i class="bi bi-person-badge me-1"></i> Agent Portal
+                        </small>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'loan_agent_dashboard' %}active nav-link-loan-active{% endif %}" href="{% url 'loan_agent_dashboard' %}">
+                            <i class="bi bi-speedometer2" style="color:#6366f1"></i> My Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'loan_customer' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'loan_customer_list' %}">
+                            <i class="bi bi-people" style="color:#6366f1"></i> My Customers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'record_payment' %}active{% endif %}" href="{% url 'loan_daily_collection' %}">
+                            <i class="bi bi-cash-coin" style="color:#6366f1"></i> Daily Collection
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'loan_overdue_emis' %}active{% endif %}" href="{% url 'loan_overdue_emis' %}">
+                            <i class="bi bi-exclamation-triangle-fill text-danger"></i> Overdue EMIs
+                        </a>
+                    </li>
+                    <li class="nav-item mt-3">
+                        <a class="nav-link nav-link-danger text-danger" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                        </a>
+                    </li>
+                    {% else %}
+                    <!-- ── REGULAR STAFF ── -->
+                    <li class="nav-item mt-3">
+                        <a class="nav-link nav-link-danger text-danger" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+
+
+                    <!-- ADMIN SPECIFIC -->
+                    {% if user.role == 'ADMIN' %}
+
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'system_settings' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'system_settings_view' %}"><i class="bi bi-gear-fill"></i> Settings</a>
+                    </li>
+                    <li class="nav-item mt-3">
+                        <a class="nav-link nav-link-danger text-danger" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                        </a>
+                    </li>
+
                     {% endif %}
 
                     <!-- CUSTOMER SPECIFIC -->
                     {% if user.role == 'CUSTOMER' %}
                     <li class="nav-item mt-3">
-                        <small class="text-uppercase text-muted fw-bold ms-3" style="font-size: 0.7rem; opacity: 0.5;">My Financials</small>
+                        <small class="text-uppercase text-muted fw-bold ms-3" style="font-size: 0.7rem; opacity: 0.5; letter-spacing: 1px;">My Loans</small>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'loan_customer_portal' %}active{% endif %}" href="{% url 'loan_customer_portal' %}">
+                            <i class="bi bi-speedometer2" style="color:#6366f1"></i> Loan Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'my_chits' %}active{% endif %}" href="{% url 'my_chits' %}"><i class="bi bi-safe"></i> My Chits</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'loan_customer_my_loans' %}active{% endif %}" href="{% url 'loan_customer_my_loans' %}">
+                            <i class="bi bi-bank" style="color:#6366f1"></i> My Loans
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_payment_history' %}active{% endif %}" href="{% url 'customer_payment_history' %}"><i class="bi bi-receipt"></i> Payment History</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'loan_customer_my_payments' %}active{% endif %}" href="{% url 'loan_customer_my_payments' %}">
+                            <i class="bi bi-cash-stack" style="color:#6366f1"></i> My Payments
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-3">
+                        <small class="text-uppercase text-muted fw-bold ms-3" style="font-size: 0.7rem; opacity: 0.5; letter-spacing: 1px;">My Financials</small>
+                    </li>
+                                       
+                    {% if user.member_profile %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'my_chits' %}active{% endif %}" href="{% url 'my_chits' %}"><i class="bi bi-piggy-bank"></i> Chit Portfolios</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_reports' %}active{% endif %}" href="{% url 'customer_reports' %}"><i class="bi bi-file-earmark-bar-graph"></i> My Reports</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_payment_history' %}active{% endif %}" href="{% url 'customer_payment_history' %}"><i class="bi bi-receipt"></i> Chit Ledger</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_reports' %}active{% endif %}" href="{% url 'customer_reports' %}"><i class="bi bi-file-earmark-bar-graph"></i> Performance Reports</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_documents' %}active{% endif %}" href="{% url 'customer_documents' %}"><i class="bi bi-file-earmark-text"></i> My Documents</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_documents' %}active{% endif %}" href="{% url 'customer_documents' %}"><i class="bi bi-shield-lock"></i> Trust & KYC</a>
+                    </li>
+                    
+                    <li class="nav-item mt-3">
+                        <a class="nav-link nav-link-danger text-danger" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                        </a>
                     </li>
                     {% endif %}
 
                     <!-- SYSTEM CONTROL (SUPERADMIN ONLY) -->
                     {% if user.role == 'SUPERADMIN' %}
                     <li class="nav-item mt-4">
-                        <small class="text-uppercase text-muted fw-bold ms-3" style="border-top: 1px solid #eee; padding-top: 10px; display: block; font-size: 0.7rem;">System Engine</small>
+                        <small class="text-uppercase text-muted fw-extrabold ms-3 pb-2 d-block" style="font-size: 0.65rem; letter-spacing: 1px; border-bottom: 1px solid #f1f5f9; margin-right: 1.5rem;">System Engine</small>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item mt-2">
                         <a class="nav-link {% if request.resolver_match.url_name == 'branch_list' %}active{% endif %}" href="{% url 'branch_list' %}"><i class="bi bi-buildings"></i> Branches</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'branch_analytics' %}active{% endif %}" href="{% url 'branch_analytics' %}"><i class="bi bi-graph-up-arrow"></i> Branch Analytics</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'branch_analytics' %}active{% endif %}" href="{% url 'branch_analytics' %}"><i class="bi bi-graph-up-arrow"></i> Analytics</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'bulk_notification' %}active{% endif %}" href="{% url 'bulk_notification' %}"><i class="bi bi-megaphone"></i> Bulk Communication Hub</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'bulk_notification' %}active{% endif %}" href="{% url 'bulk_notification' %}"><i class="bi bi-megaphone"></i> Broadcast Hub</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'user_list' %}"><i class="bi bi-person-gear"></i> User Manager</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'system_settings_view' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'system_settings_view' %}"><i class="bi bi-sliders"></i> Settings</a>
+                        <a class="nav-link {% if 'system_settings_view' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'system_settings_view' %}"><i class="bi bi-sliders"></i> Engine Settings</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'log_list' %}"><i class="bi bi-shield-check"></i> Audit Logs</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'log_list' %}active{% endif %}" href="{% url 'log_list' %}"><i class="bi bi-shield-lock"></i> Audit Controls</a>
+                    </li>
+                    <li class="nav-item mt-3">
+                        <a class="nav-link nav-link-danger text-danger" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
@@ -499,29 +752,57 @@
                 </button>
                 
                 <!-- Mobile Brand Logo (Replaces Search) -->
-                <div class="d-md-none fs-5 fw-bold ms-2" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-                    <i class="bi bi-shield-check" style="color: var(--primary-green);"></i> Smart<span style="color: var(--primary-green);">Chit</span>
+                <div class="d-md-none fw-bold ms-2 d-flex align-items-center" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.05rem; letter-spacing: -0.5px;">
+                    <a href="{% url 'dashboard' %}" class="sidebar-brand p-0 border-0 h-auto">
+                        <img src="https://res.cloudinary.com/de1tywvqm/image/upload/q_auto/f_auto/v1775131032/Gemini_Generated_Image__1_qoe19x.png" width="28" height="28" class="me-2 rounded-2" alt="Logo">
+                        Smart<span style="color: var(--primary-green);">Chit</span>
+                    </a>
                 </div>
 
                 <!-- Global Search Bar (Desktop/Tablet) -->
                 <div class="d-none d-md-flex flex-grow-1 mx-4" style="max-width: 450px;">
-                    <div class="input-group input-group-sm bg-light border-0 rounded-pill px-3" style="height: 38px;">
-                        <span class="input-group-text bg-transparent border-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control bg-transparent border-0 shadow-none ps-0" placeholder="Search members, chits, auctions..." style="font-size: 0.85rem;">
+                    <div class="position-relative w-100 search-wrapper">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="z-index: 5;"></i>
+                        <input type="text" class="glass-search" id="globalSearchInput" placeholder="Search members, chits, auctions..." autocomplete="off">
+                        
+                        <!-- Search Results Dropdown -->
+                        <div id="searchSuggestions" class="search-results-dropdown d-none">
+                            <div class="search-results-list list-group list-group-flush" id="searchResultsList">
+                                <!-- Results will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Search Dropdown (Hidden by default) -->
+                <div class="search-mobile-container" id="mobileSearch">
+                    <div class="position-relative search-wrapper">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" class="form-control rounded-pill ps-5 border-0 bg-light" id="mobileSearchInput" placeholder="Search..." autocomplete="off">
+                        
+                        <div id="mobileSearchSuggestions" class="search-results-dropdown mobile d-none">
+                            <div class="search-results-list list-group list-group-flush" id="mobileSearchResultsList">
+                                <!-- Results will be injected here -->
+                            </div>
+                        </div>                   
                     </div>
                 </div>
 
                 <!-- Header Actions -->
-                <div class="d-flex align-items-center gap-2 gap-md-3 ms-auto">
+                <div class="d-flex align-items-center gap-2 gap-md-3 ms-auto pe-1">
+                    <!-- Mobile Search Trigger -->
+                    <button class="btn btn-light rounded-circle d-md-none p-2 border-0 shadow-sm" onclick="document.getElementById('mobileSearch').classList.toggle('show')" style="background: rgba(241, 245, 249, 0.8);">
+                        <i class="bi bi-search text-muted"></i>
+                    </button>
 
                     <!-- Notification Bell -->
                     <div class="dropdown">
                         <div class="position-relative p-2" style="cursor: pointer;" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell-fill fs-5 text-muted"></i>
-                            {% if notifications.count > 0 %}
-                            <span class="notification-badge-dot"></span>
+                            {% if unread_count > 0 %}
+                            <span class="notification-badge-dot pulse-badge"></span>
                             <span class="d-none d-md-inline position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style="font-size: 0.6rem; padding: 0.25rem 0.4rem; transform: translate(-40%, 40%) !important;">
-                                {{ notifications.count }}
+                                {{ unread_count }}
                             </span>
                             {% endif %}
                         </div>
@@ -576,25 +857,71 @@
                         <div class="avatar shadow-sm overflow-hidden" style="cursor: pointer; width: 38px; height: 38px; background-color: #10b981; color: white;" data-bs-toggle="dropdown" aria-expanded="false">
                             {% if user.profile_picture %}
                                 <img src="{{ user.profile_picture.url }}" alt="Profile" class="w-100 h-100 object-fit-cover">
+                            {% elif user.member_profile.photo %}
+                                <img src="{{ user.member_profile.photo.url }}" alt="Profile" class="w-100 h-100 object-fit-cover">
                             {% else %}
                                 {{ user.username|make_list|first|upper }}
                             {% endif %}
                         </div>
                         
-                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-3 py-3 px-2" style="border-radius: 16px; min-width: 240px;">
-                            <li class="px-3 pb-3 border-bottom mb-2">
-                                <div class="fw-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
-                                <div class="text-muted small">{{ user.email|default:"No email provided" }}</div>
-                                <span class="badge bg-primary-light text-primary-green mt-2 px-3 badge-pill">
-                                    {{ user.role }}
-                                </span>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-3 py-0 overflow-hidden" style="border-radius: 20px; min-width: 260px;">
+                            <!-- Dropdown Header -->
+                            <li class="px-4 py-4 bg-light bg-opacity-50 border-bottom mb-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar shadow-sm" style="width: 45px; height: 45px; background: var(--primary-green); color: white; border: 2px solid white;">
+                                        {{ user.username|make_list|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark lh-1">{{ user.get_full_name|default:user.username }}</div>
+                                        <div class="text-muted extra-small mt-1">{{ user.email|default:"Registered User" }}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1 fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">
+                                        <i class="bi bi-patch-check-fill me-1"></i> {{ user.get_role_display }}
+                                    </span>
+                                </div>
                             </li>
-                            <li><a class="dropdown-item rounded-3 py-2" href="{% url 'profile_view' %}"><i class="bi bi-person me-2"></i> My Profile</a></li>
-                            <li><a class="dropdown-item rounded-3 py-2" href="{% url 'system_settings_view' %}"><i class="bi bi-gear me-2"></i> Settings</a></li>
-                            <li><hr class="dropdown-divider"></li>
+
+                            <!-- Menu Items -->
                             <li>
-                                <a class="dropdown-item rounded-3 py-2 text-danger dropdown-item-danger" href="{% url 'logout' %}">
-                                    <i class="bi bi-box-arrow-right me-2"></i> Sign Out
+                                <a class="dropdown-item px-4 py-2 d-flex align-items-center gap-3" href="{% url 'profile_view' %}">
+                                    <i class="bi bi-person-circle text-muted fs-5"></i>
+                                    <div>
+                                        <div class="fw-bold small">My Profile</div>
+                                        <div class="extra-small text-muted">Account settings & info</div>
+                                    </div>
+                                </a>
+                            </li>
+
+                            {% if user.role == 'SUPERADMIN' %}
+                            <li>
+                                <a class="dropdown-item px-4 py-2 d-flex align-items-center gap-3" href="{% url 'system_settings_view' %}">
+                                    <i class="bi bi-gear-wide-connected text-muted fs-5"></i>
+                                    <div>
+                                        <div class="fw-bold small">System Config</div>
+                                        <div class="extra-small text-muted">Core engine settings</div>
+                                    </div>
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            <li>
+                                <a class="dropdown-item px-4 py-2 d-flex align-items-center gap-3" href="{% url 'enable_2fa' %}">
+                                    <i class="bi bi-shield-lock text-muted fs-5"></i>
+                                    <div>
+                                        <div class="fw-bold small">Security & 2FA</div>
+                                        <div class="extra-small text-muted">Protect your account</div>
+                                    </div>
+                                </a>
+                            </li>
+
+                            <li><hr class="dropdown-divider my-2 opacity-50"></li>
+
+                            <li>
+                                <a class="dropdown-item px-4 py-3 text-danger d-flex align-items-center gap-3 dropdown-item-danger" href="{% url 'logout' %}">
+                                    <i class="bi bi-box-arrow-right fs-5"></i>
+                                    <span class="fw-bold">Sign Out</span>
                                 </a>
                             </li>
                         </ul>
@@ -603,7 +930,7 @@
             </header>
             {% endif %}
 
-            <main class="px-md-4 d-flex flex-column min-vh-100">
+            <main class="px-3 px-md-4 d-flex flex-column min-vh-100 pb-5">
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert" style="border-radius: 8px;">
@@ -626,63 +953,148 @@
     {% if user.is_authenticated %}
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-bottom-nav d-md-none">
-        <a href="{% url 'dashboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-            <i class="bi {% if request.resolver_match.url_name == 'dashboard' %}bi-grid-fill{% else %}bi-grid{% endif %}"></i>
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'loan_customer_portal' or request.resolver_match.url_name == 'loan_agent_dashboard' %}active{% endif %}">
+            <i class="bi {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'loan_customer_portal' or request.resolver_match.url_name == 'loan_agent_dashboard' %}bi-grid-fill{% else %}bi-grid{% endif %}"></i>
             <span>Dashboard</span>
         </a>
         
         {% if user.role == 'SUPERADMIN' or user.role == 'ADMIN' %}
-        <a href="{% url 'user_list' %}" class="mobile-nav-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi {% if 'user' in request.resolver_match.url_name %}bi-person-gear{% else %}bi-people{% endif %}"></i>
-            <span>Users</span>
-        </a>
-        <a href="{% url 'reports' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
-            <i class="bi {% if request.resolver_match.url_name == 'reports' %}bi-file-earmark-bar-graph-fill{% else %}bi-file-earmark-bar-graph{% endif %}"></i>
-            <span>Reports</span>
-        </a>
-        <a href="{% url 'system_settings_view' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'system_settings_view' %}active{% endif %}">
-            <i class="bi {% if request.resolver_match.url_name == 'system_settings_view' %}bi-gear-fill{% else %}bi-gear{% endif %}"></i>
-            <span>Settings</span>
-        </a>
-        {% elif user.role == 'STAFF' %}
         <a href="{% url 'member_list' %}" class="mobile-nav-item {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-people"></i>
             <span>Members</span>
         </a>
-        <a href="{% url 'payment_list' %}" class="mobile-nav-item {% if 'payment' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-cash-stack"></i>
-            <span>Payments</span>
+        <a href="{% url 'admin_proof_list' %}" class="mobile-nav-item {% if 'verifications' in request.resolver_match.url_name %}active{% endif %} position-relative">
+            <div class="nav-icon-wrapper rounded-circle p-1 mb-1 shadow-sm d-flex align-items-center justify-content-center" style="background: rgba(99, 102, 241, 0.1); width: 35px; height: 35px;">
+                <i class="bi bi-patch-check-fill text-primary" style="font-size: 1.1rem;"></i>
+            </div>
+            <span>Verify</span>
+            {% if pending_verifications_count > 0 %}
+            <span class="position-absolute top-0 start-50 translate-middle-x badge rounded-pill bg-danger shadow-sm pulse-badge" style="font-size: 0.5rem; margin-top: 5px; margin-left: 12px;">{{ pending_verifications_count }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'reports' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            <span>Reports</span>
         </a>
         <a href="{% url 'profile_view' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile_view' %}active{% endif %}">
-            <i class="bi bi-person"></i>
+            <i class="bi bi-person-circle"></i>
+            <span>Profile</span>
+        </a>
+        {% elif user.role == 'STAFF' %}
+        {% if user.loan_agent_profile %}
+        <a href="{% url 'loan_daily_collection' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'loan_daily_collection' %}active{% endif %}">
+            <i class="bi bi-cash-coin"></i>
+            <span>Collection</span>
+        </a>
+        <a href="{% url 'loan_customer_list' %}" class="mobile-nav-item {% if 'loan_customer' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            <span>Customers</span>
+        </a>
+        {% else %}
+        <a href="{% url 'staff_report' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}">
+            <i class="bi bi-person-badge"></i>
+            <span>Report</span>
+        </a>
+        <a href="{% url 'field_collection' %}" class="mobile-nav-item {% if 'field_collection' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-cash-stack text-success"></i>
+            <span>Collect</span>
+        </a>
+        <a href="{% url 'member_list' %}" class="mobile-nav-item {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            <span>Members</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'profile_view' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile_view' %}active{% endif %}">
+            <i class="bi bi-person-circle"></i>
             <span>Profile</span>
         </a>
         {% else %}
         <!-- CUSTOMER BOTTOM NAV -->
+        {% if user.member_profile %}
         <a href="{% url 'my_chits' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'my_chits' %}active{% endif %}">
-            <i class="bi bi-safe"></i>
+            <i class="bi bi-piggy-bank-fill"></i>
             <span>My Chits</span>
         </a>
+        {% endif %}
+
+        {% if user.loan_customer_profile %}
+        <a href="{% url 'loan_customer_my_loans' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'loan_customer_my_loans' %}active{% endif %}">
+            <i class="bi bi-bank2"></i>
+            <span>My Loans</span>
+        </a>
+        {% endif %}
+
         <a href="{% url 'customer_reports' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'customer_reports' %}active{% endif %}">
-            <i class="bi bi-file-earmark-bar-graph"></i>
+            <i class="bi bi-graph-up-arrow"></i>
             <span>Reports</span>
         </a>
-        <a href="{% url 'customer_documents' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'customer_documents' %}active{% endif %}">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>Documents</span>
-        </a>
         <a href="{% url 'profile_view' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile_view' %}active{% endif %}">
-            <i class="bi bi-person"></i>
+            <i class="bi bi-person-circle"></i>
             <span>Profile</span>
         </a>
         {% endif %}
     </nav>
     {% endif %}
 
+    <!-- Global Notification Marker (for JS checking) - ONLY for Customers -->
+    {% if user.is_authenticated and user.role == 'CUSTOMER' %}
+    <input type="hidden" id="todayNotifCount" value="{{ today_notifications_count|default:0 }}">
+    {% endif %}
+
+    {% if user.role == 'CUSTOMER' %}
+    <!-- Floating Support Button -->
+    <a href="https://wa.me/919894717941?text=I%20need%20help%20with%20SmartChit" 
+       target="_blank" class="whatsapp-fab" title="WhatsApp Support">
+        <i class="bi bi-whatsapp"></i>
+    </a>
+    {% endif %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% block extra_js %}{% endblock %}
 <script>
+    // Handle dynamic widths from data-attributes (bypasses CSS linter errors)
+    document.querySelectorAll('[data-width]').forEach(function(el){
+        el.style.width = el.getAttribute('data-width') + '%';
+    });
+</script>
+<script>
+    // Start NProgress
+    NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
+    NProgress.start();
+
     document.addEventListener('DOMContentLoaded', function() {
+        // Finish NProgress
+        NProgress.done();
+
+        // Notification Alerts logic
+        const todayNotifEl = document.getElementById('todayNotifCount');
+        const countValue = todayNotifEl ? parseInt(todayNotifEl.value) : 0;
+        
+        if (countValue > 0) {
+            const showTodayNotification = () => {
+                const toast = document.createElement('div');
+                toast.style = 'position: fixed; top: 20px; right: 20px; z-index: 1060; background: #fff; border-left: 5px solid var(--primary-green); padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: slideInRight 0.5s ease forwards; max-width: 320px;';
+                toast.innerHTML = `
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-2 text-success shadow-sm"><i class="bi bi-bell-fill"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small text-dark mb-0">Daily Updates Portal</div>
+                            <div class="text-muted extra-small">You have received <b>${countValue}</b> new alerts today.</div>
+                        </div>
+                        <button type="button" class="btn-close ms-2" style="font-size: 0.6rem;" onclick="this.parentElement.parentElement.remove()"></button>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => { 
+                    if (toast.parentElement) {
+                        toast.style.animation = 'fadeOut 0.8s forwards'; 
+                        setTimeout(() => toast.remove(), 800); 
+                    }
+                }, 8000);
+            };
+            setTimeout(showTodayNotification, 1000);
+        }
+        
         const sidebar = document.getElementById('sidebarMenu');
         const toggle = document.getElementById('sidebarToggle');
         
@@ -692,8 +1104,8 @@
             document.body.appendChild(backdrop);
             
             toggle.addEventListener('click', () => {
-                sidebar.classList.add('show');
-                backdrop.classList.add('show');
+                sidebar.classList.toggle('show');
+                backdrop.classList.toggle('show');
             });
             
             backdrop.addEventListener('click', () => {
@@ -701,6 +1113,91 @@
                 backdrop.classList.remove('show');
             });
         }
+
+        // Fast Feedback on nav clicks
+        document.querySelectorAll('.nav-link, .mobile-nav-item, .dropdown-item').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.href && !this.href.includes('#') && !this.getAttribute('data-bs-toggle')) {
+                    NProgress.start();
+                }
+            });
+        });
+
+        // Global High-Density Live Clock
+        function updateLiveTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const clockElements = document.querySelectorAll('#header-live-clock');
+            clockElements.forEach(el => {
+                el.innerHTML = `<i class="bi bi-clock-history me-1 small opacity-75"></i> ${timeStr}`;
+            });
+        }
+        setInterval(updateLiveTime, 1000);
+        updateLiveTime();
+        // Global Omnisearch Engine
+        const setupOmnisearch = (inputId, resultsId, suggestionsId) => {
+            const input = document.getElementById(inputId);
+            const resultsList = document.getElementById(resultsId);
+            const suggestionsDiv = document.getElementById(suggestionsId);
+            let debounceTimer;
+
+            if (!input) return;
+
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    suggestionsDiv.classList.add('d-none');
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    fetch(`/accounts/api/search/?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            resultsList.innerHTML = '';
+                            if (data.results.length > 0) {
+                                data.results.forEach(item => {
+                                    let icon = 'bi-person';
+                                    if(item.type === 'Chit Group') icon = 'bi-collection-play';
+                                    if(item.type === 'Auction Result') icon = 'bi-hammer';
+
+                                    const html = `
+                                        <a href="${item.url}" class="search-item">
+                                            <div class="search-item-icon"><i class="bi ${icon}"></i></div>
+                                            <div class="search-item-info">
+                                                <div class="search-item-title">${item.title}</div>
+                                                <div class="search-item-meta">${item.info}</div>
+                                            </div>
+                                            <div class="search-item-type">${item.type}</div>
+                                        </a>
+                                    `;
+                                    resultsList.insertAdjacentHTML('beforeend', html);
+                                });
+                                suggestionsDiv.classList.remove('d-none');
+                            } else {
+                                resultsList.innerHTML = '<div class="p-4 text-center text-muted small"><i class="bi bi-search d-block fs-3 mb-2 opacity-25"></i> No results found</div>';
+                                suggestionsDiv.classList.remove('d-none');
+                            }
+                        });
+                }, 300);
+            });
+
+            // Hide on outside click
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    suggestionsDiv.classList.add('d-none');
+                }
+            });
+        };
+
+        setupOmnisearch('globalSearchInput', 'searchResultsList', 'searchSuggestions');
+        setupOmnisearch('mobileSearchInput', 'mobileSearchResultsList', 'mobileSearchSuggestions');
+    });
+
+    window.addEventListener('beforeunload', function() {
+        NProgress.start();
     });
 </script>
 </body>

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root{--loan-accent:#6366f1;}
+@media print{
+  .no-print{display:none!important;}
+  .receipt-box{border:2px solid #000!important;box-shadow:none!important;}
+}
+.receipt-box{border:1px solid rgba(99,102,241,.2);border-radius:20px;max-width:580px;margin:0 auto;background:#fff;overflow:hidden;}
+.rcpt-header{background:linear-gradient(135deg,#6366f1,#818cf8);color:#fff;padding:1.5rem 2rem;}
+.rcpt-amount{font-size:2.5rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;}
+.rcpt-row td{padding:.4rem 0;font-size:.88rem;border:none;}
+.rcpt-row td:first-child{color:#94a3b8;font-weight:600;width:45%;}
+.rcpt-row td:last-child{font-weight:700;color:#0f172a;}
+.rcpt-footer{background:#f8fafc;border-top:1px solid #f1f5f9;padding:1rem 2rem;text-align:center;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="no-print d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'loan_detail' payment.loan.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h1 class="page-title mb-0"><i class="bi bi-receipt me-2" style="color:var(--loan-accent)"></i>Payment Receipt</h1>
+  <div class="ms-auto d-flex gap-2">
+    <button onclick="window.print()" class="btn btn-primary" style="background:var(--loan-accent);border-color:var(--loan-accent);"><i class="bi bi-printer me-1"></i>Print Receipt</button>
+    <a href="{% url 'loan_daily_collection' %}" class="btn btn-outline-secondary">Daily Report</a>
+  </div>
+</div>
+
+<div class="receipt-box shadow-lg">
+  <!-- Header -->
+  <div class="rcpt-header text-white">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <div style="font-size:.7rem;opacity:.8;letter-spacing:1px;text-transform:uppercase;">LoanSystem Receipt</div>
+        <div style="font-size:1.1rem;font-weight:800;margin-top:.25rem;">{{ payment.loan.branch.name }}</div>
+      </div>
+      <div class="text-end">
+        <div style="font-size:.7rem;opacity:.8;">Receipt No.</div>
+        <div style="font-weight:800;font-size:1rem;letter-spacing:-.5px;">{{ payment.receipt_number }}</div>
+      </div>
+    </div>
+    <div class="mt-3 text-center">
+      <div style="opacity:.8;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;">Amount Collected</div>
+      <div class="rcpt-amount">₹{{ payment.amount_paid|floatformat:0 }}</div>
+      {% if payment.penalty_paid > 0 %}<div style="opacity:.85;font-size:.85rem;">+ ₹{{ payment.penalty_paid|floatformat:0 }} Penalty</div>{% endif %}
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="px-4 py-3">
+    <table class="table rcpt-row mb-0">
+      <tr><td>Customer Name</td><td>{{ payment.loan.customer.full_name }}</td></tr>
+      <tr><td>Phone</td><td>{{ payment.loan.customer.phone }}</td></tr>
+      <tr><td>Loan Number</td><td>{{ payment.loan.loan_number }}</td></tr>
+      <tr><td>EMI Instalment</td><td>{% if payment.emi_installment %}#{{ payment.emi_installment.installment_number }} of {{ payment.loan.tenure_months }}{% else %}—{% endif %}</td></tr>
+      <tr><td>Payment Date</td><td>{{ payment.payment_date|date:"d M Y" }}</td></tr>
+      <tr><td>Payment Mode</td><td>{{ payment.get_payment_mode_display }}</td></tr>
+      {% if payment.transaction_reference %}<tr><td>Transaction Ref.</td><td>{{ payment.transaction_reference }}</td></tr>{% endif %}
+      <tr><td>Outstanding After</td><td class="text-danger fw-bold">₹{{ payment.loan.outstanding_balance|floatformat:0 }}</td></tr>
+      {% if payment.penalty_waived %}<tr><td>Penalty Note</td><td class="text-success">Penalty waived</td></tr>{% endif %}
+      <tr><td>Collected By</td><td>{{ payment.collected_by.get_full_name|default:payment.collected_by.username|default:"—" }}</td></tr>
+    </table>
+  </div>
+
+  <div class="rcpt-footer">
+    <div class="text-muted" style="font-size:.75rem;">This is a computer-generated receipt. No signature required.</div>
+    <div style="font-size:.65rem;color:#94a3b8;margin-top:.25rem;">Generated on {% now "d M Y, H:i" %}</div>
+  </div>
+</div>
+{% endblock %}

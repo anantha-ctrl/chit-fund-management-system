@@ -71,30 +71,40 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="border-0 px-4 py-3">Group Name</th>
-                        <th class="border-0 py-3">Total Value</th>
-                        <th class="border-0 py-3">My Total Paid</th>
-                        <th class="border-0 py-3">Group Status</th>
-                        <th class="border-0 py-3 text-end px-4">Details</th>
+                        <th class="border-0 px-4 py-3 text-uppercase text-muted extra-small fw-bold">Sl.No.:</th>
+                        <th class="border-0 px-4 py-3 text-uppercase text-muted extra-small fw-bold">Chit Group</th>
+                        <th class="border-0 py-3 text-uppercase text-muted extra-small fw-bold">Total Value</th>
+                        <th class="border-0 py-3 text-uppercase text-muted extra-small fw-bold">Total Paid</th>
+                        <th class="border-0 py-3 text-uppercase text-muted extra-small fw-bold">Upcoming Due</th>
+                        <th class="border-0 py-3 text-uppercase text-muted extra-small fw-bold">Remaining Bal.</th>
+                        <th class="border-0 py-3 text-end px-4 text-uppercase text-muted extra-small fw-bold">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in chit_breakdown %}
-                    <tr>
-                        <td class="px-4 py-3">
-                            <div class="fw-bold text-dark">{{ item.group_name }}</div>
-                        </td>
-                        <td class="py-3 fw-semibold text-muted">₹{{ item.chit_value }}</td>
-                        <td class="py-3 fw-bold text-primary-green">₹{{ item.paid_amount }}</td>
+                    <tr class="transition-hover">
+                        <td class="px-4 py-3 text-muted extra-small fw-bold">{{ forloop.counter }}</td>
                         <td class="py-3">
-                            <span class="badge {% if item.status == 'ACTIVE' %}bg-success-light text-primary-green{% else %}bg-secondary text-white{% endif %}">
-                                {{ item.status }}
-                            </span>
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ item.group_name }}</div>
+                        </td>
+                        <td class="py-3 text-muted" style="font-size: 0.85rem;">₹{{ item.chit_value }}</td>
+                        <td class="py-3 fw-bold text-success" style="font-size: 0.85rem;">₹{{ item.paid_amount }}</td>
+                        <td class="py-3" style="font-size: 0.85rem;">
+                            <span class="text-danger fw-bold">₹{{ item.upcoming_amount }}</span>
+                        </td>
+                        <td class="py-3" style="font-size: 0.85rem;">
+                            <span class="text-dark fw-extrabold">₹{{ item.balance_amount }}</span>
                         </td>
                         <td class="text-end px-4">
-                            <a href="{% url 'my_chits' %}" class="btn btn-sm btn-light border">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
+                            <span class="badge 
+                                {% if item.status == 'ACTIVE' %}bg-success-light text-success
+                                {% elif item.status == 'PENDING' %}bg-warning-light text-warning
+                                {% elif item.status == 'COMPLETED' %}bg-info-light text-primary
+                                {% elif item.status == 'CLOSED' %}bg-danger-light text-danger
+                                {% else %}bg-light text-muted{% endif %} 
+                            rounded-pill px-3 py-2 extra-small fw-extrabold">
+                                {{ item.status }}
+                            </span>
                         </td>
                     </tr>
                     {% empty %}
@@ -111,18 +121,122 @@
     </div>
 </div>
 
+<!-- Print Only Header -->
+<div class="d-none d-print-block mb-4 border-bottom pb-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-0" style="color: var(--primary-green);">Smart<span style="color: var(--text-dark);">Chit</span> Management</h2>
+            <p class="text-muted small mb-0">Confidential Financial Statement</p>
+        </div>
+        <div class="text-end">
+            <div class="fw-bold">Member: {{ user.get_full_name|default:user.username }}</div>
+            <div class="text-muted small">Generated on: {{ now|date:"d M Y, h:i A" }}</div>
+        </div>
+    </div>
+</div>
+
 <style>
     @media print {
-        .mobile-bottom-nav, .sidebar, .top-header, .btn-primary {
+        /* Hide UI Clutter */
+        .sidebar, .top-header, .mobile-bottom-nav, .whatsapp-fab, .btn, .breadcrumb, footer {
             display: none !important;
         }
-        .col-md-9 {
-            width: 100% !important;
-            margin-left: 0 !important;
+
+        /* Reset Layout */
+        body {
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-size: 10pt !important;
         }
+        
+        .container-fluid, main {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .ms-sm-auto, .col-md-9, .col-lg-10 {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            flex: 0 0 100% !important;
+        }
+
+        /* Typography & Spacing */
+        .page-title {
+            font-size: 18pt !important;
+            margin-bottom: 5pt !important;
+        }
+
+        .mb-4, .mb-5 {
+            margin-bottom: 10pt !important;
+        }
+
+        /* Summary Cards Optimization */
+        .row.g-4 {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 10pt !important;
+        }
+        
+        .col-md-6, .col-lg-4 {
+            flex: 1 1 33.33% !important;
+            width: 33.33% !important;
+        }
+
         .card {
-            border: 1px solid #eee !important;
+            border: 1px solid #ddd !important;
             box-shadow: none !important;
+            border-radius: 8pt !important;
+            break-inside: avoid;
+        }
+
+        .card-body {
+            padding: 10pt !important;
+        }
+
+        .card-header {
+            padding: 8pt 10pt !important;
+        }
+
+        h3 {
+            font-size: 14pt !important;
+        }
+
+        /* Table Optimization */
+        .table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+
+        .table th {
+            background-color: #f8f9fa !important;
+            color: #333 !important;
+            font-size: 8pt !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .table td {
+            font-size: 9pt !important;
+            padding: 6pt 4pt !important;
+            border-bottom: 0.5pt solid #eee !important;
+        }
+
+        .badge {
+            border: 0.5pt solid #ddd !important;
+            padding: 2pt 6pt !important;
+            font-size: 7pt !important;
+            color: black !important;
+            background: white !important;
+        }
+
+        /* Force Single Page */
+        @page {
+            size: A4 portrait;
+            margin: 1cm;
         }
     }
 </style>

@@ -61,7 +61,11 @@
                     </td>
                     <td class="py-3">
                         {% if member.kyc_status == 'COMPLIANT' %}
-                            <span class="badge bg-success-subtle text-success rounded-pill px-3 extra-small fw-bold">COMPLIANT</span>
+                            <span class="badge bg-success text-white rounded-pill px-3 extra-small fw-bold">COMPLIANT</span>
+                        {% elif member.kyc_status == 'VERIFIED' %}
+                            <span class="badge bg-info text-white rounded-pill px-3 extra-small fw-bold">VERIFIED</span>
+                        {% elif member.kyc_status == 'REJECTED' %}
+                            <span class="badge bg-danger text-white rounded-pill px-3 extra-small fw-bold">REJECTED</span>
                         {% elif member.kyc_status == 'PARTIAL' %}
                             <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 extra-small fw-bold">PARTIAL</span>
                         {% else %}
@@ -69,15 +73,15 @@
                         {% endif %}
                     </td>
                     <td class="py-3">
-                        <div class="d-flex gap-1">
-                            {% if member.doc_count >= 2 %}
-                                <i class="bi bi-check-circle-fill text-success" title="Multiple IDs Found"></i>
-                            {% elif member.doc_count > 0 %}
-                                <i class="bi bi-exclamation-circle-fill text-warning" title="Partial IDs"></i>
+                        <div class="d-flex gap-1 align-items-center">
+                            {% if member.approved_doc_count >= 2 %}
+                                <i class="bi bi-patch-check-fill text-success" title="2+ Approved Documents"></i>
+                            {% elif member.total_doc_count > 0 %}
+                                <i class="bi bi-clock-history text-warning" title="{{ member.approved_doc_count }}/{{ member.total_doc_count }} Approved"></i>
                             {% else %}
                                 <i class="bi bi-x-circle-fill text-danger text-opacity-25" title="No IDs Uploaded"></i>
                             {% endif %}
-                            <span class="small text-muted">{{ member.doc_count }} Documents</span>
+                            <span class="small text-muted">{{ member.approved_doc_count }} / {{ member.total_doc_count }} Verified</span>
                         </div>
                     </td>
                     <td class="py-3 text-center">

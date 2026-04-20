@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import models
+import csv
+from django.http import HttpResponse
 from .models import Notification
 
 @login_required
@@ -58,7 +61,11 @@ def bulk_notification_view(request):
         # Get all users (or filter if needed)
         users = User.objects.filter(is_active=True)
         
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
         count = 0
+        email_list = []
         for user in users:
             Notification.objects.create(
                 user=user,
@@ -66,11 +73,57 @@ def bulk_notification_view(request):
                 message=message,
                 priority=priority
             )
+            if user.email:
+                email_list.append(user.email)
             count += 1
             
-        messages.success(request, f'Notification successfully blasted to {count} users via Portal & SMS/WhatsApp Queue.')
+        # Send bulk email if recipients exist
+        if email_list:
+            try:
+                send_mail(
+                    subject=f"SmartChit Broadcast: {title}",
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=email_list,
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Bulk email error: {e}")
+            
+        messages.success(request, f'Broadcast successfully dispatched to {count} users via Portal & Email.')
         return redirect('bulk_notification')
+    
+    # Get history of unique bulk notifications sent (grouped loosely by title and message)
+    # This is a workaround since we don't have a BulkNotification table
+    sent_history = Notification.objects.values('title', 'message', 'priority', 'created_at__date').annotate(count=models.Count('id')).order_by('-created_at__date')[:10]
+    
+    total_reach = User.objects.filter(is_active=True).count()
         
     return render(request, 'notifications/bulk_notification.html', {
-        'title': 'Bulk Member Communication Hub'
+        'title': 'Bulk Member Communication Hub',
+        'sent_history': sent_history,
+        'total_reach': total_reach
     })
+
+@login_required
+@user_passes_test(is_superadmin)
+def export_notification_logs(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="broadcast_logs.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Date', 'Title', 'Message', 'Priority', 'Recipient/Status'])
+    
+    # Using the same grouping logic as the history table
+    logs = Notification.objects.all().order_by('-created_at')
+    
+    for log in logs:
+        writer.writerow([
+            log.created_at.strftime("%Y-%m-%d %H:%M"),
+            log.title,
+            log.message,
+            log.priority,
+            log.user.username
+        ])
+    
+    return response

@@ -29,45 +29,61 @@ class Auction(models.Model):
         if self.bid_amount < commission:
             raise ValidationError(f"The bid amount (₹{self.bid_amount}) must be greater than or equal to the Foreman Fee (₹{commission}). Please enter a higher bid.")
 
-        # 1. Total Commission = (Commission % / 100) * Whole Chit Amount
+        # 1. Foreman Fee (Fixed usually)
         self.foreman_commission = commission
         
-        # 2. Total Dividend = Bid Amount (Discount) - Commission
-        # This is what gets shared back to members
-        self.total_dividend = max(0, self.bid_amount - self.foreman_commission)
+        # 2. Total Dividend = Full Bid Amount (Discount)
+        # Members now get the full discount, they don't pay the commission
+        self.total_dividend = max(0, self.bid_amount)
         
-        # 3. Dividend Per Member
+        # 3. Dividend Per Member (Distributed ONLY to non-winners)
         member_count = self.chit_group.members.count()
-        if member_count > 0:
-            self.dividend_per_member = self.total_dividend / member_count
+        # Dividend is split between all members EXCEPT the winner of this round
+        eligible_members_count = max(1, member_count - 1) 
+        self.dividend_per_member = self.total_dividend / eligible_members_count
         
-        # 4. Net Payout for winner
-        self.payout_amount = self.chit_group.amount - self.bid_amount
+        # 4. Net Payout for winner = (Total Chit Amount - Bid Amount - Foreman Fee)
+        self.payout_amount = self.chit_group.amount - self.bid_amount - self.foreman_commission
         
         super().save(*args, **kwargs)
         
         # 5. Automated Dividend Distribution: 
-        # Update or Create 'Payment' entries for the NEXT installment for all members
+        # Update or Create 'Payment' entries for the NEXT installment
         from payments.models import Payment
-        from datetime import date, timedelta
+        from datetime import date
+        import calendar
         
-        next_month = self.month_number + 1
-        if next_month <= self.chit_group.duration_months:
+        next_month_num = self.month_number + 1
+        if next_month_num <= self.chit_group.duration_months:
+            # Determine due date for the next month
+            year = self.auction_date.year
+            month = self.auction_date.month + 1
+            if month > 12:
+                month = 1
+                year += 1
+            
+            last_day = calendar.monthrange(year, month)[1]
+            actual_due_day = min(self.chit_group.due_day, last_day)
+            calculated_due_date = date(year, month, actual_due_day)
+
             for member in self.chit_group.members.all():
                 # Apply dividend to the next monthly payment
+                # IMPORTANT: Winner of this round gets ZERO dividend
+                current_dividend = 0 if member == self.winner else self.dividend_per_member
+                
                 payment, created = Payment.objects.get_or_create(
                     chit_group=self.chit_group,
                     member=member,
-                    installment_number=next_month,
+                    installment_number=next_month_num,
                     defaults={
                         'amount': self.chit_group.installment_amount,
-                        'due_date': self.auction_date + timedelta(days=30), # Default 1 month later
+                        'due_date': calculated_due_date,
                         'status': 'PENDING'
                     }
                 )
                 
-                # Update the dividend amount
-                payment.dividend_amount = self.dividend_per_member
+                # Update the dividend amount accurately
+                payment.dividend_amount = current_dividend
                 payment.save()
 
     def __str__(self):

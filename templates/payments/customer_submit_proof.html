@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="row g-0">
+                    <!-- Left Side: QR Code & Instructions -->
+                    <div class="col-md-5 bg-primary text-white p-4 p-lg-5 d-flex flex-column justify-content-center align-items-center text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-qr-code-scan display-1"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Scan to Pay</h3>
+                        <p class="opacity-75 mb-4">Scan the QR code below using any UPI app (GPay, PhonePe, Paytm) to complete your payment of <strong>₹{{ payment.amount }}</strong>.</p>
+                        
+                        <div class="bg-white p-3 rounded-4 shadow-sm mb-4" style="max-width: 250px;">
+                            {% if qr_code_url %}
+                                <img src="{{ qr_code_url }}" alt="Payment QR Code" class="img-fluid rounded-3">
+                            {% else %}
+                                <div class="py-5 px-3 text-dark">
+                                    <i class="bi bi-image text-muted d-block fs-1"></i>
+                                    <span class="small text-muted">QR Code not uploaded by Admin</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-auto">
+                            <p class="small mb-0 opacity-75">Chit: {{ payment.chit_group.name }}</p>
+                            <p class="small opacity-75">Installment {{ payment.installment_number }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Right Side: Submission Form -->
+                    <div class="col-md-7 bg-white p-4 p-lg-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold mb-0 text-dark">Submit Proof</h4>
+                            <span class="badge bg-warning-light text-warning rounded-pill px-3 py-2">Step 2: Verification</span>
+                        </div>
+                        
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Member Name</label>
+                                {{ form.member_name }}
+                                {% if form.member_name.errors %}<div class="text-danger small mt-1">{{ form.member_name.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Phone Number</label>
+                                {{ form.phone_no }}
+                                {% if form.phone_no.errors %}<div class="text-danger small mt-1">{{ form.phone_no.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Transaction ID / UTR</label>
+                                {{ form.transaction_id }}
+                                <div class="form-text text-muted extra-small">Example: 409823126781</div>
+                                {% if form.transaction_id.errors %}<div class="text-danger small mt-1">{{ form.transaction_id.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Payment Screenshot</label>
+                                {{ form.screenshot }}
+                                <div class="form-text text-muted extra-small">Upload the successful payment screen from your app.</div>
+                                {% if form.screenshot.errors %}<div class="text-danger small mt-1">{{ form.screenshot.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-3">
+                                    Submit for Verification <i class="bi bi-shield-check ms-2"></i>
+                                </button>
+                            </div>
+
+                            <div class="text-center">
+                                <a href="{% url 'dashboard' %}" class="btn btn-link link-secondary text-decoration-none small fw-bold">
+                                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 bg-white rounded-4 shadow-sm border">
+                <div class="d-flex align-items-center">
+                    <div class="bg-info bg-opacity-10 text-info p-2 rounded-circle me-3">
+                        <i class="bi bi-info-circle-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Verification Timeline</h6>
+                        <p class="mb-0 text-muted small">Once submitted, our admin team will verify the payment within 2-4 working hours. You will receive a notification upon approval.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
+    }
+    .badge.bg-warning-light {
+        background-color: rgba(245, 158, 11, 0.1);
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        border: none;
+        transition: transform 0.2s;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+    }
+</style>
+{% endblock %}

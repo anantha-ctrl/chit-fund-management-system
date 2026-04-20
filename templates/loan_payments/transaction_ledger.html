@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.txn-badge { font-size: 0.68rem; font-weight: 700; border-radius: 50px; padding: 0.2rem 0.6rem; border: none; }
+.txn-row:hover { background-color: #f8fafc !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title mb-0"><i class="bi bi-journal-text me-2" style="color:var(--loan-accent)"></i>Audit Ledger</h1>
+    <p class="text-muted mb-0" style="font-size:.85rem;">{% if loan %}Financial history for <strong>{{ loan.loan_number }}</strong>{% else %}Unified transaction trail for all loan activities{% endif %}</p>
+  </div>
+  {% if loan %}
+  <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-sm btn-light border rounded-pill px-3 shadow-none bg-white"><i class="bi bi-arrow-left me-1"></i>Back to Loan</a>
+  {% else %}
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn btn-sm btn-light border rounded-pill px-3 shadow-none"><i class="bi bi-printer me-1"></i>Print Logs</button>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:.87rem;">
+        <thead class="bg-light">
+          <tr class="text-muted" style="font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;">
+            <th class="ps-4">Timestamp</th>
+            <th>Reference</th>
+            <th>Type</th>
+            <th class="text-end">Amount</th>
+            <th class="text-end">Balance After</th>
+            <th class="ps-4">Remarks</th>
+            <th class="pe-4 text-center">Auth By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for txn in page_obj %}
+          <tr class="txn-row">
+            <td class="ps-4">
+              <div class="fw-bold text-dark">{{ txn.created_at|date:"d M Y" }}</div>
+              <div class="text-muted small">{{ txn.created_at|date:"H:i" }}</div>
+            </td>
+            <td>
+              <a href="{% url 'loan_detail' txn.loan.pk %}" class="fw-bold text-decoration-none" style="color:var(--loan-accent)">{{ txn.loan.loan_number }}</a>
+              <div class="small text-muted">{{ txn.loan.customer.full_name|truncatechars:15 }}</div>
+            </td>
+            <td>
+              {% if txn.txn_type == 'disbursement' or txn.txn_type == 'topup' %}
+              <span class="badge bg-primary bg-opacity-10 text-primary txn-badge">DISBURSE</span>
+              {% elif txn.txn_type == 'collection' %}
+              <span class="badge bg-success bg-opacity-10 text-success txn-badge">COLLECT</span>
+              {% elif txn.txn_type == 'penalty' %}
+              <span class="badge bg-danger bg-opacity-10 text-danger txn-badge">PENALTY</span>
+              {% else %}
+              <span class="badge bg-secondary bg-opacity-10 text-secondary txn-badge">{{ txn.get_txn_type_display|upper }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end fw-bold {% if txn.txn_type == 'collection' %}text-success{% elif txn.txn_type == 'disbursement' or txn.txn_type == 'topup' %}text-primary{% else %}text-danger{% endif %}">
+               ₹{{ txn.amount|floatformat:0 }}
+            </td>
+            <td class="text-end fw-bold text-dark">₹{{ txn.balance_after|floatformat:0 }}</td>
+            <td class="ps-4"><div class="text-muted small" style="max-width: 250px; line-height: 1.4;">{{ txn.description }}</div></td>
+            <td class="pe-4 text-center">
+              <span class="badge bg-light text-dark border px-2">{{ txn.created_by.get_full_name|default:txn.created_by.username|default:"System"|truncatechars:10 }}</span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5">
+              <div class="py-4 text-muted">
+                <i class="bi bi-journal-x opacity-25" style="font-size: 4rem;"></i>
+                <h5 class="mt-3">No transactions logged</h5>
+                <p class="small">The audit trail is currently empty for this scope.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-footer bg-white border-0 py-3">
+    <nav>
+      <ul class="pagination pagination-sm mb-0 justify-content-center gap-1">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link border-0 rounded-3 shadow-none" href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-dark fw-bold px-3">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link border-0 rounded-3 shadow-none" href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

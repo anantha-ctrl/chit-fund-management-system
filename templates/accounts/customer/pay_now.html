@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block content %}
+                <div class="row justify-content-center">
+    <div class="col-lg-7 col-xl-6">
+        <!-- Main Payment Card -->
+        <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 28px;">
+            <!-- Premium Header -->
+            <div class="card-header border-0 p-5 text-center text-white position-relative" 
+                 style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+                <!-- Abstract Background Shapes -->
+                <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10" style="background-image: radial-gradient(circle at 20% 30%, #fff 0%, transparent 50%), radial-gradient(circle at 80% 70%, #fff 0%, transparent 50%); pointer-events: none;"></div>
+                
+                <div class="rounded-circle bg-white bg-opacity-20 d-inline-flex align-items-center justify-content-center mb-4 shadow" style="width: 90px; height: 90px; backdrop-filter: blur(5px);">
+                    <i class="bi bi-shield-lock-fill fs-1"></i>
+                </div>
+                <h2 class="fw-extrabold mb-1">Secure Checkout</h2>
+                <p class="opacity-75 mb-0 px-md-4">Complete your monthly installment via our encrypted gateway.</p>
+                
+                <!-- Stepper Progress Mockup -->
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <span class="rounded-pill bg-white" style="width: 30px; height: 6px;"></span>
+                    <span class="rounded-pill bg-white opacity-25" style="width: 30px; height: 6px;"></span>
+                    <span class="rounded-pill bg-white opacity-25" style="width: 30px; height: 6px;"></span>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5 bg-white">
+                <!-- Member Summary -->
+                <div class="d-flex align-items-center mb-5 p-3 rounded-4 bg-light border border-white shadow-sm">
+                    <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; font-weight: 800;">
+                        {{ member.name|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold ls-1 d-block" style="font-size: 0.65rem;">Paying For Member</small>
+                        <h6 class="mb-0 fw-bold text-dark">{{ member.name }} • <span class="text-primary">#MEM-{{ member.id|stringformat:"04d" }}</span></h6>
+                    </div>
+                    <div class="ms-auto text-end">
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3">{{ pending_payments.count }} Pending</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark text-uppercase small ls-1 mb-3">Order Summary</h6>
+                    
+                    <div class="payment-list">
+                        {% for p in pending_payments %}
+                        <div class="card border-0 bg-light bg-opacity-50 mb-3 rounded-4 transition-all hover-shadow-sm border-start border-4 border-primary">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="bg-white p-2 rounded-3 shadow-sm me-3">
+                                        <i class="bi bi-collection-play text-primary fs-5"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-dark">{{ p.chit_group.name }}</h6>
+                                                <small class="text-muted mt-1 d-block">Installment #{{ p.installment_number }} • Due {{ p.due_date|date:"M d, Y" }}</small>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="fw-extrabold text-dark fs-5">₹{{ p.net_amount }}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Micro Breakdown -->
+                                        <div class="mt-2 pt-2 border-top extra-small d-flex gap-3 text-muted">
+                                            <span>Base: ₹{{ p.amount }}</span>
+                                            {% if p.dividend_amount > 0 %}
+                                            <span class="text-success"><i class="bi bi-dash-circle me-1"></i>Div: ₹{{ p.dividend_amount }}</span>
+                                            {% endif %}
+                                            {% if p.penalty_amount > 0 %}
+                                            <span class="text-danger"><i class="bi bi-plus-circle me-1"></i>Pen: ₹{{ p.penalty_amount }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                                <i class="bi bi-check-all text-success fs-1"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Zero Outstanding Balance</h5>
+                            <p class="text-muted small">You are fully up to date with all your chit installments. High five!</p>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary rounded-pill px-4 mt-2">Back to Dashboard</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if total_due > 0 %}
+                <!-- Total Section -->
+                <div class="bg-dark rounded-4 p-4 text-white mb-5 shadow-lg position-relative overflow-hidden">
+                    <div class="position-absolute top-0 end-0 p-4 opacity-10">
+                        <i class="bi bi-wallet2 text-white" style="font-size: 5rem;"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center position-relative">
+                        <div>
+                            <p class="text-uppercase small mb-1 ls-1 fw-bold opacity-50">Grand Total Payable</p>
+                            <h1 class="mb-0 fw-extrabold" style="font-size: 2.5rem;">₹{{ total_due }}</h1>
+                        </div>
+                        <div class="text-end d-none d-md-block">
+                            <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-2 small">
+                                <i class="bi bi-stars me-1"></i> All dues included
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Payment Guide Section -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark text-uppercase small ls-1 mb-3">Manual Payment Options</h6>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="background: #f8fafc;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-2 me-3">
+                                    <i class="bi bi-bank2 fs-4"></i>
+                                </div>
+                                <h6 class="mb-0 fw-extrabold text-dark">Direct Bank Transfer (NEFT/IMPS)</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <small class="text-muted d-block fw-bold text-uppercase mb-1" style="font-size: 0.6rem;">Account Name</small>
+                                    <p class="mb-0 fw-bold text-dark">{{ bank_details.account_name }}</p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-muted d-block fw-bold text-uppercase mb-1" style="font-size: 0.6rem;">Account Number</small>
+                                    <code class="mb-0 fw-bold text-primary fs-6">{{ bank_details.account_no }}</code>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-muted d-block fw-bold text-uppercase mb-1" style="font-size: 0.6rem;">IFSC Code</small>
+                                    <code class="mb-0 fw-bold text-primary fs-6">{{ bank_details.ifsc }}</code>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-muted d-block fw-bold text-uppercase mb-1" style="font-size: 0.6rem;">Bank Branch</small>
+                                    <p class="mb-0 fw-bold text-dark">{{ bank_details.bank_name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-4 border-start border-4 border-warning" style="background: #fffcf0;">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-geo-alt-fill text-warning fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Branch Collection</h6>
+                                <p class="small text-muted mb-0">Visit your registered branch to pay via Cash or Cheque.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Amount Card -->
+                <div class="bg-dark rounded-4 p-4 text-white mb-4 shadow-lg">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-uppercase small mb-1 ls-1 fw-bold opacity-50">Grand Total Payable</p>
+                            <h2 class="mb-0 fw-extrabold">₹{{ total_due }}</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-4 p-4 mb-0">
+                    <div class="d-flex">
+                        <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                        <p class="small mb-0 fw-medium">After completing the transfer, please share the transaction receipt with your branch manager for verification and manual clearing of your dues.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Enhanced Footer / Security Badges -->
+            <div class="card-footer bg-light border-0 py-4 px-5">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-8">
+                        <p class="extra-small text-muted mb-0 lh-base">
+                            <i class="bi bi-shield-lock me-1"></i> These instructions are for official use only. Directly notify your branch representative upon payment completion to receive an official receipt.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <span class="text-success small fw-bold"><i class="bi bi-building-check me-1"></i> BRANCH VERIFIED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

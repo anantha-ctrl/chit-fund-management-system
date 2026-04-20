@@ -20,7 +20,7 @@
                     </div>
                     <div class="text-end">
                         <span class="badge bg-white text-primary px-3 py-2 rounded-pill shadow-sm">
-                            <i class="fas fa-calendar-alt me-1"></i> {{ auction.auction_date|date:"d M Y" }}
+                            <i class="bi bi-calendar3 me-1"></i> {{ auction.auction_date|date:"d M Y" }}
                         </span>
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                 <div class="p-4 bg-white border rounded-4 mb-4 shadow-sm">
                     <div class="d-flex align-items-center mb-3">
                         <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
-                            <i class="fas fa-award text-primary fs-3"></i>
+                            <i class="bi bi-trophy text-primary fs-3"></i>
                         </div>
                         <div>
                             <h5 class="mb-0 fw-bold">Auction Winner</h5>
@@ -71,7 +71,7 @@
                         <div class="col-md-7">
                             <div class="d-flex align-items-center">
                                 <div class="bg-success bg-opacity-10 p-2 rounded-3 me-3">
-                                    <i class="fas fa-coins text-success"></i>
+                                    <i class="bi bi-cash-coin text-success"></i>
                                 </div>
                                 <div>
                                     <h6 class="mb-0 fw-bold">Individual Dividend</h6>
@@ -94,10 +94,10 @@
         <div class="card border-0 shadow-lg" style="border-radius: 20px;">
             <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center" style="border-radius: 20px 20px 0 0;">
                 <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-user-shield me-2 text-warning"></i>Guarantors
+                    <i class="bi bi-shield-check me-2 text-warning"></i>Guarantors
                 </h5>
                 <button class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm hover-scale" data-bs-toggle="modal" data-bs-target="#addGuarantorModal" style="font-size: 0.75rem;">
-                    <i class="fas fa-user-plus me-1"></i> Add
+                    <i class="bi bi-person-plus me-1"></i> Add
                 </button>
             </div>
             <div class="card-body p-0">
@@ -106,7 +106,7 @@
                     <div class="list-group-item p-4 border-bottom hover-bg-light transition-all">
                         <div class="d-flex align-items-center mb-2">
                             <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle text-center me-3 flex-shrink-0" style="width: 40px; height: 40px; line-height: 40px;">
-                                <i class="fas fa-user-shield text-primary"></i>
+                                <i class="bi bi-shield text-primary"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h6 class="mb-0 fw-extrabold text-dark">{{ guarantor.name }}</h6>
@@ -114,10 +114,10 @@
                             </div>
                         </div>
                         <div class="mt-2 ps-5">
-                            <p class="text-muted small mb-1"><i class="fas fa-phone-alt me-2 text-success opacity-50"></i>{{ guarantor.phone }}</p>
+                            <p class="text-muted small mb-1"><i class="bi bi-telephone me-2 text-success opacity-50"></i>{{ guarantor.phone }}</p>
                             {% if guarantor.id_proof_number %}
                                 <div class="bg-light p-2 rounded-3 border-0 small mt-2">
-                                    <span class="text-muted"><i class="fas fa-id-card me-2 opacity-50"></i>{{ guarantor.id_proof_type }}:</span>
+                                    <span class="text-muted"><i class="bi bi-card-text me-2 opacity-50"></i>{{ guarantor.id_proof_type }}:</span>
                                     <span class="fw-bold text-dark">{{ guarantor.id_proof_number }}</span>
                                 </div>
                             {% endif %}
@@ -126,7 +126,7 @@
                     {% empty %}
                     <div class="text-center p-5">
                         <div class="mb-3 text-muted opacity-25">
-                            <i class="fas fa-user-lock" style="font-size: 3rem;"></i>
+                            <i class="bi bi-person-lock" style="font-size: 3rem;"></i>
                         </div>
                         <p class="text-muted mb-0 fw-bold">No High-Security Guarantors</p>
                         <small class="text-muted d-block mt-1">Required for fund release.</small>

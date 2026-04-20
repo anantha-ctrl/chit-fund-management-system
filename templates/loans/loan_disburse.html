@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: .55rem 0; border-bottom: 1px solid #f1f5f9; font-size: .88rem; }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: #64748b; font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .4px; }
+.info-value { font-weight: 700; color: #0f172a; }
+.mode-btn { border: 2px solid #e5e7eb; border-radius: 12px; padding: .75rem 1rem; cursor: pointer; transition: all .2s; text-align: center; }
+.mode-btn:hover, .mode-btn.selected { border-color: var(--loan-accent); background: var(--loan-light); }
+.mode-btn input[type=radio] { display: none; }
+.mode-btn i { display: block; font-size: 1.4rem; margin-bottom: .25rem; color: var(--loan-accent); }
+.mode-btn span { font-size: .78rem; font-weight: 700; color: #0f172a; }
+.confirm-box { background: linear-gradient(135deg, #6366f1, #818cf8); color: #fff; border-radius: 16px; padding: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <div>
+    <h1 class="page-title mb-0" style="font-size:1.4rem;"><i class="bi bi-send me-2" style="color:var(--loan-accent)"></i>Disburse Loan</h1>
+    <small class="text-muted">{{ loan.loan_number }} — {{ loan.customer.full_name }}</small>
+  </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+
+  <!-- Left: Loan Summary -->
+  <div class="col-lg-4">
+    <div class="confirm-box mb-3">
+      <div style="font-size:.7rem; opacity:.75; text-transform:uppercase; letter-spacing:1px;">Ready to Disburse</div>
+      <div style="font-size:2.2rem; font-weight:800; font-family:'Plus Jakarta Sans',sans-serif; letter-spacing:-1px; margin-top:.25rem;">
+        ₹{{ loan.loan_amount|floatformat:0 }}
+      </div>
+      <div style="font-size:.85rem; opacity:.85; margin-top:.25rem;">{{ loan.customer.full_name }}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header fw-bold"><i class="bi bi-file-earmark-text me-2" style="color:var(--loan-accent)"></i>Loan Summary</div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-label">Loan Number</span>
+          <span class="info-value" style="color:var(--loan-accent);">{{ loan.loan_number }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Principal</span>
+          <span class="info-value">₹{{ loan.loan_amount|floatformat:0 }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Interest Rate</span>
+          <span class="info-value">{{ loan.interest_rate }}% p.a. ({{ loan.get_interest_type_display }})</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Tenure</span>
+          <span class="info-value">{{ loan.tenure_months }} months</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Monthly EMI</span>
+          <span class="info-value text-success">₹{{ loan.emi_amount|floatformat:0 }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Total Payable</span>
+          <span class="info-value">₹{{ loan.total_payable|floatformat:0 }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Total Interest</span>
+          <span class="info-value text-danger">₹{{ loan.total_interest|floatformat:0 }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Branch</span>
+          <span class="info-value">{{ loan.branch.name }}</span>
+        </div>
+        {% if loan.approved_by %}
+        <div class="info-row">
+          <span class="info-label">Approved By</span>
+          <span class="info-value">{{ loan.approved_by.get_full_name|default:loan.approved_by.username }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Disbursement Form -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header fw-bold"><i class="bi bi-cash-coin me-2" style="color:var(--loan-accent)"></i>Disbursement Details</div>
+      <div class="card-body">
+        <form method="post" id="disburseForm">
+          {% csrf_token %}
+
+          <!-- Mode Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-bold mb-2">Disbursement Mode <span class="text-danger">*</span></label>
+            <div class="row g-2">
+              <div class="col-4">
+                <label class="mode-btn w-100" id="mode-cash">
+                  <input type="radio" name="mode" value="cash" checked onchange="updateMode(this)">
+                  <i class="bi bi-cash-stack"></i>
+                  <span>Cash</span>
+                </label>
+              </div>
+              <div class="col-4">
+                <label class="mode-btn w-100" id="mode-bank">
+                  <input type="radio" name="mode" value="bank" onchange="updateMode(this)">
+                  <i class="bi bi-bank"></i>
+                  <span>Bank Transfer</span>
+                </label>
+              </div>
+              <div class="col-4">
+                <label class="mode-btn w-100" id="mode-upi">
+                  <input type="radio" name="mode" value="upi" onchange="updateMode(this)">
+                  <i class="bi bi-phone"></i>
+                  <span>UPI</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reference Number -->
+          <div class="mb-4" id="refField">
+            <label class="form-label fw-bold">
+              Reference Number <small class="text-muted fw-normal">(UTR / UPI ID / —)</small>
+            </label>
+            <input type="text" name="reference" class="form-control" placeholder="Enter reference number or leave blank for Cash">
+          </div>
+
+          <!-- Warning -->
+          <div class="alert d-flex align-items-center gap-2 mb-4" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;font-size:.84rem;">
+            <i class="bi bi-exclamation-triangle-fill text-warning fs-5 flex-shrink-0"></i>
+            <div>
+              <strong>Irreversible action.</strong> Confirming this will mark the loan as <strong>Active</strong> and generate the full EMI schedule. This cannot be undone.
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1" style="background:var(--loan-accent);border-color:var(--loan-accent);">
+              <i class="bi bi-send me-1"></i>Confirm Disbursement — ₹{{ loan.loan_amount|floatformat:0 }}
+            </button>
+            <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function updateMode(el){
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+  el.closest('.mode-btn').classList.add('selected');
+  // Show ref field hint
+  const ref = document.getElementById('refField').querySelector('input');
+  if(el.value === 'cash') ref.placeholder = 'Not required for cash — leave blank';
+  else if(el.value === 'upi') ref.placeholder = 'UPI transaction ID / VPA';
+  else ref.placeholder = 'UTR / NEFT / RTGS reference number';
+}
+// Init
+document.querySelector('input[name=mode][value=cash]').closest('.mode-btn').classList.add('selected');
+</script>
+{% endblock %}

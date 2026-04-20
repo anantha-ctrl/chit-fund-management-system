@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; }
+        .header { text-align: center; border-bottom: 2px solid #16A34A; padding-bottom: 20px; margin-bottom: 20px; }
+        .logo { font-size: 24px; font-weight: bold; color: #16A34A; }
+        .receipt-title { font-size: 20px; color: #555; margin-bottom: 5px; }
+        .amount { font-size: 32px; font-weight: bold; color: #16A34A; margin: 20px 0; }
+        .details { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
+        .detail-label { font-weight: bold; color: #666; }
+        .detail-value { color: #111; }
+        .footer { text-align: center; font-size: 12px; color: #888; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: #16A34A; color: #ffffff !important; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SmartChit Management</div>
+            <div class="receipt-title">Official Payment Receipt</div>
+        </div>
+
+        <p>Hello <strong>{{ member.name }}</strong>,</p>
+        <p>Your payment has been successfully recorded. Thank you for choosing SmartChit for your financial growth.</p>
+
+        <div class="amount" style="text-align: center;">
+            ₹{{ payment.net_amount|floatformat:2 }}
+        </div>
+
+        <div class="details">
+            <div class="detail-row">
+                <span class="detail-label">Chit Group:</span>
+                <span class="detail-value">{{ group.name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Installment:</span>
+                <span class="detail-value">#{{ payment.installment_number }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Payment Date:</span>
+                <span class="detail-value">{{ date|date:"M d, Y" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Transaction Status:</span>
+                <span class="detail-value" style="color: #16A34A; font-weight: bold;">SUCCESSFUL</span>
+            </div>
+            {% if payment.penalty_amount > 0 %}
+            <div class="detail-row">
+                <span class="detail-label">Includes Penalty:</span>
+                <span class="detail-value">₹{{ payment.penalty_amount }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center;">
+            <p>You can view your full ledger and download detailed receipts in your member dashboard.</p>
+            <a href="{{ request.scheme }}://{{ request.get_host }}/dashboard/" class="btn">View My Dashboard</a>
+        </div>
+
+        <div class="footer">
+            <p>This is a computer-generated receipt and does not require a signature.</p>
+            <p>&copy; 2026 SmartChit Management System. All rights reserved.</p>
+            <p>If you have any questions, please contact our support team at support@smartchit.com</p>
+        </div>
+    </div>
+</body>
+</html>

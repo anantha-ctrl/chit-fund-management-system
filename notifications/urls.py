@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:pk>/read/', views.mark_individual_read, name='mark_notification_read'),
     path('clear-all/', views.delete_all_notifications, name='clear_all_notifications'),
     path('bulk/', views.bulk_notification_view, name='bulk_notification'),
+    path('export-logs/', views.export_notification_logs, name='export_notification_logs'),
 ]

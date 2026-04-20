@@ -1,94 +1,278 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="page-title">Finance Stream</h1>
-    <a href="{% url 'payment_create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-        <i class="bi bi-plus-lg me-2"></i> Record Payment
-    </a>
-</div>
+<style>
+    .transition-hover:hover { background-color: rgba(0,0,0,0.02) !important; transform: translateX(4px); }
+    .transition-hover { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    .search-pill {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    .search-pill:focus-within {
+        background: #fff;
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+    
+    .stat-card {
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    }
+    .avatar-sm { font-family: 'Outfit', sans-serif; }
+</style>
 
-<div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="border-0 ps-4 py-3 text-uppercase small fw-bold text-muted">Chit Details</th>
-                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Member</th>
-                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Installment</th>
-                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted text-center">Amount</th>
-                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Date</th>
-                        <th class="border-0 py-3 text-uppercase small fw-bold text-muted">Status</th>
-                        <th class="border-0 pe-4 py-3 text-uppercase small fw-bold text-muted text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for payment in payments %}
-                    <tr>
-                        <td class="ps-4">
-                            <div class="fw-bold text-dark">{{ payment.chit_group.name }}</div>
-                            <small class="text-muted">{{ payment.chit_group.branch.name|default:"Main Branch" }}</small>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm rounded-circle bg-primary-light text-primary-green d-flex align-items-center justify-content-center me-3 fw-bold shadow-sm" style="width:36px; height:36px; font-size: 0.8rem;">
-                                    {{ payment.member.name|make_list|first|upper }}
-                                </div>
-                                <div>
-                                    <div class="fw-semibold">{{ payment.member.name }}</div>
-                                    <small class="text-muted">{{ payment.member.id|stringformat:"04d" }}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge bg-light text-dark border px-3 rounded-pill fw-medium">
-                                #{{ payment.installment_number }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <span class="fw-extrabold text-dark">₹{{ payment.amount }}</span>
-                        </td>
-                        <td>
-                            <div class="small fw-medium">{{ payment.payment_date|date:"d M Y"|default:"-" }}</div>
-                        </td>
-                        <td>
-                            {% if payment.status == 'PAID' %}
-                                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold border border-success-subtle">
-                                    <i class="bi bi-check-circle-fill me-1"></i> PAID
-                                </span>
-                            {% elif payment.status == 'PENDING' %}
-                                <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-bold border border-warning-subtle">
-                                    <i class="bi bi-clock-history me-1"></i> PENDING
-                                </span>
-                            {% else %}
-                                <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold border border-danger-subtle">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> LATE
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td class="pe-4 text-end">
-                            <div class="btn-group shadow-sm rounded-pill overflow-hidden border">
-                                {% if payment.status == 'PAID' %}
-                                    <a href="{% url 'payment_receipt' payment.id %}" target="_blank" class="btn btn-white btn-sm px-3 border-end" title="Print Receipt">
-                                        <i class="bi bi-printer text-success"></i>
-                                    </a>
-                                {% endif %}
-                                <a href="{% url 'payment_edit' payment.id %}" class="btn btn-white btn-sm px-3 border-end" title="Edit">
-                                    <i class="bi bi-pencil-square text-primary"></i>
-                                </a>
-                                <a href="{% url 'payment_delete' payment.id %}" class="btn btn-white btn-sm px-3" title="Delete">
-                                    <i class="bi bi-trash3 text-danger"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="7" class="text-center py-5 text-muted small">No financial streams found. Start by recording a payment.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="row align-items-end mb-4 mt-2">
+    <div class="col-lg-6">
+        <h1 class="page-title mb-0">Finance Stream</h1>
+        <p class="text-muted small mb-0">Unified monitoring for both Chit and Loan revenue streams.</p>
+    </div>
+    <div class="col-lg-6 d-flex justify-content-lg-end align-items-center gap-3 mt-3 mt-lg-0">
+        <div class="search-pill d-flex align-items-center px-3 py-1 rounded-pill w-100" style="max-width: 300px;">
+            <i class="bi bi-search text-muted small me-2"></i>
+            <input type="text" id="payment-search" class="form-control form-control-sm border-0 bg-transparent shadow-none" placeholder="Search across streams..." style="font-size: 0.85rem;">
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold dropdown-toggle transition-hover" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-plus-lg me-1"></i> Record
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2" style="border-radius: 15px;">
+                <li><a class="dropdown-item py-2 fw-bold small" href="{% url 'payment_create' %}"><i class="bi bi-collection-play me-2 text-success"></i>Chit Group Installment</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item py-2 fw-bold small" href="{% url 'loan_list' %}"><i class="bi bi-cash-coin me-2 text-primary"></i>Loan EMI Payment</a></li>
+            </ul>
         </div>
     </div>
 </div>
+
+<!-- Summary Row -->
+<div class="row g-3 mb-4" id="finance-stats-row">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm stat-card h-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <div class="card-body p-4 text-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-white-50 text-uppercase">Total Combined Revenue</span>
+                    <i class="bi bi-cash-stack fs-4 opacity-50"></i>
+                </div>
+                <h3 class="fw-extrabold mb-1" id="stat-total-revenue">₹{{ total_collected|floatformat:0 }}</h3>
+                <p class="mb-0 extra-small opacity-75" id="stat-today-revenue">+₹{{ today_collected|floatformat:0 }} received today (Total)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm stat-card h-100 bg-white">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-muted text-uppercase">Aggregated Pending</span>
+                    <i class="bi bi-clock-history fs-4 text-warning opacity-50"></i>
+                </div>
+                <h3 class="fw-extrabold mb-1 text-dark" id="stat-total-pending">₹{{ total_pending|floatformat:0 }}</h3>
+                <p class="mb-0 extra-small text-muted" id="stat-pending-details">{{ chit_pending_count }} Chits & {{ loan_pending_count }} Loan EMIs</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm stat-card h-100 bg-white">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-muted text-uppercase">System Health</span>
+                    <i class="bi bi-activity fs-4 text-primary opacity-50"></i>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <h3 class="fw-extrabold mb-1 text-dark" id="stat-system-health">{{ recovery_rate|floatformat:1 }}%</h3>
+                    <span class="badge bg-success-light text-success extra-small">+0.4%</span>
+                </div>
+                <p class="mb-0 extra-small text-muted">Recovery rate across all assets</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stream Tabs -->
+<ul class="nav nav-tabs border-0 mb-4 gap-2" id="financeTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active border-0 rounded-pill px-4 fw-bold small shadow-sm" id="chit-tab" data-bs-toggle="tab" data-bs-target="#chit-stream" type="button" role="tab">
+            <i class="bi bi-collection-play me-2"></i>Chit Stream
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link border-0 rounded-pill px-4 fw-bold small shadow-sm" id="loan-tab" data-bs-toggle="tab" data-bs-target="#loan-stream" type="button" role="tab">
+            <i class="bi bi-bank me-2"></i>Loan Stream
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="financeTabsContent">
+    <!-- Chit Stream Tab -->
+    <div class="tab-pane fade show active" id="chit-stream" role="tabpanel">
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 24px;">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 ps-4 py-3 extra-small text-uppercase fw-bold text-muted">Member Profile</th>
+                                <th class="border-0 py-3 extra-small text-uppercase fw-bold text-muted">Chit Portfolio</th>
+                                <th class="border-0 py-3 extra-small text-uppercase fw-bold text-muted text-center">Amount</th>
+                                <th class="border-0 py-3 extra-small text-uppercase fw-bold text-muted">Timeline</th>
+                                <th class="border-0 py-3 extra-small text-uppercase fw-bold text-muted">Status</th>
+                                <th class="border-0 pe-4 py-3 extra-small text-uppercase fw-bold text-muted text-end">Manage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chit-table-body">
+                            {% for payment in chit_payments %}
+                            <tr class="transition-hover payment-row">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold shadow-sm" style="width:40px; height:40px; background-color: #ecfdf5; color: #059669;">
+                                            {{ payment.member.name|make_list|first|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ payment.member.name }}</div>
+                                            <small class="text-muted extra-small">ID: #{{ payment.member.id|stringformat:"04d" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark mb-0" style="font-size: 0.85rem;">{{ payment.chit_group.name }}</div>
+                                    <small class="text-muted extra-small">Inst #{{ payment.installment_number }} • {{ payment.chit_group.branch.name|default:"Main" }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <div class="fw-extrabold text-dark">₹{{ payment.amount|floatformat:2 }}</div>
+                                    {% if payment.penalty_amount > 0 %}
+                                        <small class="text-danger extra-small fw-bold">+₹{{ payment.penalty_amount }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark small">{{ payment.payment_date|date:"d M Y" }}</div>
+                                    <small class="text-muted extra-small">{{ payment.collected_by.username|default:"System" }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success-light text-success px-3 py-1 rounded-pill extra-small fw-extrabold">VERIFIED</span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="{% url 'chit_payment_receipt' payment.id %}" target="_blank" class="btn btn-sm rounded-circle p-0 bg-success-light text-success" style="width: 32px; height: 32px;"><i class="bi bi-printer"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-5 text-muted small">No chit collections recorded yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loan Stream Tab -->
+    <div class="tab-pane fade" id="loan-stream" role="tabpanel">
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 24px;">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 ps-4 py-3 extra-small text-uppercase fw-bold text-muted">Customer</th>
+                                <th class="border-0 py-3 extra-small text-uppercase fw-bold text-muted">Loan Account</th>
+                                <th class="border-0 py-3 extra-small text-uppercase fw-bold text-muted text-center">EMI Paid</th>
+                                <th class="border-0 py-3 extra-small text-uppercase fw-bold text-muted">Collected Date</th>
+                                <th class="border-0 py-3 extra-small text-uppercase fw-bold text-muted">Mode</th>
+                                <th class="border-0 pe-4 py-3 extra-small text-uppercase fw-bold text-muted text-end">Manage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loan-table-body">
+                            {% for lp in loan_payments %}
+                            <tr class="transition-hover payment-row">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold shadow-sm" style="width:40px; height:40px; background-color: #eff6ff; color: #2563eb;">
+                                            {{ lp.loan.customer.name|make_list|first|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ lp.loan.customer.name }}</div>
+                                            <small class="text-muted extra-small">{{ lp.loan.loan_number }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark mb-0" style="font-size: 0.85rem;">{{ lp.loan.get_loan_type_display|default:"Personal Loan" }}</div>
+                                    <small class="text-muted extra-small">{{ lp.loan.branch.name }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <div class="fw-extrabold text-primary">₹{{ lp.amount_paid|floatformat:2 }}</div>
+                                    {% if lp.penalty_paid > 0 %}
+                                        <small class="text-danger extra-small fw-bold">+₹{{ lp.penalty_paid }} Penalty</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark small">{{ lp.payment_date|date:"d M Y" }}</div>
+                                    <small class="text-muted extra-small">By: {{ lp.collected_by.username }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-muted border-0 p-0 extra-small fw-bold text-uppercase">{{ lp.payment_mode }}</span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="{% url 'loan_payment_receipt' lp.id %}" target="_blank" class="btn btn-sm rounded-circle p-0 bg-primary-light text-primary" style="width: 32px; height: 32px;"><i class="bi bi-printer"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-5 text-muted small">No loan EMI collections recorded yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Real-time synchronization logic
+    function refreshFinanceStream() {
+        if (document.getElementById('payment-search').value.length > 0) return; // Don't refresh while searching
+
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Update Stats
+                const statsToUpdate = ['stat-total-revenue', 'stat-today-revenue', 'stat-total-pending', 'stat-pending-details', 'stat-system-health'];
+                statsToUpdate.forEach(id => {
+                    const newVal = doc.getElementById(id)?.innerHTML;
+                    if (newVal) document.getElementById(id).innerHTML = newVal;
+                });
+
+                // Update Tables
+                const tablesToUpdate = ['chit-table-body', 'loan-table-body'];
+                tablesToUpdate.forEach(id => {
+                    const newTable = doc.getElementById(id)?.innerHTML;
+                    if (newTable) document.getElementById(id).innerHTML = newTable;
+                });
+            })
+            .catch(err => console.warn('Real-time sync error:', err));
+    }
+
+    // Auto-sync every 15 seconds
+    document.addEventListener('DOMContentLoaded', () => {
+        setInterval(refreshFinanceStream, 15000);
+    });
+
+    // Real-time client-side search across both tabs
+    document.getElementById('payment-search').addEventListener('keyup', function() {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.payment-row');
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+</script>
 {% endblock %}

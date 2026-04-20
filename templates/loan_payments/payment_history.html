@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.rcpt-number { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: var(--loan-accent); background: var(--loan-light); padding: .2rem .6rem; border-radius: 6px; font-size: .85rem; }
+.history-row { cursor: pointer; transition: background 0.2s; }
+.history-row:hover { background-color: #f8fafc !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title mb-0"><i class="bi bi-cash-stack me-2" style="color:var(--loan-accent)"></i>Collection History</h1>
+    <p class="text-muted mb-0" style="font-size:.85rem;">Lifetime collections: <strong class="text-success">₹{{ total_collected|floatformat:0 }}</strong></p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'loan_daily_collection' %}" class="btn btn-sm btn-light border px-3 rounded-pill shadow-none"><i class="bi bi-calendar-day me-1"></i>Today's Collections</a>
+    <a href="{% url 'loan_payment_history' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none">All History</a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 border-0 shadow-sm" style="border-radius: 16px;">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-muted">Search</label>
+        <div class="input-group input-group-merge border-0 bg-light rounded-3">
+          <input name="q" value="{{ q }}" class="form-control bg-transparent border-0 shadow-none" placeholder="Loan #, customer…">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-bold text-muted">Payment Mode</label>
+        <select name="mode" class="form-select border-0 bg-light shadow-none rounded-3">
+          <option value="">All Modes</option>
+          {% for val,label in payment_modes %}<option value="{{ val }}" {% if mode == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-bold text-muted">From</label>
+        <input type="date" name="from" value="{{ date_from }}" class="form-control border-0 bg-light shadow-none rounded-3">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-bold text-muted">To</label>
+        <input type="date" name="to" value="{{ date_to }}" class="form-control border-0 bg-light shadow-none rounded-3">
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-primary w-100 rounded-3 shadow-none" type="submit" style="background:var(--loan-accent);border-color:var(--loan-accent);">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+      <div class="col-md-2">
+        <a href="{% url 'loan_payment_history' %}" class="btn btn-light text-muted w-100 rounded-3 border-0">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:.87rem;">
+        <thead class="bg-light">
+          <tr class="text-muted" style="font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;">
+            <th class="ps-4">Receipt</th>
+            <th>Loan Details</th>
+            <th>Customer</th>
+            <th>EMI</th>
+            <th>Date</th>
+            <th class="text-end">Paid Amount</th>
+            <th class="text-center">Mode</th>
+            <th class="pe-4 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in page_obj %}
+          <tr class="history-row" onclick="window.location='{% url 'loan_payment_receipt' p.pk %}';">
+            <td class="ps-4"><span class="rcpt-number">{{ p.receipt_number }}</span></td>
+            <td><a href="{% url 'loan_detail' p.loan.pk %}" class="fw-bold text-decoration-none" style="color:var(--loan-accent)" onclick="event.stopPropagation()">{{ p.loan.loan_number }}</a></td>
+            <td class="fw-bold">{{ p.loan.customer.name }}</td>
+            <td><span class="badge bg-light text-dark border">#{{ p.emi_installment.installment_number|default:"—" }}</span></td>
+            <td class="text-muted">{{ p.payment_date|date:"d M Y" }}</td>
+            <td class="text-end fw-bold text-success">
+              ₹{{ p.amount_paid|floatformat:0 }}
+              {% if p.penalty_paid > 0 %}<div class="text-danger small">+₹{{ p.penalty_paid|floatformat:0 }} penalty</div>{% endif %}
+            </td>
+            <td class="text-center"><span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3">{{ p.get_payment_mode_display }}</span></td>
+            <td class="pe-4 text-center" onclick="event.stopPropagation()">
+              <div class="d-flex justify-content-center gap-1">
+                <a href="{% url 'loan_payment_receipt' p.pk %}" class="btn btn-sm btn-light border-0 rounded-pill text-primary" title="View Receipt"><i class="bi bi-receipt-cutoff"></i></a>
+                <a href="{% url 'loan_detail' p.loan.pk %}" class="btn btn-sm btn-light border-0 rounded-pill text-secondary" title="View Loan"><i class="bi bi-eye"></i></a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-5">
+              <div class="py-4 text-muted">
+                <i class="bi bi-cash-stack opacity-25" style="font-size: 4rem;"></i>
+                <h5 class="mt-3">No collections found</h5>
+                <p class="small">Try adjusting your filters or search criteria.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-footer bg-white border-0 py-3">
+    <nav>
+      <ul class="pagination pagination-sm mb-0 justify-content-center gap-1">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link border-0 rounded-3 shadow-none" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&mode={{ mode }}&from={{ date_from }}&to={{ date_to }}"><i class="bi bi-chevron-left"></i></a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-dark fw-bold px-3">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link border-0 rounded-3 shadow-none" href="?page={{ page_obj.next_page_number }}&q={{ q }}&mode={{ mode }}&from={{ date_from }}&to={{ date_to }}"><i class="bi bi-chevron-right"></i></a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

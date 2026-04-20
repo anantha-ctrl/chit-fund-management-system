@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block extra_css %}<style>:root{--loan-accent:#6366f1;}</style>{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'loan_agent_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h1 class="page-title mb-0"><i class="bi bi-person-badge me-2" style="color:var(--loan-accent)"></i>{% if agent %}Edit Agent{% else %}Add Agent{% endif %}</h1>
+</div>
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-body">
+        <form method="post">{% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label fw-bold">User Account *</label>{{ form.user }}</div>
+            <div class="col-md-6"><label class="form-label fw-bold">Employee Code *</label>{{ form.employee_code }}</div>
+            <div class="col-md-6"><label class="form-label fw-bold">Branch</label>{{ form.branch }}</div>
+            <div class="col-md-6"><label class="form-label fw-bold">Phone</label>{{ form.phone }}</div>
+            <div class="col-md-6"><label class="form-label fw-bold">Joined On</label>{{ form.joined_on }}</div>
+            <div class="col-md-6 d-flex align-items-end pb-1"><div class="form-check">{{ form.is_active }}<label class="form-check-label fw-bold ms-2">Active Agent</label></div></div>
+          </div>
+          <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary" style="background:var(--loan-accent);border-color:var(--loan-accent);"><i class="bi bi-check-lg me-1"></i>Save Agent</button>
+            <a href="{% url 'loan_agent_list' %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

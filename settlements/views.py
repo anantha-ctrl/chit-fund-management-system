@@ -37,8 +37,42 @@ def settlement_create(request):
             return redirect('settlement_list')
     else:
         form = SettlementForm()
+    
+    # 2. Pre-calculate data for all Chit-Member relationships
+    from chits.models import ChitMember
+    from payments.models import Payment
+    from auctions.models import Auction
+    from django.db.models import Sum
+    
+    cms = ChitMember.objects.select_related('member', 'chit_group').all()
+    membership_data = []
+    
+    for cm in cms:
+        # Payout Received (if won auction)
+        total_received = Auction.objects.filter(chit_group=cm.chit_group, winner=cm.member).aggregate(Total=Sum('payout_amount'))['Total'] or 0
         
-    return render(request, 'settlements/settlement_form.html', {'form': form, 'title': 'Create Settlement'})
+        # Payment Stats
+        pay_stats = Payment.objects.filter(chit_group=cm.chit_group, member=cm.member, status='PAID').aggregate(
+            Paid=Sum('amount'),
+            Div=Sum('dividend_amount'),
+            Pen=Sum('penalty_amount')
+        )
+        
+        membership_data.append({
+            'member_id': cm.member.id,
+            'group_id': cm.chit_group.id,
+            'total_paid': float(pay_stats['Paid'] or 0),
+            'total_received': float(total_received),
+            'dividend': float(pay_stats['Div'] or 0),
+            'penalty': float(pay_stats['Pen'] or 0)
+        })
+        
+    import json
+    return render(request, 'settlements/settlement_form.html', {
+        'form': form, 
+        'title': 'Create Settlement',
+        'membership_data_json': json.dumps(membership_data)
+    })
 
 @login_required
 def settlement_edit(request, pk):

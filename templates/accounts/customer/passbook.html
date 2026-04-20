@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5 mt-2">
+    <div>
+        <a href="{% url 'my_chits' %}" class="btn btn-sm btn-light border rounded-pill px-3 py-2 mb-3 text-muted fw-bold">
+            <i class="bi bi-arrow-left-short me-1"></i> Back to My Chits
+        </a>
+        <h1 class="page-title mb-1">Chit Fund Passbook</h1>
+        <p class="text-muted extra-small">Detailed ledger for <span class="fw-bold text-dark">{{ group.name }}</span> • Subscription {{ mc.id }}</p>
+    </div>
+    <div class="d-none d-md-block">
+        <button class="btn btn-dark shadow-sm rounded-pill px-4" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i> Print Passbook
+        </button>
+    </div>
+</div>
+
+<!-- Passbook Header Card -->
+<div class="card border-0 shadow-sm mb-4 overflow-hidden position-relative" style="border-radius: 28px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 260px;">
+    <div class="card-body p-4 p-md-5 text-white position-relative z-1">
+        <div class="row align-items-center">
+            <div class="col-md-7 border-end-md border-white border-opacity-10 py-2">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle bg-white bg-opacity-10 p-3 me-3 backdrop-blur shadow-sm d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                        <i class="bi bi-wallet2 fs-1 text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white text-opacity-50 text-uppercase extra-small fw-bold mb-1" style="letter-spacing: 2px;">Investment Ledger</h6>
+                        <h2 class="fw-extrabold mb-0" style="letter-spacing: -1px;">{{ group.name }}</h2>
+                        <div class="extra-small text-success fw-bold text-uppercase mt-1"><i class="bi bi-patch-check-fill me-1"></i> Verified Membership</div>
+                    </div>
+                </div>
+                <div class="row g-4 mt-1">
+                    <div class="col-4">
+                        <small class="text-white text-opacity-50 text-uppercase extra-small fw-bold d-block mb-1">Passbook ID</small>
+                        <span class="fw-bold" style="font-size: 1.1rem;">{{ mc.id|stringformat:"05d" }}</span>
+                    </div>
+                    <div class="col-4 border-start border-white border-opacity-10 ps-4">
+                        <small class="text-white text-opacity-50 text-uppercase extra-small fw-bold d-block mb-1">Chit Value</small>
+                        <span class="fw-bold" style="font-size: 1.1rem;">₹{{ group.amount|floatformat:0 }}</span>
+                    </div>
+                    <div class="col-4 border-start border-white border-opacity-10 ps-4">
+                        <small class="text-white text-opacity-50 text-uppercase extra-small fw-bold d-block mb-1">Joined Date</small>
+                        <span class="fw-bold" style="font-size: 1.1rem;">{{ mc.joined_date|date:"d M, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 ps-md-5 mt-4 mt-md-0">
+                <div class="p-4 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur shadow-sm h-100 d-flex flex-column justify-content-center">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small class="text-white text-opacity-60 extra-small fw-bold text-uppercase">Cumulative Paid</small>
+                        <span class="fw-bold">₹{{ summary.invested|floatformat:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small class="text-white text-opacity-60 extra-small fw-bold text-uppercase">Total Dividends</small>
+                        <span class="text-success fw-bold">₹{{ summary.earned|floatformat:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <small class="text-white text-opacity-60 extra-small fw-bold text-uppercase">Penalties</small>
+                        <span class="text-danger fw-bold">₹{{ summary.penalties|floatformat:0 }}</span>
+                    </div>
+                    <div class="pt-3 border-top border-white border-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 text-uppercase fw-bold extra-small text-white text-opacity-70">Net Outflow</h6>
+                            <h2 class="mb-0 fw-extrabold text-primary" style="letter-spacing: -1.5px;">₹{{ summary.net_outflow|floatformat:0 }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Passive Backdrop Decor -->
+    <i class="bi bi-safe fs-1 position-absolute top-0 end-0 opacity-10 p-5 mt-4" style="transform: rotate(15deg); font-size: 8rem !important;"></i>
+</div>
+
+<!-- Ledger Entries -->
+<div class="card border-0 shadow-sm mb-5" style="border-radius: 24px;">
+    <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+        <h5 class="fw-extrabold text-dark mb-0">Transaction Pulse</h5>
+        <div class="badge bg-light text-muted border py-2 px-3 rounded-pill extra-small fw-bold">Verified Logs Only</div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light bg-opacity-50">
+                    <tr>
+                        <th class="border-0 ps-4 py-3 text-uppercase text-muted extra-small fw-bold">Installment</th>
+                        <th class="border-0 py-3 text-uppercase text-muted extra-small fw-bold">Payment Trace</th>
+                        <th class="border-0 py-3 text-uppercase text-muted extra-small fw-bold text-center">Base Amt.</th>
+                        <th class="border-0 py-3 text-uppercase text-muted extra-small fw-bold text-center">Div. Earned</th>
+                        <th class="border-0 py-3 text-end px-4 text-uppercase text-muted extra-small fw-bold">Total Payout</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in schedule %}
+                    <tr class="transition-hover">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <span class="badge rounded-pill {% if p.status == 'PAID' %}bg-primary{% else %}bg-light text-muted{% endif %} px-3 py-2 fw-extrabold">{{ p.installment_number }}</span>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            {% if p.status == 'PAID' %}
+                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">{{ p.payment_date|date:"d M, Y" }}</div>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="extra-small text-success fw-bold"><i class="bi bi-shield-check"></i> CONFIRMED</span>
+                                    {% if not p.is_virtual %}
+                                    <a href="{% url 'chit_payment_receipt' p.id %}" target="_blank" class="text-decoration-none extra-small fw-bold text-primary border-start ps-2">Receipt</a>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="text-muted extra-small fw-bold">Due: {{ p.due_date|date:"d M, Y" }}</div>
+                                {% with dstatus=p.dynamic_status %}
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="badge {% if dstatus == 'OPEN' %}bg-primary{% elif dstatus == 'OVERDUE' %}bg-danger{% else %}bg-light text-muted border{% endif %} extra-small p-1 px-2 rounded-pill">
+                                        {{ dstatus }}
+                                    </span>
+                                    {% if dstatus == 'OPEN' or dstatus == 'OVERDUE' %}
+                                        {% if not p.is_virtual %}
+                                        <a href="{% url 'customer_submit_proof' p.id %}" class="extra-small fw-bold text-primary text-decoration-none border-start ps-2">Pay Now</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                        <td class="text-center fw-bold text-dark">₹{{ p.amount|floatformat:0 }}</td>
+                        <td class="text-center text-success fw-bold">₹{{ p.dividend_amount|floatformat:0 }}</td>
+                        <td class="text-end pe-4">
+                            <span class="fs-6 fw-extrabold {% if p.status == 'PAID' %}text-primary{% else %}text-muted opacity-50{% endif %}">
+                                ₹{% if p.net_amount %}{{ p.net_amount|floatformat:0 }}{% else %}{{ p.amount|floatformat:0 }}{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="py-5 text-center text-muted extra-small">No enrollment records located for this chit group.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Authentication & Seals -->
+<!-- <div class="row g-4 mb-5">
+    <div class="col-md-6">
+        <div class="p-4 border border-dashed rounded-4 d-flex align-items-center bg-light">
+            <div class="me-3 p-3 bg-white rounded-circle shadow-sm">
+                <i class="bi bi-fingerprint fs-2 text-primary"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold text-dark mb-1">Digital Authentication</h6>
+                <p class="text-muted extra-small mb-0">This passbook is digitally signed and carries a unique transaction hash for verification.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="p-4 border border-dashed rounded-4 d-flex align-items-center bg-light">
+            <div class="me-3 p-3 bg-white rounded-circle shadow-sm">
+                <i class="bi bi-award fs-2 text-primary"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold text-dark mb-1">Member Loyalty Tier</h6>
+                <p class="text-muted extra-small mb-0">You are a Premium Member of this group. Maintain on-time payments for boosted dividends.</p>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<style>
+    .backdrop-blur { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05); }
+    @media print {
+        .mobile-bottom-nav, .sidebar, .top-header, .btn-light, .btn-dark, .pb-5, .btn-sm, .text-primary, .extra-small.text-success {
+            display: none !important;
+        }
+        body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+        .card { 
+            box-shadow: none !important; 
+            border: 1px solid #eee !important; 
+            margin-bottom: 15px !important; 
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .card-body.text-white { color: #000 !important; background: #fff !important; padding: 20px !important; }
+        .text-white-60, .text-white-50, .text-white-70 { color: #444 !important; }
+        .bg-white-5, .bg-light, .bg-opacity-10 { background: #fcfcfc !important; border: 1px solid #eee !important; }
+        .col-md-7 { width: 65% !important; float: left !important; border-right: 1px solid #eee !important; }
+        .col-md-5 { width: 35% !important; float: left !important; padding-left: 20px !important; }
+        .row.align-items-center { display: block !important; width: 100% !important; }
+        .row.align-items-center::after { content: ""; display: table; clear: both; }
+        .mb-5 { margin-bottom: 1rem !important; }
+        .p-md-5 { padding: 1.5rem !important; }
+        h2, h3, h5, .fw-extrabold { color: #000 !important; }
+        .table { width: 100% !important; }
+        .table thead th { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+</style>
+{% endblock %}

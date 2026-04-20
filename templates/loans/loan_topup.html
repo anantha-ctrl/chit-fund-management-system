@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.form-card { border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+.parent-info-card { background: linear-gradient(135deg, #6366f1, #818cf8); border-radius: 16px; padding: 1.5rem; color: #fff; margin-bottom: 2rem; position: relative; overflow: hidden; }
+.parent-info-card::after { content: "\F3FE"; font-family: "bootstrap-icons"; position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: 0.15; transform: rotate(-15deg); }
+.form-section-title { font-size: .75rem; font-weight: 800; color: var(--loan-accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.form-section-title::after { content: ""; flex-grow: 1; height: 1px; background: rgba(99,102,241,0.1); }
+.input-group-merge { border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; transition: all 0.2s; overflow: hidden; }
+.input-group-merge:focus-within { border-color: var(--loan-accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); background: #fff; }
+.form-control, .form-select { border: none !important; background: transparent !important; padding: 0.75rem 1rem; font-weight: 500; color: #1e293b; }
+.form-control:focus, .form-select:focus { box-shadow: none !important; }
+.form-label { font-weight: 700; color: #475569; font-size: .85rem; margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'loan_detail' parent_loan.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 bg-white shadow-none border-light"><i class="bi bi-arrow-left me-1"></i>Back to Loan</a>
+  <h1 class="page-title mb-0" style="font-weight: 800; letter-spacing: -0.5px;"><i class="bi bi-plus-circle me-2" style="color:var(--loan-accent)"></i>Top-Up Application</h1>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="form-card p-4 p-md-5">
+      
+      <div class="parent-info-card">
+        <div class="row align-items-center">
+          <div class="col-8">
+            <h6 class="opacity-75 mb-1">Parent Loan Reference</h6>
+            <h4 class="fw-800 mb-2">{{ parent_loan.loan_number }}</h4>
+            <div class="small opacity-90"><i class="bi bi-person-fill me-1"></i>{{ parent_loan.customer.full_name }}</div>
+          </div>
+          <div class="col-4 text-end">
+            <div class="small opacity-75 text-uppercase">Current O/S</div>
+            <div class="h3 fw-800 mb-0">₹{{ parent_loan.outstanding_balance|floatformat:0 }}</div>
+          </div>
+        </div>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-section-title"><i class="bi bi-plus-slash-minus"></i>Top-Up Loan Details</div>
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Loan Type <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.loan_type }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Additional Amount (₹) <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.loan_amount }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Interest Rate (% p.a.) <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.interest_rate }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Interest Type</label>
+            <div class="input-group-merge">{{ form.interest_type }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Tenure (Months) <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.tenure_months }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Start Date <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.start_date }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Disbursement Mode</label>
+            <div class="input-group-merge">{{ form.disbursement_mode }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Penalty Rate (% p.m.)</label>
+            <div class="input-group-merge">{{ form.penalty_rate }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Grace Period (Days)</label>
+            <div class="input-group-merge">{{ form.grace_period_days }}</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Notes for Top-Up</label>
+            <div class="input-group-merge">{{ form.notes }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 mt-5">
+          <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow" style="background:var(--loan-accent); border-color:var(--loan-accent); border-radius: 12px;">
+            <i class="bi bi-plus-lg me-1"></i> Apply Top-Up
+          </button>
+          <a href="{% url 'loan_detail' parent_loan.pk %}" class="btn btn-light px-4 py-2 text-muted border-0" style="border-radius: 12px;">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add bootstrap classes to form widgets
+document.querySelectorAll('input, select, textarea').forEach(el => {
+  if (el.tagName === 'SELECT') el.classList.add('form-select');
+  else el.classList.add('form-control');
+});
+</script>
+{% endblock %}

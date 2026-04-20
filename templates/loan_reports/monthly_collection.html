@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --loan-accent: #6366f1;
+        --loan-light: rgba(99,102,241,0.08);
+    }
+
+    .report-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        margin-bottom: 2rem;
+    }
+
+    .chart-row {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.25rem;
+        transition: all 0.2s;
+    }
+
+    .chart-row:hover {
+        transform: translateX(5px);
+    }
+
+    .chart-label {
+        width: 100px;
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #475569;
+        flex-shrink: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .chart-bar-container {
+        flex-grow: 1;
+        height: 36px;
+        background: #f8fafc;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid #f1f5f9;
+    }
+
+    .chart-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        padding-left: 1rem;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 800;
+        transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        min-width: 50px;
+        box-shadow: 4px 0 10px rgba(99, 102, 241, 0.2);
+    }
+
+    .chart-value {
+        width: 130px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    .amount-val {
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: #1e293b;
+        display: block;
+    }
+
+    .count-val {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    .table-modern thead th {
+        background: #f8fafc;
+        padding: 1rem;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #64748b;
+        border: none;
+    }
+
+    .table-modern tbody td {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .trend-indicator {
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 800;
+    }
+
+    .trend-up { background: #dcfce7; color: #15803d; }
+
+    /* PROFESSIONAL PRINT SYSTEM */
+    @media print {
+        @page {
+            size: A4 portrait;
+            margin: 15mm;
+        }
+
+        /* HIDE NON-ESSENTIAL UI */
+        #sidebar-wrapper, .navbar, .top-header, .base-header, .btn, .breadcrumb, nav, footer, .sidebar, .no-print, .btn-toolbar, .alert, .rounded-circle {
+            display: none !important;
+            height: 0 !important;
+            visibility: hidden !important;
+        }
+
+        /* RESET LAYOUT FOR FULL WIDTH */
+        body, html {
+            background: #fff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+
+        main, .content-wrapper, .container-fluid {
+            display: block !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            visibility: visible !important;
+        }
+
+        .report-card {
+            border: 1px solid #eee !important;
+            box-shadow: none !important;
+            margin-bottom: 2rem !important;
+            page-break-inside: avoid !important;
+            padding: 1.5rem !important;
+            border-radius: 15px !important;
+        }
+
+        /* CHART PRINT OPTIMIZATION */
+        .chart-bar-container {
+            border: 1px solid #eee !important;
+            background: #fcfcfc !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .chart-bar-fill {
+            background: #6366f1 !important; /* Simplified for print */
+            box-shadow: none !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .h3, h1, h5 { color: #000 !important; }
+        .text-muted { color: #666 !important; }
+        
+        .table-modern thead th {
+            background-color: #f8fafc !important;
+            border-bottom: 2px solid #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'loan_dashboard' %}" class="btn btn-light rounded-circle shadow-sm border d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;" title="Back to Dashboard">
+                <i class="bi bi-arrow-left fs-5"></i>
+            </a>
+            <div>
+                <h1 class="h3 fw-900 mb-1"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Collection Trend</h1>
+                <p class="text-muted small mb-0 fw-bold">Comparative analysis of EMI recovery performance over the last 12 months.</p>
+            </div>
+        </div>
+        
+        <button onclick="window.print()" class="btn btn-light rounded-pill px-4 py-2 fw-bold shadow-sm border no-print">
+            <i class="bi bi-printer-fill me-2"></i> Print Analysis
+        </button>
+    </div>
+
+    {% if monthly %}
+    {% with max_total=monthly.0.total %}
+    <!-- Collection Chart Section -->
+    <div class="report-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-900 mb-0">Collection Visualization</h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 extra-small fw-bold">L12M TREND</span>
+        </div>
+        
+        <div class="py-2">
+            {% for row in monthly %}
+            <div class="chart-row">
+                <div class="chart-label">{{ row.month|date:"M Y" }}</div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar-fill" style="--bar-width: {% widthratio row.total max_total 100 %}%; width: var(--bar-width) !important;">
+                        {{ row.count }} txns
+                    </div>
+                </div>
+                <div class="chart-value">
+                    <span class="amount-val">₹{{ row.total|floatformat:0 }}</span>
+                    <span class="count-val">{{ row.count }} Settlements</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endwith %}
+
+    <!-- Detailed Data Table -->
+    <div class="report-card p-0 overflow-hidden">
+        <div class="p-4 border-bottom">
+            <h5 class="fw-900 mb-0">Tabular Data Summary</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Reporting Month</th>
+                        <th class="text-center">Transactions</th>
+                        <th class="text-end">Total Recovered</th>
+                        <th class="text-end">Average / Payment</th>
+                        <th class="text-center">Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in monthly %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-900 text-dark">{{ row.month|date:"F Y" }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark rounded-pill px-3 fw-bold">{{ row.count }} txns</span>
+                        </td>
+                        <td class="text-end fw-900 text-success" style="font-size: 1rem;">
+                            ₹{{ row.total|floatformat:0 }}
+                        </td>
+                        <td class="text-end text-muted fw-bold">
+                            ₹{{ row.avg|floatformat:0|default:"0" }}
+                        </td>
+                        <td class="text-center">
+                            <span class="trend-indicator trend-up">
+                                <i class="bi bi-arrow-up-right me-1"></i> Stable
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <div class="py-5 bg-white rounded-5 border border-dashed">
+            <i class="bi bi-bar-chart-line display-1 text-muted opacity-25"></i>
+            <h4 class="fw-900 mt-4 text-muted">No Trend Data Available</h4>
+            <p class="text-muted">Start recording loan EMI payments to generate collection trend analysis.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .extra-small { font-size: 0.72rem; }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); }
+</style>
+{% endblock %}

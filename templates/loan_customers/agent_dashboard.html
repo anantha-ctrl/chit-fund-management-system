@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.metric-card { border-radius: 18px; border: 1px solid rgba(99,102,241,0.13); background:#fff; padding:1.25rem 1.5rem; transition:.3s; }
+.metric-card:hover { transform:translateY(-3px); box-shadow:0 12px 28px rgba(99,102,241,0.1); }
+.metric-icon { width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; }
+.metric-value { font-size:1.7rem; font-weight:800; letter-spacing:-1px; font-family:'Plus Jakarta Sans',sans-serif; }
+.metric-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; color:#64748b; font-weight:700; }
+.emi-row { padding:.7rem 1rem; border-radius:10px; margin-bottom:.4rem; }
+.emi-overdue { background:rgba(239,68,68,.05); border-left:3px solid #ef4444; }
+.emi-upcoming { background:rgba(99,102,241,.05); border-left:3px solid #6366f1; }
+.customer-row { padding:.65rem 1rem; border-radius:10px; margin-bottom:.4rem; background:#f8fafc; transition:.2s; }
+.customer-row:hover { background:rgba(99,102,241,.06); }
+.badge-overdue { background:rgba(239,68,68,.1); color:#dc2626; padding:.2rem .55rem; border-radius:6px; font-size:.68rem; font-weight:700; }
+.badge-ok { background:rgba(16,185,129,.1); color:#059669; padding:.2rem .55rem; border-radius:6px; font-size:.68rem; font-weight:700; }
+.section-label { font-size:.68rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:var(--loan-accent); margin-bottom:.75rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+  <div class="metric-icon" style="background:var(--loan-light);">
+    <i class="bi bi-person-badge" style="color:var(--loan-accent);"></i>
+  </div>
+  <div class="flex-grow-1">
+    <h1 class="page-title mb-0" style="font-size:1.4rem;">Agent Dashboard</h1>
+    <small class="text-muted">
+      {{ agent.user.get_full_name|default:agent.user.username }}
+      &nbsp;•&nbsp; <code style="font-size:.8rem;">{{ agent.employee_code }}</code>
+      {% if agent.branch %}&nbsp;•&nbsp; {{ agent.branch.name }}{% endif %}
+    </small>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'loan_daily_collection' %}" class="btn btn-sm" style="background:var(--loan-light);color:var(--loan-accent);border:1px solid rgba(99,102,241,.2)">
+      <i class="bi bi-calendar-check me-1"></i>Daily Report
+    </a>
+    <a href="{% url 'loan_customer_create' %}" class="btn btn-sm btn-primary" style="background:var(--loan-accent);border-color:var(--loan-accent);">
+      <i class="bi bi-person-plus me-1"></i>Add Customer
+    </a>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-2">
+    <div class="metric-card">
+      <div class="metric-icon mb-2" style="background:var(--loan-light);"><i class="bi bi-people" style="color:var(--loan-accent);"></i></div>
+      <div class="metric-value" style="color:var(--loan-accent);">{{ stats.total_customers }}</div>
+      <div class="metric-label">My Customers</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="metric-card">
+      <div class="metric-icon mb-2" style="background:rgba(16,185,129,.1);"><i class="bi bi-file-earmark-text" style="color:#059669;"></i></div>
+      <div class="metric-value" style="color:#059669;">{{ stats.active_loans }}</div>
+      <div class="metric-label">Active Loans</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="metric-card">
+      <div class="metric-icon mb-2" style="background:rgba(239,68,68,.08);"><i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i></div>
+      <div class="metric-value" style="color:#ef4444;">{{ stats.overdue_count }}</div>
+      <div class="metric-label">Overdue EMIs</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="metric-card">
+      <div class="metric-icon mb-2" style="background:rgba(16,185,129,.1);"><i class="bi bi-cash-coin" style="color:#059669;"></i></div>
+      <div class="metric-value" style="color:#059669; font-size:1.2rem;">₹{{ stats.today_collection|floatformat:0 }}</div>
+      <div class="metric-label">Today Collected</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="metric-card">
+      <div class="metric-icon mb-2" style="background:rgba(245,158,11,.1);"><i class="bi bi-calendar-month" style="color:#d97706;"></i></div>
+      <div class="metric-value" style="color:#d97706; font-size:1.2rem;">₹{{ stats.monthly_collection|floatformat:0 }}</div>
+      <div class="metric-label">This Month</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="metric-card">
+      <div class="metric-icon mb-2" style="background:rgba(239,68,68,.08);"><i class="bi bi-arrow-down-circle" style="color:#ef4444;"></i></div>
+      <div class="metric-value" style="color:#ef4444; font-size:1.2rem;">₹{{ stats.total_outstanding|floatformat:0 }}</div>
+      <div class="metric-label">Outstanding</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left col -->
+  <div class="col-lg-5">
+
+    <!-- Overdue EMIs -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center fw-bold">
+        <span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Overdue EMIs</span>
+        {% if stats.overdue_count > 0 %}
+        <span class="badge bg-danger rounded-pill">{{ stats.overdue_count }}</span>
+        {% endif %}
+      </div>
+      <div class="card-body py-2">
+        {% for emi in overdue_emis %}
+        <div class="emi-row emi-overdue d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-bold" style="font-size:.88rem;">{{ emi.loan.customer.name|truncatechars:22 }}</div>
+            <small class="text-muted">{{ emi.loan.loan_number }} &bull; #{{ emi.installment_number }} &bull; Due {{ emi.due_date|date:"d M" }}</small>
+          </div>
+          <div class="text-end">
+            <div class="fw-bold text-danger" style="font-size:.9rem;">₹{{ emi.emi_amount|floatformat:0 }}</div>
+            <a href="{% url 'record_payment' emi.loan.pk %}" class="btn btn-sm btn-danger" style="font-size:.68rem;padding:.18rem .45rem;border-radius:6px;">Collect</a>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-check-circle-fill fs-2 d-block mb-2 text-success opacity-50"></i>
+          No overdue EMIs — great work!
+        </div>
+        {% endfor %}
+        {% if stats.overdue_count > 15 %}
+        <a href="{% url 'loan_overdue_emis' %}" class="d-block text-center mt-2 small" style="color:var(--loan-accent);">View all {{ stats.overdue_count }} overdue →</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Upcoming EMIs (7 days) -->
+    <div class="card">
+      <div class="card-header fw-bold">
+        <i class="bi bi-calendar-event me-2" style="color:var(--loan-accent);"></i>Due This Week
+      </div>
+      <div class="card-body py-2">
+        {% for emi in upcoming_emis %}
+        <div class="emi-row emi-upcoming d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-bold" style="font-size:.88rem;">{{ emi.loan.customer.name|truncatechars:22 }}</div>
+            <small class="text-muted">{{ emi.loan.loan_number }} &bull; #{{ emi.installment_number }} &bull; Due {{ emi.due_date|date:"d M" }}</small>
+          </div>
+          <div class="text-end">
+            <div class="fw-bold" style="color:var(--loan-accent); font-size:.9rem;">₹{{ emi.emi_amount|floatformat:0 }}</div>
+            <a href="{% url 'record_payment' emi.loan.pk %}" class="btn btn-sm" style="font-size:.68rem;padding:.18rem .45rem;border-radius:6px;background:var(--loan-light);color:var(--loan-accent);">Collect</a>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-calendar2-check fs-2 d-block mb-2 opacity-25"></i>No EMIs due in the next 7 days.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right col -->
+  <div class="col-lg-7">
+
+    <!-- Today's Collections -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center fw-bold">
+        <span><i class="bi bi-cash-coin me-2" style="color:#059669;"></i>Today's Collections</span>
+        <span class="fw-bold text-success">₹{{ stats.today_collection|floatformat:0 }}</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:.86rem;">
+            <thead class="table-light">
+              <tr><th>Customer</th><th>Loan #</th><th>EMI #</th><th>Amount</th><th>Mode</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for pay in today_collections %}
+              <tr>
+                <td class="fw-bold">{{ pay.loan.customer.name|truncatechars:18 }}</td>
+                <td><a href="{% url 'loan_detail' pay.loan.pk %}" style="color:var(--loan-accent);">{{ pay.loan.loan_number }}</a></td>
+                <td>{% if pay.emi_installment %}#{{ pay.emi_installment.installment_number }}{% else %}—{% endif %}</td>
+                <td class="fw-bold text-success">₹{{ pay.amount_paid|floatformat:0 }}</td>
+                <td><span class="badge bg-light text-dark border" style="font-size:.68rem;">{{ pay.get_payment_mode_display }}</span></td>
+                <td><a href="{% url 'payment_receipt' pay.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-receipt"></i></a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-1 d-block mb-1 opacity-25"></i>No collections yet today.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Customers -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center fw-bold">
+        <span><i class="bi bi-people me-2" style="color:var(--loan-accent);"></i>My Customers</span>
+        <a href="{% url 'loan_customer_list' %}" style="color:var(--loan-accent);font-size:.8rem;">View All →</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:.86rem;">
+            <thead class="table-light">
+              <tr><th>Name</th><th>Phone</th><th>Branch</th><th>Loans</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for c in customers %}
+              <tr>
+                <td>
+                  <a href="{% url 'loan_customer_detail' c.pk %}" class="fw-bold text-decoration-none" style="color:var(--loan-accent);">{{ c.name }}</a>
+                  {% if c.blacklisted %}<span class="badge bg-danger ms-1" style="font-size:.6rem;">Blacklisted</span>{% endif %}
+                </td>
+                <td>{{ c.phone }}</td>
+                <td><small class="text-muted">{{ c.branch.name }}</small></td>
+                <td><span class="badge" style="background:var(--loan-light);color:var(--loan-accent);">{{ c.total_loans }}</span></td>
+                <td>
+                  <div class="d-flex gap-1">
+                    <a href="{% url 'loan_customer_detail' c.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+                    <a href="{% url 'loan_create' %}?customer={{ c.pk }}" class="btn btn-sm" style="background:var(--loan-light);color:var(--loan-accent);"><i class="bi bi-plus-lg"></i></a>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-people fs-1 d-block mb-1 opacity-25"></i>No customers assigned yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

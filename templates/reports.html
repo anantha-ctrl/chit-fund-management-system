@@ -26,41 +26,58 @@
         visibility: visible !important;
     }
 
-    /* Professional Top Header (No Office Copy) */
+    /* Professional Top Header */
     #print-report-header {
         display: block !important;
-        border-bottom: 2px solid #212529 !important;
-        margin-bottom: 20px !important;
-        padding-bottom: 8px !important;
+        border-bottom: 2px solid #000 !important;
+        margin-bottom: 2rem !important;
+        padding-bottom: 1rem !important;
     }
 
     .card {
-        border: 1px solid #dee2e6 !important;
-        border-radius: 12px !important;
+        border: 1px solid #ddd !important;
         box-shadow: none !important;
-        margin-bottom: 15px !important;
+        margin-bottom: 1rem !important;
         page-break-inside: avoid !important;
+        background: #fff !important;
     }
 
     .card-header {
-        padding: 12px !important;
-        background-color: #f8f9fa !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        background: #f8f9fa !important;
+        border-bottom: 1px solid #ddd !important;
+        padding: 1rem !important;
     }
     
-    .card-body { padding: 0 !important; }
+    .card-body { padding: 0.5rem !important; }
+
+    /* Force visibility of metrics in print */
+    .row.g-4 { display: flex !important; flex-wrap: wrap !important; }
+    .col-md-4 { width: 33.33% !important; flex: 0 0 33.33% !important; max-width: 33.33% !important; }
 
     /* Performance Tables */
     .table th, .table td { 
-        padding: 6px 10px !important; 
-        font-size: 9pt !important;
+        padding: 8px !important; 
+        font-size: 8.5pt !important;
+        border: 1px solid #eee !important;
     }
-    .table thead th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .table thead th { 
+        background-color: #f8f9fa !important; 
+        color: #000 !important;
+        text-transform: uppercase;
+        font-size: 7.5pt !important;
+    }
+
+    .badge {
+        border: 1px solid #ccc !important;
+        color: #000 !important;
+        background: transparent !important;
+    }
+
+    .progress { display: none !important; } /* Hide bars in print to save space */
 
     @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 15mm;
     }
 }
 
@@ -82,34 +99,110 @@
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-4 no-print">
-    <h1 class="page-title">Executive Reports</h1>
-    <button onclick="window.print()" class="btn btn-dark rounded-pill px-4 shadow-sm">
-        <i class="bi bi-printer me-2"></i> Export Data (PDF)
-    </button>
+    <h1 class="page-title mb-0">Executive Reports</h1>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-dark rounded-pill px-4 shadow-sm">
+            <i class="bi bi-printer me-2"></i> Export Data (PDF)
+        </button>
+        <div class="dropdown">
+            <button class="btn btn-success rounded-pill px-4 shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download me-2"></i> Export CSV
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3">
+                <li><a class="dropdown-item py-2" href="{% url 'export_members' %}"><i class="bi bi-people me-2 text-success"></i> Member Ledger</a></li>
+                <!-- <li><hr class="dropdown-divider"></li> -->
+                <li><a class="dropdown-item py-2" href="{% url 'export_payments' %}"><i class="bi bi-cash-stack me-2 text-primary"></i> Chit Transaction Feed</a></li>
+                <li><a class="dropdown-item py-2" href="{% url 'export_loan_payments' %}"><i class="bi bi-bank me-2 text-info"></i> Loan Transaction Feed</a></li>
+                <!-- <li><hr class="dropdown-divider"></li> -->
+                <li><a class="dropdown-item py-2" href="{% url 'export_logs' %}"><i class="bi bi-shield-lock me-2 text-warning"></i> Security Logs</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
 
-<!-- Key Performance Indicators (Visible on Web Only) -->
-<div class="row g-4 mb-5 no-print">
+<!-- Key Performance Indicators (Combined Portfolio) -->
+<div class="row g-4 mb-4">
     <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: linear-gradient(135deg, #fff 0%, #fff1f2 100%);">
-            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Total Arrears</label>
-            <h3 class="fw-bold text-danger mb-0">₹{{ total_late|default:0 }}</h3>
-            <p class="text-muted small mt-1 mb-0"><i class="bi bi-person-exclamation me-1"></i> {{ defaulter_count|default:0 }} Members Pending</p>
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Total Outstanding Arrears</label>
+            <h3 class="fw-bold text-danger mb-0">₹{{ grand_total_overdue|default:0|floatformat:2 }}</h3>
+            <p class="text-muted small mt-1 mb-0">
+                <span class="badge bg-danger bg-opacity-10 text-danger me-1">Chit: ₹{{ total_late }}</span>
+                <span class="badge bg-danger bg-opacity-10 text-danger">Loan: ₹{{ loan_total_overdue }}</span>
+            </p>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%);">
-            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Total Collections</label>
-            <h3 class="fw-bold text-success mb-0">₹{{ total_collected|default:0 }}</h3>
-            <p class="text-muted small mt-1 mb-0"><i class="bi bi-wallet2 me-1"></i> Cumulative Life-time</p>
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Total Collections (Unified)</label>
+            <h3 class="fw-bold text-success mb-0">₹{{ grand_total_collected|default:0|floatformat:2 }}</h3>
+            <p class="text-muted small mt-1 mb-0"><i class="bi bi-wallet2 me-1"></i> Cumulative Life-time Recovery</p>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: linear-gradient(135deg, #fff 0%, #eff6ff 100%);">
-            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Collection Efficiency</label>
-            <h3 class="fw-bold text-primary mb-0">{{ efficiency|default:100 }}%</h3>
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Portfolio Efficiency</label>
+            <div class="d-flex align-items-baseline">
+                <h3 class="fw-bold text-primary mb-0">{{ grand_total_collected|default:100|floatformat:1 }}%</h3>
+                <span class="ms-2 small text-muted">Recovery Rate</span>
+            </div>
             <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
-                <div class="progress-bar bg-primary" id="efficiency-bar" data-width="{{ efficiency|default:100 }}" style="height: 100%;"></div>
+                <div class="progress-bar bg-primary" id="efficiency-bar" data-width="{{ grand_total_collected|default:100 }}" style="height: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unified Periodical Performance -->
+<div class="row g-4 mb-5">
+    <!-- Daily Combined -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: #fff; border-left: 4px solid #6366f1 !important;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="rounded-circle bg-indigo bg-opacity-10 p-2 text-indigo">
+                    <i class="bi bi-calendar-event fs-5"></i>
+                </div>
+                <span class="badge bg-indigo bg-opacity-10 text-indigo rounded-pill px-3">Daily Collection</span>
+            </div>
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Combined Recovery (Today)</label>
+            <h4 class="fw-bold mb-0">₹{{ daily_collected|add:loan_daily_collected|floatformat:2 }}</h4>
+            <div class="mt-3 pt-3 border-top d-flex justify-content-between">
+                <span class="extra-small text-muted">Chit: ₹{{ daily_collected }}</span>
+                <span class="extra-small text-muted">Loan: ₹{{ loan_daily_collected }}</span>
+            </div>
+        </div>
+    </div>
+    <!-- Weekly Combined -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: #fff; border-left: 4px solid #10b981 !important;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="rounded-circle bg-success bg-opacity-10 p-2 text-success">
+                    <i class="bi bi-calendar-range fs-5"></i>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Weekly Collection</span>
+            </div>
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Combined Recovery (7D)</label>
+            <h4 class="fw-bold mb-0">₹{{ weekly_collected|add:loan_weekly_collected|floatformat:2 }}</h4>
+            <div class="mt-3 pt-3 border-top d-flex justify-content-between">
+                <span class="extra-small text-muted">Chit: ₹{{ weekly_collected }}</span>
+                <span class="extra-small text-muted">Loan: ₹{{ loan_weekly_collected }}</span>
+            </div>
+        </div>
+    </div>
+    <!-- Monthly Combined -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: #fff; border-left: 4px solid #3b82f6 !important;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary">
+                    <i class="bi bi-calendar-month fs-5"></i>
+                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Monthly Collection</span>
+            </div>
+            <label class="extra-small text-muted text-uppercase fw-bold ls-1 d-block mb-1">Combined Recovery (30D)</label>
+            <h4 class="fw-bold mb-0">₹{{ monthly_collected|add:loan_monthly_collected|floatformat:2 }}</h4>
+            <div class="mt-3 pt-3 border-top d-flex justify-content-between">
+                <span class="extra-small text-muted">Chit: ₹{{ monthly_collected }}</span>
+                <span class="extra-small text-muted">Loan: ₹{{ loan_monthly_collected }}</span>
             </div>
         </div>
     </div>
@@ -125,8 +218,8 @@
                         <i class="bi bi-buildings fs-5"></i>
                     </div>
                     <div>
-                        <h5 class="fw-bold mb-0">Branch-wise Collection Performance</h5>
-                        <p class="text-muted small mb-0">Consolidated financial overview of all regional offices</p>
+                        <h5 class="fw-bold mb-0">Unified Branch Performance</h5>
+                        <p class="text-muted small mb-0">Consolidated financial recovery across all regional divisions</p>
                     </div>
                 </div>
             </div>
@@ -136,8 +229,10 @@
                         <thead class="bg-light bg-opacity-50">
                             <tr>
                                 <th class="ps-4 border-0 py-3 small text-uppercase fw-bold text-muted">Branch Name</th>
-                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-center">Total Members</th>
-                                <th class="border-0 pe-4 py-3 small text-uppercase fw-bold text-muted text-end">Total Collected</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-center">Members</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-end">Chit Revenue</th>
+                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-end">Loan Revenue</th>
+                                <th class="border-0 pe-4 py-3 small text-uppercase fw-bold text-muted text-end">Total Recovery</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -149,12 +244,14 @@
                                 <td class="text-center">
                                     <span class="badge bg-light text-dark border rounded-pill px-3">{{ stat.member_count }}</span>
                                 </td>
+                                <td class="text-end text-primary small">₹{{ stat.chit_collected }}</td>
+                                <td class="text-end text-info small">₹{{ stat.loan_collected }}</td>
                                 <td class="pe-4 text-end">
-                                    <span class="text-success fw-bold">₹{{ stat.total_collected }}</span>
+                                    <span class="text-success fw-bold">₹{{ stat.total_collected|floatformat:2 }}</span>
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="3" class="text-center py-4 text-muted small">No branch data available yet.</td></tr>
+                            <tr><td colspan="5" class="text-center py-4 text-muted small">No branch data available yet.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -165,50 +262,37 @@
 </div>
 
 <div class="row g-4">
-    <!-- Defaulters Section -->
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-danger border-4">
-            <div class="card-header bg-white border-0 p-4">
+    <!-- Unified Defaulters Section -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-danger border-4 h-100">
+            <div class="card-header bg-white border-0 p-3">
                 <div class="d-flex align-items-center text-danger">
-                    <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-3">
-                        <i class="bi bi-exclamation-octagon fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold mb-0">Defaulters List & Arrears</h5>
-                        <p class="text-muted small mb-0">Members with overdue installments requiring immediate attention</p>
-                    </div>
+                    <i class="bi bi-exclamation-octagon fs-5 me-2"></i>
+                    <h6 class="fw-bold mb-0">Chit Defaulters</h6>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-sm align-middle mb-0">
                         <thead class="bg-light bg-opacity-50">
                             <tr>
-                                <th class="ps-4 border-0 py-3 small text-uppercase fw-bold text-muted">Member Name</th>
-                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted">Chit Group</th>
-                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-center">Installment #</th>
-                                <th class="border-0 pe-4 py-3 small text-uppercase fw-bold text-muted text-end">Arrears Amount</th>
+                                <th class="ps-3 border-0 py-2 extra-small text-uppercase fw-bold text-muted">Member</th>
+                                <th class="border-0 py-2 extra-small text-uppercase fw-bold text-muted text-end">Arrears</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for late in late_payments %}
+                            {% for late in late_payments|slice:":5" %}
                             <tr>
-                                <td class="ps-4">
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center me-2 fw-bold" style="width:30px; height:30px; font-size: 0.7rem;">
-                                            {{ late.member.name|make_list|first|upper }}
-                                        </div>
-                                        <div class="fw-bold text-dark">{{ late.member.name }}</div>
-                                    </div>
+                                <td class="ps-3 py-2">
+                                    <div class="fw-bold small text-dark">{{ late.member.name }}</div>
+                                    <div class="extra-small text-muted">{{ late.chit_group.name }}</div>
                                 </td>
-                                <td><span class="text-muted small fw-medium">{{ late.chit_group.name }}</span></td>
-                                <td class="text-center font-monospace">{{ late.installment_number }}</td>
-                                <td class="pe-4 text-end">
-                                    <span class="text-danger fw-extrabold">₹{{ late.amount }}</span>
+                                <td class="pe-3 text-end">
+                                    <span class="text-danger fw-bold small">₹{{ late.amount }}</span>
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="4" class="text-center py-5 text-muted small"><i class="bi bi-check2-circle text-success me-2"></i> No outstanding defaults found in the system.</td></tr>
+                            <tr><td colspan="2" class="text-center py-4 text-muted extra-small">No defaults.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -216,51 +300,115 @@
             </div>
         </div>
     </div>
-    
-    <!-- Recent Activity Section -->
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-primary border-4">
-            <div class="card-header bg-white border-0 p-4">
-                <div class="d-flex align-items-center text-primary">
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
-                        <i class="bi bi-activity fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold mb-0">Global Payment Feed</h5>
-                        <p class="text-muted small mb-0">Real-time audit of the last 10 successful transactions</p>
-                    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-warning border-4 h-100">
+            <div class="card-header bg-white border-0 p-3">
+                <div class="d-flex align-items-center text-warning">
+                    <i class="bi bi-bank2 fs-5 me-2"></i>
+                    <h6 class="fw-bold mb-0">Loan Overdue (EMIs)</h6>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-sm align-middle mb-0">
                         <thead class="bg-light bg-opacity-50">
                             <tr>
-                                <th class="ps-4 border-0 py-3 small text-uppercase fw-bold text-muted">Transaction Details</th>
-                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted">Context</th>
-                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted text-center">Receipt #</th>
-                                <th class="border-0 py-3 small text-uppercase fw-bold text-muted">Collection Date</th>
-                                <th class="border-0 pe-4 py-3 small text-uppercase fw-bold text-muted text-end">Amount Paid</th>
+                                <th class="ps-3 border-0 py-2 extra-small text-uppercase fw-bold text-muted">Customer</th>
+                                <th class="border-0 py-2 extra-small text-uppercase fw-bold text-muted text-end">Overdue</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for pt in recent_payments %}
+                            {% for emi in overdue_emis_list|slice:":5" %}
                             <tr>
-                                <td class="ps-4">
-                                    <div class="fw-bold text-dark">{{ pt.member.name }}</div>
-                                    <div class="text-muted small">UID: MEM-{{ pt.member.id|stringformat:"04d" }}</div>
+                                <td class="ps-3 py-2">
+                                    <div class="fw-bold small text-dark">{{ emi.loan.customer.name }}</div>
+                                    <div class="extra-small text-muted">Loan: {{ emi.loan.loan_number }}</div>
                                 </td>
-                                <td>
-                                    <div class="badge bg-light text-dark border rounded-pill px-3">{{ pt.chit_group.name }}</div>
-                                </td>
-                                <td class="text-center">#{{ pt.installment_number }}</td>
-                                <td><span class="text-muted fw-medium">{{ pt.payment_date|date:"d M, Y" }}</span></td>
-                                <td class="pe-4 text-end">
-                                    <span class="text-primary fw-extrabold">₹{{ pt.amount }}</span>
+                                <td class="pe-3 text-end">
+                                    <span class="text-warning fw-bold small">₹{{ emi.emi_amount }}</span>
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="5" class="text-center py-5 text-muted small">No recent transaction history recorded.</td></tr>
+                            <tr><td colspan="2" class="text-center py-4 text-muted extra-small">No overdue EMIs.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    
+    <!-- Unified Activity Section -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-primary border-4 h-100">
+            <div class="card-header bg-white border-0 p-3">
+                <div class="d-flex align-items-center text-primary">
+                    <i class="bi bi-activity fs-5 me-2"></i>
+                    <h6 class="fw-bold mb-0">Chit Collections</h6>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="ps-3 border-0 py-2 extra-small text-uppercase fw-bold text-muted">Transaction</th>
+                                <th class="border-0 py-2 extra-small text-uppercase fw-bold text-muted text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pt in recent_payments|slice:":5" %}
+                            <tr>
+                                <td class="ps-3 py-2">
+                                    <div class="fw-bold small text-dark">{{ pt.member.name }}</div>
+                                    <div class="extra-small text-muted">{{ pt.payment_date|date:"d M, Y" }}</div>
+                                </td>
+                                <td class="pe-3 text-end">
+                                    <span class="text-primary fw-bold small">₹{{ pt.amount }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border-top border-info border-4 h-100">
+            <div class="card-header bg-white border-0 p-3">
+                <div class="d-flex align-items-center text-info">
+                    <i class="bi bi-clock-history fs-5 me-2"></i>
+                    <h6 class="fw-bold mb-0">Loan Collections</h6>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="ps-3 border-0 py-2 extra-small text-uppercase fw-bold text-muted">Customer</th>
+                                <th class="border-0 py-2 extra-small text-uppercase fw-bold text-muted text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lp in recent_loan_payments|slice:":5" %}
+                            <tr>
+                                <td class="ps-3 py-2">
+                                    <div class="fw-bold small text-dark">{{ lp.loan.customer.name }}</div>
+                                    <div class="extra-small text-muted">{{ lp.payment_date|date:"d M, Y" }}</div>
+                                </td>
+                                <td class="pe-3 text-end">
+                                    <span class="text-info fw-bold small">₹{{ lp.amount_paid }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center py-4 text-muted extra-small">No recent loan payments.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

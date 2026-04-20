@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.header-card { border-radius: 16px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; padding: 1.5rem; position: relative; overflow: hidden; }
+.header-card::after { content: "\F33A"; font-family: "bootstrap-icons"; position: absolute; right: -20px; bottom: -20px; font-size: 8rem; opacity: 0.15; transform: rotate(-15deg); }
+.status-pill { padding: .25rem .6rem; border-radius: 6px; font-size: .7rem; font-weight: 700; background: rgba(239,68,68,0.1); color: #991b1b; }
+.customer-avatar { width: 36px; height: 36px; border-radius: 10px; background: var(--loan-light); color: var(--loan-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-card mb-4 shadow-sm border-0">
+  <div class="row align-items-center">
+    <div class="col-md-8">
+      <h1 class="h3 fw-800 mb-1" style="font-weight: 800;">Overdue Customers Report</h1>
+      <p class="mb-0 opacity-90">Attention required for defaulted installments across all branches.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;">Total Overdue & Penalty</div>
+      <div style="font-size: 1.8rem; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif;">₹{{ total_overdue_amount|add:total_penalty|floatformat:0 }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 border-0 shadow-sm" style="border-radius: 16px;">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label small fw-bold text-muted">Filter by Branch</label>
+        <select name="branch" class="form-select border-light shadow-none bg-light">
+          <option value="">All Branches</option>
+          {% for b in branches %}
+          <option value="{{ b.pk }}" {% if branch_id == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button class="btn btn-danger flex-grow-1" type="submit" style="font-weight: 700;">
+          <i class="bi bi-funnel me-1"></i>Filter
+        </button>
+        <a href="{% url 'loan_overdue_report' %}" class="btn btn-light text-muted border-0">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="card border-0 shadow-sm" style="border-radius: 16px;">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:.87rem;">
+        <thead class="bg-light">
+          <tr class="text-muted" style="font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;">
+            <th class="ps-4">Customer Details</th>
+            <th>Loan / Branch</th>
+            <th>Instalment</th>
+            <th>Due Date</th>
+            <th>EMI + Penalty</th>
+            <th>Days Late</th>
+            <th class="pe-4 text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for emi in emis %}
+          <tr>
+            <td class="ps-4">
+              <div class="d-flex align-items-center gap-3">
+                <div class="customer-avatar shadow-sm border border-white">
+                  {{ emi.loan.customer.name|make_list|first|upper }}
+                </div>
+                <div>
+                  <div class="fw-bold">{{ emi.loan.customer.name }}</div>
+                  <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ emi.loan.customer.phone }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <a href="{% url 'loan_detail' emi.loan.pk %}" class="fw-bold text-decoration-none" style="color:var(--loan-accent)">{{ emi.loan.loan_number }}</a>
+              <div class="small fw-bold text-dark mt-1">{{ emi.loan.branch.name }}</div>
+            </td>
+            <td><span class="badge bg-light text-dark border">EMI #{{ emi.installment_number }}</span></td>
+            <td>
+              <span class="status-pill">
+                <i class="bi bi-clock-history me-1"></i>{{ emi.due_date|date:"d M Y" }}
+              </span>
+            </td>
+            <td class="fw-bold">
+               ₹{{ emi.emi_amount|floatformat:0 }}<br>
+               {% if emi.penalty_amount > 0 %}
+                 <small class="text-danger">+ ₹{{ emi.penalty_amount|floatformat:0 }} penalty</small>
+               {% else %}
+                 <small class="text-muted">No penalty</small>
+               {% endif %}
+            </td>
+            <td><span class="badge bg-danger bg-opacity-10 text-danger fw-bold rounded-pill">{{ emi.due_date|timesince }} ago</span></td>
+            <td class="pe-4 text-center">
+              <a href="{% url 'record_payment' emi.loan.pk %}" class="btn btn-sm btn-danger" style="font-size:.72rem; font-weight: 700; border-radius: 8px;">
+                <i class="bi bi-cash me-1"></i>Collect
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5">
+              <div class="py-4">
+                <i class="bi bi-check-circle-fill text-success opacity-50" style="font-size: 4rem;"></i>
+                <h5 class="mt-3 text-muted">No overdue records</h5>
+                <p class="text-muted small">All customers are up-to-date with their payments!</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -92,9 +92,9 @@
                         <!-- Password Section if creating -->
                         {% if 'username' in form.fields %}
                         <div class="col-12 mt-5">
-                            <div class="alert alert-warning border-0 rounded-4 p-3 shadow-sm d-flex align-items-center">
-                                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
-                                <div class="small">System will prompt for password creation on the next step if using default Django security. Ensure password complexity meets enterprise standards.</div>
+                            <div class="alert alert-success border-0 rounded-4 p-3 shadow-sm d-flex align-items-center">
+                                <i class="bi bi-shield-check fs-4 me-3 text-success"></i>
+                                <div class="small">Password validation is currently relaxed. You can set any simple password for this account.</div>
                             </div>
                         </div>
                         {% endif %}
@@ -111,7 +111,7 @@
                                         <i class="bi bi-eye-slash-fill text-muted"></i>
                                     </span>
                                 </div>
-                                {% if field.help_text %}
+                                {% if field.help_text and field.name != 'password' and field.name != 'password1' and field.name != 'password2' %}
                                     <div class="form-text small opacity-50 px-2 mt-2" style="font-size: 0.65rem;">{{ field.help_text|safe|truncatechars:100 }}</div>
                                 {% endif %}
                                 {% if field.errors %}

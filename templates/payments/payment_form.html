@@ -48,13 +48,13 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="number" name="installment_number" value="{{ form.instance.installment_number|default:1 }}" class="form-control" id="id_installment_number" placeholder="Inst #" required>
-                                <label for="id_installment_number"><i class="bi bi-hash me-2"></i>Installment Number</label>
+                                <input type="number" name="installment_number" value="{{ form.instance.installment_number|default:1 }}" class="form-control" id="id_installment_number" placeholder="Inst" required>
+                                <label for="id_installment_number">Installment Number</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="number" step="0.01" name="amount" value="{{ form.instance.amount|default:0 }}" class="form-control" id="id_amount" placeholder="Amount" required>
+                                <input type="number" step="1" name="amount" value="{{ form.instance.amount|floatformat:0|default:0 }}" class="form-control" id="id_amount" placeholder="Amount" required>
                                 <label for="id_amount"><i class="bi bi-cash-stack me-2"></i>Amount (₹)</label>
                             </div>
                         </div>
@@ -87,4 +87,48 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chitGroupSelect = document.getElementById('id_chit_group');
+    const memberSelect = document.getElementById('id_member');
+    const instInput = document.getElementById('id_installment_number');
+    const amountInput = document.getElementById('id_amount');
+    const dateInput = document.getElementById('id_payment_date');
+
+    // Auto-fill today's date on load if empty
+    if (!dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    function fetchPrediction() {
+        const groupId = chitGroupSelect.value;
+        const memberId = memberSelect.value;
+
+        if (groupId && memberId) {
+            fetch(`{% url 'predict_payment' %}?chit_group=${groupId}&member=${memberId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.error) {
+                        instInput.value = data.installment_number;
+                        amountInput.value = Math.round(data.amount);
+                        // Refresh today's date in real-time if needed
+                        dateInput.value = data.date;
+                        
+                        // Add a subtle highlight animation to show auto-fill happened
+                        [instInput, amountInput, dateInput].forEach(el => {
+                            el.style.transition = 'background-color 0.5s';
+                            el.style.backgroundColor = '#e8f5e9';
+                            setTimeout(() => el.style.backgroundColor = '', 1000);
+                        });
+                    }
+                })
+                .catch(err => console.error('Fetch error:', err));
+        }
+    }
+
+    chitGroupSelect.addEventListener('change', fetchPrediction);
+    memberSelect.addEventListener('change', fetchPrediction);
+});
+</script>
 {% endblock %}

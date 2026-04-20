@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.form-card { border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+.calc-card { border-radius: 20px; border: 1px solid rgba(99,102,241,0.2); background: #fff; position: sticky; top: 1.5rem; }
+.calc-header { background: var(--loan-light); border-radius: 20px 20px 0 0; padding: 1.25rem; border-bottom: 1px solid rgba(99,102,241,0.1); }
+.calc-result-box { background: linear-gradient(135deg, #6366f1, #818cf8); border-radius: 16px; padding: 1.5rem; color: #fff; text-align: center; margin-bottom: 1.5rem; }
+.calc-val { font-size: 2rem; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -1px; }
+.form-section-title { font-size: .75rem; font-weight: 800; color: var(--loan-accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.form-section-title::after { content: ""; flex-grow: 1; height: 1px; background: rgba(99,102,241,0.1); }
+.input-group-merge { border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; transition: all 0.2s; }
+.input-group-merge:focus-within { border-color: var(--loan-accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); background: #fff; }
+.form-control, .form-select { border: none !important; background: transparent !important; padding: 0.75rem 1rem; font-weight: 500; color: #1e293b; }
+.form-control:focus, .form-select:focus { box-shadow: none !important; }
+.form-label { font-weight: 700; color: #475569; font-size: .85rem; margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'loan_list' %}" class="btn btn-sm btn-white shadow-sm border rounded-circle p-2 bg-white"><i class="bi bi-chevron-left"></i></a>
+  <h1 class="page-title mb-0" style="font-weight: 800; letter-spacing: -0.5px;"><i class="bi bi-file-earmark-plus me-2" style="color:var(--loan-accent)"></i>{{ title }}</h1>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="form-card p-4 p-md-5">
+      <form method="post" id="loanForm">
+        {% csrf_token %}
+        
+        <div class="form-section-title"><i class="bi bi-person"></i>Customer & Branch</div>
+        <div class="row g-4 mb-5">
+          <div class="col-md-6">
+            <label class="form-label">Select Customer <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.customer }}</div>
+            {% if form.customer.errors %}<div class="text-danger small mt-1">{{ form.customer.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Lending Branch <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.branch }}</div>
+          </div>
+        </div>
+
+        <div class="form-section-title"><i class="bi bi-cash-stack"></i>Loan Parameters</div>
+        <div class="row g-4 mb-5">
+          <div class="col-md-6">
+            <label class="form-label">Loan Type <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.loan_type }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Loan Amount (₹) <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.loan_amount }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Interest Rate (% p.a.) <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.interest_rate }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Interest Type</label>
+            <div class="input-group-merge">{{ form.interest_type }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Tenure (Months) <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.tenure_months }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Start Date <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.start_date }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Disbursement Mode</label>
+            <div class="input-group-merge">{{ form.disbursement_mode }}</div>
+          </div>
+        </div>
+
+        <div class="form-section-title"><i class="bi bi-shield-check"></i>Recovery Policy</div>
+        <div class="row g-4 mb-5">
+          <div class="col-md-6">
+            <label class="form-label">Penalty Rate (% p.m.)</label>
+            <div class="input-group-merge">{{ form.penalty_rate }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Grace Period (Days)</label>
+            <div class="input-group-merge">{{ form.grace_period_days }}</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Application Notes</label>
+            <div class="input-group-merge">{{ form.notes }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 mt-5">
+          <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow" style="background:var(--loan-accent); border-color:var(--loan-accent); border-radius: 12px;">
+            <i class="bi bi-check2-circle me-1"></i> Submit Application
+          </button>
+          <a href="{% url 'loan_list' %}" class="btn btn-light px-4 py-2 text-muted border-0" style="border-radius: 12px;">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Calculator Sidebar -->
+  <div class="col-lg-4">
+    <div class="calc-card shadow-sm overflow-hidden">
+      <div class="calc-header fw-bold d-flex align-items-center" style="color:var(--loan-accent);">
+        <i class="bi bi-calculator-fill fs-4 me-2"></i>Live Estimate
+      </div>
+      <div class="card-body p-4">
+        <div class="calc-result-box shadow-sm">
+          <div class="small fw-bold opacity-75 text-uppercase mb-2">Monthly EMI</div>
+          <div class="calc-val" id="calcEMI">₹ —</div>
+        </div>
+        
+        <div class="d-flex flex-column gap-3 mb-4">
+          <div class="d-flex justify-content-between p-3 rounded-4 bg-light">
+            <span class="text-muted small fw-bold">Total Payable</span>
+            <span class="fw-bold text-dark" id="calcTotal">—</span>
+          </div>
+          <div class="d-flex justify-content-between p-3 rounded-4 bg-light">
+            <span class="text-muted small fw-bold">Interest Amount</span>
+            <span class="fw-bold text-danger" id="calcInterest">—</span>
+          </div>
+        </div>
+
+        <div class="alert alert-info border-0 rounded-4 py-3 mb-3" style="background: rgba(13,202,240,0.05); color: #055160;">
+          <div class="d-flex gap-2">
+            <i class="bi bi-info-circle-fill mt-1"></i>
+            <div class="small">This is a provisional estimate. Final schedule is generated upon disbursement.</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-4 border border-dashed text-center">
+          <div class="extra-small text-muted fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px; font-size: 0.6rem;">Calculation Formula</div>
+          <div class="font-monospace text-primary fw-bold" style="font-size: 0.8rem;">
+            E = P &times; r &times; (1+r)ⁿ / ((1+r)ⁿ - 1)
+          </div>
+          <div class="extra-small text-muted mt-2" style="font-size: 0.65rem;">
+            P: Principal | r: Monthly Rate | n: Tenure
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function calcEMI(){
+  const amount = parseFloat(document.querySelector('[name=loan_amount]').value)||0;
+  const rate   = parseFloat(document.querySelector('[name=interest_rate]').value)||0;
+  const months = parseInt(document.querySelector('[name=tenure_months]').value)||0;
+  const itype  = document.querySelector('[name=interest_type]').value;
+  
+  if(!amount||!rate||!months) {
+    document.getElementById('calcEMI').textContent = '₹ —';
+    document.getElementById('calcTotal').textContent = '—';
+    document.getElementById('calcInterest').textContent = '—';
+    return;
+  }
+  
+  fetch(`{% url 'loan_emi_calculate' %}?amount=${amount}&rate=${rate}&months=${months}&type=${itype}`)
+    .then(r=>r.json()).then(d=>{
+      document.getElementById('calcEMI').textContent = '₹ '+d.emi.toLocaleString('en-IN',{maximumFractionDigits:0});
+      document.getElementById('calcTotal').textContent = '₹ '+d.total_payable.toLocaleString('en-IN',{maximumFractionDigits:0});
+      document.getElementById('calcInterest').textContent = '₹ '+d.total_interest.toLocaleString('en-IN',{maximumFractionDigits:0});
+    });
+}
+
+// Add bootstrap classes to form widgets
+document.querySelectorAll('input, select, textarea').forEach(el => {
+  if (el.tagName === 'SELECT') el.classList.add('form-select');
+  else el.classList.add('form-control');
+});
+
+['loan_amount','interest_rate','tenure_months','interest_type'].forEach(n=>{
+  const el = document.querySelector(`[name=${n}]`);
+  if(el) el.addEventListener('input', calcEMI);
+});
+calcEMI();
+</script>
+{% endblock %}

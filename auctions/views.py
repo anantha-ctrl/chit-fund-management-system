@@ -32,11 +32,29 @@ def auction_create(request):
                 messages.success(request, 'Auction recorded successfully.')
                 return redirect('auction_list')
             except Exception as e:
-                messages.error(request, 'There was an error saving the auction.')
+                messages.error(request, f'Validation Error: {str(e)}')
     else:
         form = AuctionForm()
         
-    return render(request, 'auctions/auction_form.html', {'form': form, 'title': 'Record Auction'})
+    # Pre-calculate auto-fill data for each active group
+    from chits.models import ChitGroup
+    import datetime
+    groups = ChitGroup.objects.filter(status='ACTIVE').prefetch_related('members')
+    for group in groups:
+        last_auction = Auction.objects.filter(chit_group=group).order_by('-month_number').first()
+        if last_auction:
+            group.next_month = last_auction.month_number + 1
+            # Approximate next month (30 days from last)
+            group.next_date = (last_auction.auction_date + datetime.timedelta(days=30)).strftime('%Y-%m-%d')
+        else:
+            group.next_month = 1
+            group.next_date = group.start_date.strftime('%Y-%m-%d')
+            
+    return render(request, 'auctions/auction_form.html', {
+        'form': form, 
+        'title': 'Record Auction',
+        'active_groups': groups
+    })
 
 @login_required
 def auction_detail(request, pk):

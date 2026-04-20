@@ -8,7 +8,7 @@ from members.models import Member
 class ChitGroupForm(forms.ModelForm):
     class Meta:
         model = ChitGroup
-        fields = ['name', 'amount', 'duration_months', 'installment_amount', 'start_date', 'status']
+        fields = ['name', 'amount', 'duration_months', 'installment_amount', 'start_date', 'status', 'due_day', 'penalty_per_day']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
         }

@@ -1,0 +1,575 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --accent-gradient: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        min-height: 100vh;
+    }
+
+    .report-header {
+        background: var(--accent-gradient);
+        border-radius: 24px;
+        padding: 2.5rem 2.5rem; /* Balanced padding */
+        color: white;
+        margin-bottom: 2rem; /* Replaced negative margin with healthy positive margin */
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .transaction-row {
+        background: white;
+        border-radius: 18px;
+        margin-bottom: 0.75rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .transaction-row:hover {
+        border-color: #10b981;
+        background: #f0fdf4;
+        transform: scale(1.01);
+    }
+
+    .tally-section {
+        background: #0f172a;
+        color: #f8fafc;
+        border-radius: 24px;
+        padding: 2rem;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .currency-tag {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .print-only {
+        display: none;
+    }
+
+    @media print {
+        @page {
+            size: A4;
+            margin: 0.5cm; /* Reduced margins */
+        }
+        body {
+            font-size: 10pt !important; /* Smaller base font */
+        }
+        .sidebar, .top-header, .mobile-bottom-nav, .no-print, .dropdown {
+            display: none !important;
+        }
+        .main-content {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .container-fluid {
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .report-header {
+            background: #fff !important;
+            color: #000 !important;
+            border: 1.5px solid #000 !important;
+            padding: 1rem !important; /* Reduced padding */
+            margin-bottom: 1rem !important; /* Reduced margin */
+            border-radius: 8px !important;
+        }
+        .report-header h1 { font-size: 1.5rem !important; }
+        .report-header .badge {
+            font-size: 0.7rem !important;
+            padding: 0.25rem 0.75rem !important;
+        }
+        .stat-card, .card {
+            border: 1px solid #eee !important;
+            box-shadow: none !important;
+            padding: 0.75rem !important; /* Reduced padding */
+            margin-bottom: 0.5rem !important; /* Reduced margin */
+            page-break-inside: avoid !important;
+        }
+        .tally-section {
+            background: #fff !important;
+            color: #000 !important;
+            border: 1px solid #ddd !important;
+            padding: 1rem !important;
+            margin-top: 1rem !important;
+            page-break-inside: avoid !important;
+        }
+        .tally-section * { color: #000 !important; }
+        .table {
+            width: 100% !important;
+            margin-bottom: 0.5rem !important;
+        }
+        .table th, .table td {
+            padding: 4px 8px !important; /* Tighter rows */
+            font-size: 0.85rem !important;
+        }
+        .mt-5, .pt-5 { margin-top: 1.5rem !important; padding-top: 1.5rem !important; } /* Condense large gaps */
+        .mb-4 { margin-bottom: 0.5rem !important; }
+        .print-only {
+            display: block !important;
+        }
+        .signature-area {
+            margin-top: 2rem !important;
+            page-break-before: auto !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pb-5">
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-decoration-none text-muted">Dashboard</a></li>
+                <li class="breadcrumb-item active fw-bold text-success">Daily Report</li>
+            </ol>
+        </nav>
+        <button onclick="window.print()" class="btn btn-white shadow-sm rounded-pill px-4 d-flex align-items-center gap-2">
+            <i class="bi bi-printer"></i> Print Report
+        </button>
+    </div>
+
+    <!-- Header Section -->
+    <div class="report-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="badge bg-white text-success fw-bold px-3 py-2 rounded-pill mb-3 shadow-sm d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-shield-fill-check"></i> VERIFIED DAILY SUMMARY
+                </span>
+                <h1 class="display-6 fw-bold mb-1">Daily Collection Report</h1>
+                <p class="mb-0 opacity-75">Generated for <strong>{{ user.get_full_name|default:user.username }}</strong> on {{ today|date:"l, d F Y" }}</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <div class="d-inline-flex flex-column align-items-lg-end">
+                    <span class="opacity-50 extra-small text-uppercase fw-bold ls-1">Report ID</span>
+                    <span class="fw-mono">DCR-{{ today|date:"Ymd" }}-{{ user.id }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- End-of-Day (EOD) Handover Nexus -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 no-print overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        <div class="card-body p-4 p-lg-5 d-flex flex-column flex-md-row align-items-center justify-content-between gap-4 position-relative" style="z-index: 1;">
+            <div class="text-white">
+                <div class="d-inline-flex border border-white border-opacity-25 rounded-pill px-3 py-1 extra-small fw-bold mb-3 text-white-50" style="letter-spacing: 1px;"><i class="bi bi-clock-history me-1"></i> EOD CASH PROTOCOL</div>
+                <h4 class="fw-extrabold mb-1">System Cash Tally</h4>
+                <p class="text-white-50 small mb-0">Verify your physical cash stash with the recorded system ledger before securely handing it over at your branch.</p>
+            </div>
+            <div class="text-center text-md-end bg-white bg-opacity-10 p-4 rounded-4 border border-white border-opacity-10" style="min-width: 250px; backdrop-filter: blur(5px);">
+                <div class="extra-small text-white-50 fw-bold text-uppercase mb-1" style="letter-spacing: 1px;">Expected Branch Deposit</div>
+                <h2 class="fw-extrabold text-white mb-3">₹{{ expected_deposit|floatformat:0 }}</h2>
+                <form method="POST" action="{% url 'initiate_handover' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow d-flex align-items-center justify-content-center gap-2 {% if expected_deposit > 0 %}pulse-button{% else %}opacity-75{% endif %}" {% if expected_deposit <= 0 %}disabled{% endif %} onclick="return confirm('Initiate Secure Cash Handover Protocol for ₹{{ expected_deposit|floatformat:0 }}? \n\nA notification will be sent to the Super Admin for approval.');">
+                        <i class="bi bi-safe2-fill"></i> {% if expected_deposit > 0 %}Initiate Handover{% else %}Handover Cleared{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+        <i class="bi bi-shield-lock position-absolute end-0 bottom-0 text-white opacity-05" style="font-size: 10rem; margin-right: -1rem; margin-bottom: -2rem; z-index: 0; opacity: 0.1;"></i>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="stat-card p-4 h-100 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    {% if daily_total > 0 %}
+                    <span class="badge bg-success-subtle text-success border border-success border-opacity-25 rounded-pill">Active</span>
+                    {% endif %}
+                </div>
+                <h6 class="text-muted fw-bold mb-1">Today's Total Cash</h6>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="fw-extrabold mb-0 text-dark">₹{{ daily_total|floatformat:0 }}</h2>
+                    <span class="text-muted small">({{ collections.count }} entries)</span>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">Daily Target</span>
+                        <span class="small fw-bold">₹{{ daily_target|floatformat:0 }}</span>
+                    </div>
+                    <div class="progress mt-2 no-print" style="height: 6px;">
+                        <div class="progress-bar bg-success" id="dailyProgressBar" role="progressbar" aria-valuenow="{{ daily_percentage }}" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const bar = document.getElementById('dailyProgressBar');
+                            if (bar) bar.style.width = bar.getAttribute('aria-valuenow') + '%';
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card p-4 h-100 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-bullseye"></i>
+                    </div>
+                    <span class="badge bg-blue-subtle text-primary border border-primary border-opacity-25 rounded-pill">Target Metrics</span>
+                </div>
+                <h6 class="text-muted fw-bold mb-1">Monthly Active Target</h6>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="fw-extrabold mb-0 text-dark">₹{{ monthly_total|floatformat:0 }}</h2>
+                    <span class="text-muted small">/ ₹200k</span>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <!-- Progress Mechanics -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="extra-small text-muted fw-bold">Achievement</span>
+                        <span class="extra-small fw-extrabold text-primary">45%</span>
+                    </div>
+                    <div class="progress shadow-sm" style="height: 8px; border-radius: 4px;">
+                        <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: 45%;"></div>
+                    </div>
+                    <!-- Incentive Calculator -->
+                    <div class="d-flex justify-content-between align-items-center mt-3 bg-warning bg-opacity-10 p-2 rounded-3 border border-warning border-opacity-25">
+                        <span class="extra-small text-dark fw-bold"><i class="bi bi-trophy-fill text-warning me-1"></i> Current Incentive</span>
+                        <span class="extra-small fw-extrabold text-success">+ ₹2,500</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card p-4 h-100 shadow-sm border-0 position-relative overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-uppercase text-muted fw-bold extra-small ls-1 mb-0">Live Activity</h6>
+                    <div class="d-flex align-items-center bg-success bg-opacity-10 text-success rounded-pill px-2 py-1" style="font-size: 0.6rem;">
+                        <span class="live-pulse me-1"></span> SYNCED
+                    </div>
+                </div>
+
+                <div class="activity-feed">
+                    {% for item in collections|slice:":3" %}
+                    <div class="activity-item d-flex gap-3 mb-3">
+                        <div class="activity-icon bg-white shadow-sm border rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="fw-bold text-dark text-truncate small" style="line-height: 1.2;">{{ item.member.name }}</div>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="extra-small text-muted">{{ item.created_at|date:"h:i A" }}</span>
+                                <span class="badge bg-light text-success extra-small">₹{{ item.net_amount|floatformat:0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-lightning text-muted opacity-25 fs-2"></i>
+                        <p class="extra-small text-muted mt-2">Waiting for first collection...</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
+                    <div class="extra-small text-muted fw-bold">{{ collections|length }} Records Done</div>
+                    <button class="btn btn-link text-decoration-none extra-small fw-bold p-0 text-primary">SUBMIT ALL <i class="bi bi-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Follow-up List (Caller ID) Section -->
+    <!-- Geo-Routed Defaulter Navigation Engine -->
+    <div class="mb-5 no-print">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <div>
+                <h5 class="fw-extrabold mb-1 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-map-fill text-primary"></i> Smart Route Navigation
+                </h5>
+                <p class="text-muted extra-small mb-0">Geo-optimized Pending Dues Engine. Target specific areas to minimize travel time.</p>
+            </div>
+            <div class="d-flex gap-2 w-100 w-md-auto">
+                <button class="btn btn-light bg-white rounded-pill px-3 py-2 shadow-sm border fw-bold extra-small flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center" onclick="alert('Syncing Google Maps Integration for selected active Route...')">
+                    <i class="bi bi-geo-alt-fill text-danger fs-5 me-2"></i> Open GPS Map
+                </button>
+            </div>
+        </div>
+
+        <!-- Route Filter Toggle -->
+        <style>
+            .route-filters::-webkit-scrollbar { display: none; }
+        </style>
+        <ul class="nav nav-pills mb-4 gap-2 flex-nowrap overflow-auto pb-2 route-filters" style="white-space: nowrap; scrollbar-width: none; -ms-overflow-style: none;">
+            <li class="nav-item">
+                <a class="nav-link active rounded-pill bg-dark border border-dark text-white py-1 px-3 extra-small shadow-sm" href="#" onclick="event.preventDefault(); alert('Targeting 2KM Radius via GPS Coordinates...');">
+                    <i class="bi bi-crosshair text-danger me-1"></i> Near Me (2 km)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link rounded-pill bg-white text-dark py-1 px-3 extra-small border shadow-sm fw-bold" href="#" onclick="event.preventDefault();">All Regions</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link rounded-pill bg-white text-dark py-1 px-3 extra-small border shadow-sm" href="#" onclick="event.preventDefault();">North Zone</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link rounded-pill bg-white text-dark py-1 px-3 extra-small border shadow-sm" href="#" onclick="event.preventDefault();">South Zone</a>
+            </li>
+        </ul>
+
+        <div class="row g-3">
+            {% for item in follow_ups %}
+            <!-- Route Node -->
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-0 rounded-4 p-3 h-100 shadow-sm position-relative overflow-hidden transition-hover" style="border-left: 5px solid #dc3545 !important;">
+                    <span class="position-absolute top-0 end-0 bg-danger bg-opacity-10 text-danger extra-small px-2 py-1 fw-bold" style="border-bottom-left-radius: 12px; font-size: 0.60rem;">HIGH PRIORITY</span>
+                    <div class="d-flex justify-content-between align-items-start mt-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px;">
+                                <i class="bi bi-pin-map-fill text-primary fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark lh-1">{{ item.member.name }}</div>
+                                <div class="extra-small text-muted mt-1 fw-bold"><i class="bi bi-building text-danger me-1"></i> 1.2 KM Away</div>
+                            </div>
+                        </div>
+                        <a href="tel:{{ item.member.phone }}" class="btn btn-success bg-opacity-10 text-success border-success border-opacity-25 rounded-circle shadow-sm" style="width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-telephone-fill"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="bg-light rounded-3 p-2 px-3 mt-3 d-flex justify-content-between align-items-center border">
+                        <div class="text-start">
+                            <span class="extra-small text-muted d-block lh-1 mb-1">Overdue Cash</span>
+                            <span class="fw-extrabold text-danger fs-6 lh-1">₹{{ item.total_due|floatformat:0 }}</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm rounded-pill fw-bold px-3 shadow-sm" style="font-size: 0.70rem;" onclick="window.location.href = `{% url 'field_collection' %}?q={{ item.member.phone }}`;">
+                            COLLECT <i class="bi bi-chevron-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5 bg-white rounded-4 border border-dashed text-muted shadow-sm">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
+                        <i class="bi bi-map-fill fs-1 text-success opacity-75"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Route Cleared!</h5>
+                    <p class="extra-small mb-0">Excellent work. No active defaulters found in your assigned zones.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Collection Ledger -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark">Transaction Ledger</h5>
+                        <div class="dropdown no-print">
+                            <button class="btn btn-link py-0 px-1 text-muted" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3">
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-excel me-2"></i>Export Excel</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-pdf me-2"></i>Export PDF</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if collections %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border-0">
+                                <thead class="bg-light bg-opacity-50">
+                                    <tr>
+                                        <th class="border-0 text-muted extra-small text-uppercase ps-3">Time</th>
+                                        <th class="border-0 text-muted extra-small text-uppercase">Member Details</th>
+                                        <th class="border-0 text-muted extra-small text-uppercase">Chit Context</th>
+                                        <th class="border-0 text-muted extra-small text-uppercase text-end pe-3">Amount Paid</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in collections %}
+                                    <tr class="transition-hover">
+                                        <td class="ps-3 border-0">
+                                            <span class="text-muted small fw-medium">{{ item.created_at|date:"h:i A" }}</span>
+                                        </td>
+                                        <td class="border-0">
+                                            <div class="fw-bold text-dark">{{ item.member.name }}</div>
+                                            <div class="text-muted extra-small">{{ item.member.phone }}</div>
+                                        </td>
+                                        <td class="border-0">
+                                            <span class="badge bg-light text-dark fw-medium">{{ item.chit_group.name }}</span>
+                                            <span class="text-muted extra-small d-block mt-1">Installment {{ item.installment_number }}</span>
+                                        </td>
+                                        <td class="text-end pe-3 border-0">
+                                            <div class="d-flex flex-column align-items-end">
+                                                <div class="fw-extrabold text-success fs-5">₹{{ item.net_amount|floatformat:0 }}</div>
+                                                {% if item.penalty_amount > 0 %}
+                                                    <div class="extra-small text-muted mb-2">(Incl. ₹{{ item.penalty_amount|floatformat:0 }} penalty)</div>
+                                                {% endif %}
+                                                
+                                                <!-- Action Buttons -->
+                                                <div class="d-flex gap-2 no-print">
+                                                    <a href="https://wa.me/91{{ item.member.phone }}?text=Hello%20{{ item.member.name|urlencode }},%20your%20payment%20of%20Rs.%20{{ item.net_amount|floatformat:0 }}%20for%20{{ item.chit_group.name|urlencode }}%20(Inst%20%23{{ item.installment_number }})%20has%20been%20received%20successfully.%20Receipt%20ID:%20{{ item.id }}.%20Thank%20you!" 
+                                                       target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 extra-small">
+                                                        <i class="bi bi-whatsapp me-1"></i> Send
+                                                    </a>
+                                                    <a href="{% url 'chit_payment_receipt' item.pk %}" class="btn btn-sm btn-primary rounded-pill px-3 py-1 extra-small">
+                                                        <i class="bi bi-receipt me-1"></i> Receipt
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="empty-state-icon bg-light text-muted rounded-circle mx-auto mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-journal-x fs-1 opacity-25"></i>
+                            </div>
+                            <h6 class="fw-bold text-muted">No collections recorded yet.</h6>
+                            <p class="text-muted small mx-auto" style="max-width: 280px;">Once you start collecting payments in the field, they will appear here in chronological order.</p>
+                            <a href="{% url 'field_collection' %}" class="btn btn-primary rounded-pill px-4 mt-2">
+                                <i class="bi bi-plus-circle me-2"></i> Start Collection
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tally & Compliance -->
+        <div class="col-lg-4">
+            <div class="tally-section shadow-lg mb-4">
+                <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-safe2 text-success"></i> Cash Handover Tally
+                </h5>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Physical Cash in Hand</span>
+                        <span class="text-success fw-bold">Required</span>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-3 p-3 border border-white border-opacity-10">
+                        <h2 class="display-6 fw-bold mb-0 text-white">₹{{ daily_total|floatformat:0 }}</h2>
+                        <span class="extra-small text-white-50">Match this before submitting</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <i class="bi bi-1-circle text-white-50 mt-1"></i>
+                        <p class="small text-white-75 mb-0">Ensure all physical receipts issued match the digital entries above.</p>
+                    </div>
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <i class="bi bi-2-circle text-white-50 mt-1"></i>
+                        <p class="small text-white-75 mb-0">Sort cash notes by denomination for faster tallying at the office.</p>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <i class="bi bi-3-circle text-white-50 mt-1"></i>
+                        <p class="small text-white-75 mb-0">Record any discrepancies in the 'Admin Notes' section on handover.</p>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Handover Signature Area (Print Optimized) -->
+    <div class="print-only signature-area mt-5 pt-5">
+        <div class="row">
+            <div class="col-6 text-center">
+                <div class="mb-3">____________________</div>
+                <div class="fw-bold small">Staff Signature</div>
+                <div class="extra-small text-muted">{{ user.get_full_name|default:user.username }}</div>
+            </div>
+            <div class="col-6 text-center">
+                <div class="mb-3">____________________</div>
+                <div class="fw-bold small">Authorized Manager</div>
+                <div class="extra-small text-muted">Branch Seal & Verification</div>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <small class="text-muted extra-small">Report generated via SmartChit System on {{ today|date:"d M Y" }}</small>
+        </div>
+    </div>
+</div>
+
+<style>
+    .extra-small { font-size: 0.75rem; }
+    .fw-extrabold { font-weight: 800; }
+    .ls-1 { letter-spacing: 0.05rem; }
+    .table > :not(caption) > * > * { padding: 1rem 0.5rem; }
+    .transition-hover { transition: all 0.2s ease; cursor: default; }
+    .transition-hover:hover { background-color: #f8fafc; }
+    .btn-white { background-color: white; border: 1px solid #e2e8f0; color: #475569; }
+    .btn-white:hover { background-color: #f1f5f9; color: #0f172a; }
+
+    @keyframes pulseButton {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .pulse-button {
+        animation: pulseButton 2s infinite;
+    }
+    .live-pulse {
+        width: 6px;
+        height: 6px;
+        background-color: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+        animation: livePulseAni 1.5s infinite;
+    }
+    @keyframes livePulseAni {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --loan-accent: #6366f1;
+        --loan-light: rgba(99,102,241,0.08);
+        --glass-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    @media print {
+        .no-print { display: none !important; }
+        body { background: white !important; }
+        .card { border: 1px solid #e2e8f0 !important; box-shadow: none !important; }
+        .report-header { background: #0f172a !important; color: white !important; -webkit-print-color-adjust: exact; }
+    }
+
+    .report-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #fff;
+        border-radius: 24px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .report-header::after {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 50%;
+    }
+
+    .stat-card-mini {
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 18px;
+        padding: 1.25rem;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card-mini:hover {
+        transform: translateY(-5px);
+        background: rgba(255,255,255,0.08);
+    }
+
+    .collection-table {
+        background: #fff;
+        border-radius: 24px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+    }
+
+    .table thead th {
+        background: #f8fafc;
+        padding: 1.25rem 1rem;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 800;
+        color: #64748b;
+        border: none;
+    }
+
+    .table tbody td {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .receipt-badge {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 0.4rem 0.8rem;
+        border-radius: 10px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1px solid #e2e8f0;
+    }
+
+    .mode-pill {
+        padding: 0.35rem 0.85rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .mode-cash { background: rgba(16, 185, 129, 0.1); color: #059669; }
+    .mode-upi { background: rgba(99, 102, 241, 0.1); color: #4f46e5; }
+    .mode-bank { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+
+    .print-btn {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        padding: 0.7rem 1.5rem;
+        border-radius: 14px;
+        font-weight: 700;
+        transition: all 0.2s;
+    }
+
+    .print-btn:hover {
+        border-color: var(--loan-accent);
+        color: var(--loan-accent);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 no-print">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'loan_dashboard' %}" class="btn btn-light rounded-circle shadow-sm border d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" title="Back to Dashboard">
+                <i class="bi bi-arrow-left fs-5"></i>
+            </a>
+            <div>
+                <h1 class="h3 fw-900 mb-1">Daily Collection Report</h1>
+                <p class="text-muted small mb-0 fw-bold">Live tracking of all EMI recoveries and financial settlements.</p>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-3 align-items-center">
+            <form method="get" class="d-flex gap-2 p-1 bg-white rounded-4 shadow-sm border">
+                <input type="date" name="date" value="{{ selected_date }}" class="form-control border-0 bg-transparent fw-bold" style="width:160px;">
+                <button type="submit" class="btn btn-primary rounded-3 px-3 fw-bold shadow-sm" style="background:var(--loan-accent); border:none;">
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+            <button onclick="window.print()" class="print-btn shadow-sm">
+                <i class="bi bi-printer-fill me-2"></i>Print Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Header -->
+    <div class="report-header shadow-2xl">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-calendar3 fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="small opacity-75 fw-bold text-uppercase ls-1">Report for Date</div>
+                        <div class="h3 fw-900 mb-0">{{ selected_date|date:"l, d F Y"|default:selected_date }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="stat-card-mini">
+                            <div class="small opacity-75 fw-bold mb-1">Total Transactions</div>
+                            <div class="h4 fw-900 mb-0">{{ payments|length }} Entries</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card-mini" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
+                            <div class="small text-success fw-bold mb-1">Net Cash Flow</div>
+                            <div class="h4 fw-900 mb-0 text-success">₹{{ total|floatformat:0 }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card-mini">
+                            <div class="small opacity-75 fw-bold mb-1">Recovery Status</div>
+                            <div class="h4 fw-900 mb-0">Active <i class="bi bi-activity ms-1 text-info"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="collection-table overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">No.</th>
+                        <th>Receipt Reference</th>
+                        <th>Customer / Loan Detail</th>
+                        <th>Inst #</th>
+                        <th class="text-end">Recovery Amount</th>
+                        <th>Mode</th>
+                        <th>Staff In-charge</th>
+                        <th class="pe-4 text-center no-print">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                    <tr>
+                        <td class="ps-4 text-muted extra-small fw-bold">{{ forloop.counter }}</td>
+                        <td><span class="receipt-badge">{{ p.receipt_number }}</span></td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ p.loan.customer.name }}</div>
+                            <div class="extra-small text-muted fw-bold">{{ p.loan.loan_number }}</div>
+                        </td>
+                        <td><span class="badge bg-light text-primary border rounded-pill px-3 fw-bold">EMI {{ p.emi_installment.installment_number|default:"—" }}</span></td>
+                        <td class="text-end fw-bold">
+                            <div class="text-dark fs-6">₹{{ p.amount_paid|floatformat:0 }}</div>
+                            {% if p.penalty_paid > 0 %}
+                            <div class="text-danger" style="font-size: 0.65rem; font-weight: 800;">+₹{{ p.penalty_paid|floatformat:0 }} PENALTY</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="mode-pill mode-{{ p.payment_mode }}">
+                                <i class="bi {% if p.payment_mode == 'cash' %}bi-cash{% elif p.payment_mode == 'upi' %}bi-qr-code{% else %}bi-bank{% endif %} me-1"></i>
+                                {{ p.get_payment_mode_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.7rem; font-weight: 800;">
+                                    {{ p.collected_by.get_full_name|default:p.collected_by.username|slice:":1" }}
+                                </div>
+                                <div class="extra-small fw-bold text-dark">{{ p.collected_by.get_full_name|default:p.collected_by.username }}</div>
+                            </div>
+                        </td>
+                        <td class="pe-4 text-center no-print">
+                            <a href="{% url 'loan_payment_receipt' p.pk %}" class="btn btn-sm btn-light rounded-pill px-3 extra-small fw-bold border" title="Print Receipt">
+                                <i class="bi bi-printer me-1"></i> Receipt
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="py-5">
+                                <i class="bi bi-inbox display-1 text-muted opacity-25"></i>
+                                <h4 class="fw-900 mt-4 text-muted">No Collections Found</h4>
+                                <p class="text-muted">No EMI payments have been recorded for the selected date yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% if payments %}
+                <tfoot class="bg-light border-top">
+                    <tr>
+                        <td colspan="4" class="ps-4 text-end fw-900 py-4" style="color: #64748b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Closing Balance for the Day</td>
+                        <td class="text-end py-4">
+                            <div class="h3 fw-900 text-success mb-0">₹{{ total|floatformat:0 }}</div>
+                        </td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .extra-small { font-size: 0.72rem; }
+</style>
+{% endblock %}

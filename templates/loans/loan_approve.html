@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.summary-card { border-radius: 18px; border: 1px solid rgba(99,102,241,0.15); background: #fff; }
+.info-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; font-weight: 700; }
+.info-value { font-size: .95rem; font-weight: 700; color: #0f172a; }
+.decision-card { border-radius: 18px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+.radio-tile-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+.radio-tile { border: 2px solid #e2e8f0; border-radius: 12px; padding: 1rem; width: 140px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+.radio-tile i { font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
+.radio-tile-input { position: absolute; opacity: 0; cursor: pointer; width: 100%; height: 100%; top: 0; left: 0; margin: 0; z-index: 2; }
+.radio-tile-input:checked + .radio-tile-content { border-color: var(--loan-accent); background: var(--loan-light); color: var(--loan-accent); }
+.radio-tile-input:checked + .radio-tile-content { border: 2px solid var(--loan-accent); }
+.approve-tile:checked + .radio-tile { border-color: #10b981; background: rgba(16,185,129,0.05); color: #059669; }
+.reject-tile:checked + .radio-tile { border-color: #ef4444; background: rgba(239,68,68,0.05); color: #dc2626; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 bg-white shadow-none border-light"><i class="bi bi-arrow-left me-1"></i>Back to Loan</a>
+  <h1 class="page-title mb-0" style="font-weight: 800; letter-spacing: -0.5px;"><i class="bi bi-shield-check me-2 text-primary"></i>Loan Decision Queue</h1>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="summary-card p-4">
+      <h5 class="fw-bold mb-4 d-flex align-items-center"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Application Summary</h5>
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="info-label">Customer</div>
+          <div class="info-value">{{ loan.customer.full_name }}</div>
+          <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ loan.customer.phone }}</div>
+        </div>
+        <div class="col-6">
+          <div class="info-label">Principal Amount</div>
+          <div class="info-value">₹{{ loan.loan_amount|floatformat:0 }}</div>
+        </div>
+        <div class="col-6">
+          <div class="info-label">Monthly EMI</div>
+          <div class="info-value text-success">₹{{ loan.emi_amount|floatformat:0 }}</div>
+        </div>
+        <div class="col-6">
+          <div class="info-label">Interest Rate</div>
+          <div class="info-value">{{ loan.interest_rate }}% ({{ loan.get_interest_type_display }})</div>
+        </div>
+        <div class="col-6">
+          <div class="info-label">Tenure</div>
+          <div class="info-value">{{ loan.tenure_months }} Months</div>
+        </div>
+        <div class="col-12">
+          <div class="info-label">Branch</div>
+          <div class="info-value">{{ loan.branch.name }}</div>
+        </div>
+        {% if loan.notes %}
+        <div class="col-12">
+          <div class="info-label">Applicant Notes</div>
+          <div class="info-value small text-muted font-italic">{{ loan.notes }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="decision-card p-4 p-md-5">
+      <h5 class="fw-bold mb-4">Approval Decision</h5>
+      <form method="post">{% csrf_token %}
+        
+        <div class="mb-5">
+          <label class="form-label d-block fw-bold text-muted mb-3">SELECT ACTION</label>
+          <div class="radio-tile-group">
+            <div class="position-relative">
+              <input class="radio-tile-input approve-tile" type="radio" name="action" value="approve" id="act_approve" checked>
+              <div class="radio-tile">
+                <i class="bi bi-check-circle-fill"></i>
+                <div class="radio-tile-label fw-bold small">APPROVE</div>
+              </div>
+            </div>
+            <div class="position-relative">
+              <input class="radio-tile-input reject-tile" type="radio" name="action" value="reject" id="act_reject">
+              <div class="radio-tile">
+                <i class="bi bi-x-circle-fill"></i>
+                <div class="radio-tile-label fw-bold small">REJECT</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="approveFields">
+          <div class="alert alert-warning border-0 rounded-4 mb-4 small" style="background: rgba(245,158,11,0.05); color: #856404;">
+            <i class="bi bi-info-circle me-1"></i> Approving will move the loan to <strong>Approved</strong> state. Disbursement must be recorded separately to activate the loan.
+          </div>
+          <div class="row g-3">
+             <div class="col-12"><div class="info-label">Branch Availability</div><div class="small text-success fw-bold"><i class="bi bi-check-all me-1"></i>Funds sufficient for disbursement at {{ loan.branch.name }}</div></div>
+          </div>
+        </div>
+
+        <div id="rejectFields" class="d-none">
+          <label class="form-label fw-bold text-danger">REJECTION REASON <span class="text-danger">*</span></label>
+          <textarea name="rejection_reason" class="form-control" rows="4" placeholder="Please provide a clear reason for rejecting this application..." style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;"></textarea>
+        </div>
+
+        <div class="mt-5 d-flex gap-2">
+          <button type="submit" class="btn btn-dark px-5 py-2 fw-bold shadow-none" style="border-radius: 12px; background: #0f172a;">
+            Confirm Approval Decision
+          </button>
+          <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-light px-4 py-2 text-muted border-0" style="border-radius: 12px;">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('[name=action]').forEach(r=>{
+  r.addEventListener('change', ()=>{
+    const isApprove = document.getElementById('act_approve').checked;
+    document.getElementById('approveFields').classList.toggle('d-none',!isApprove);
+    document.getElementById('rejectFields').classList.toggle('d-none',isApprove);
+    
+    const submitBtn = document.querySelector('button[type=submit]');
+    if(!isApprove) {
+      submitBtn.textContent = 'Confirm Rejection Decision';
+      submitBtn.classList.remove('btn-dark');
+      submitBtn.classList.add('btn-danger');
+    } else {
+      submitBtn.textContent = 'Confirm Approval Decision';
+      submitBtn.classList.remove('btn-danger');
+      submitBtn.classList.add('btn-dark');
+    }
+  });
+});
+</script>
+{% endblock %}

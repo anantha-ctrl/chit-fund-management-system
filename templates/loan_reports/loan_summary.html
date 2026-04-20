@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.metric-card { border-radius: 20px; border: 1px solid rgba(99,102,241,0.13); background:#fff; padding:1.4rem 1.5rem; transition:all .3s; height: 100%; }
+.metric-card:hover { transform:translateY(-3px); box-shadow:0 14px 32px rgba(99,102,241,0.11); }
+.metric-icon { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom: 1rem; }
+.metric-value { font-size:1.8rem; font-weight:800; letter-spacing:-1px; font-family:'Plus Jakarta Sans',sans-serif; line-height:1; }
+.metric-label { font-size:.72rem; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-top:.5rem; }
+.card-title-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--loan-light); color: var(--loan-accent); display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5rem; }
+.status-badge { padding: .25rem .6rem; border-radius: 6px; font-size: .7rem; font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h1 class="page-title mb-0"><i class="bi bi-bar-chart-line me-2" style="color:var(--loan-accent)"></i>Loan Portfolio Summary</h1>
+    <p class="text-muted mb-0" style="font-size:.85rem;">Comprehensive overview of loan distributions and collections</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'loan_branch_performance' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-buildings me-1"></i>Branch Report</a>
+    <a href="{% url 'loan_monthly_collection' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-graph-up me-1"></i>Monthly Trend</a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 border-0 shadow-sm" style="border-radius: 16px;">
+  <div class="card-body py-3">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small fw-bold text-muted">Branch</label>
+        <select name="branch" class="form-select border-light shadow-none bg-light">
+          <option value="">All Branches</option>
+          {% for b in branches %}
+          <option value="{{ b.pk }}" {% if branch_id == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-bold text-muted">Status</label>
+        <select name="status" class="form-select border-light shadow-none bg-light">
+          <option value="">All Statuses</option>
+          {% for val,label in status_choices %}
+          <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-flex gap-2">
+        <button class="btn btn-primary flex-grow-1" type="submit" style="background:var(--loan-accent);border-color:var(--loan-accent);">
+          <i class="bi bi-filter me-1"></i>Apply Filters
+        </button>
+        <a href="{% url 'loan_summary_report' %}" class="btn btn-light text-muted border-0">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="metric-card">
+      <div class="metric-icon" style="background:var(--loan-light);color:var(--loan-accent);"><i class="bi bi-file-earmark-text"></i></div>
+      <div class="metric-value" style="color:var(--loan-accent)">{{ stats.total_loans }}</div>
+      <div class="metric-label">Total Loans</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="metric-card">
+      <div class="metric-icon" style="background:rgba(16,185,129,.1);color:#059669;"><i class="bi bi-cash-stack"></i></div>
+      <div class="metric-value text-success">₹{{ stats.total_amount|floatformat:0 }}</div>
+      <div class="metric-label">Total Disbursed</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="metric-card">
+      <div class="metric-icon" style="background:rgba(239,68,68,.08);color:#ef4444;"><i class="bi bi-arrow-down-circle"></i></div>
+      <div class="metric-value text-danger">₹{{ stats.total_outstanding|floatformat:0 }}</div>
+      <div class="metric-label">Outstanding Balance</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="metric-card">
+      <div class="metric-icon" style="background:rgba(16,185,129,.1);color:#059669;"><i class="bi bi-check2-circle"></i></div>
+      <div class="metric-value" style="color:#059669">₹{{ stats.total_collected|floatformat:0 }}</div>
+      <div class="metric-label">Total Collected</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Status Breakdown -->
+  <div class="col-lg-5">
+    <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px;">
+      <div class="card-header bg-white py-3 border-0">
+        <span class="fw-bold"><div class="card-title-icon"><i class="bi bi-pie-chart"></i></div>Status Breakdown</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" style="font-size:.88rem;">
+            <thead class="bg-light">
+              <tr class="text-muted" style="font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;">
+                <th class="ps-4">Status</th>
+                <th>Count</th>
+                <th class="pe-4 text-end">Total Principal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in stats.by_status %}
+              <tr>
+                <td class="ps-4">
+                  <span class="status-badge" style="background: rgba(100,116,139,0.1); color: #475569;">
+                    {{ row.status|title }}
+                  </span>
+                </td>
+                <td class="fw-bold">{{ row.count }}</td>
+                <td class="pe-4 text-end fw-bold">₹{{ row.total|floatformat:0 }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center py-4 text-muted">No status data</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Branch-wise Performance -->
+  <div class="col-lg-7">
+    <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px;">
+      <div class="card-header bg-white py-3 border-0">
+        <span class="fw-bold"><div class="card-title-icon"><i class="bi bi-buildings"></i></div>Branch-wise Distribution</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" style="font-size:.85rem;">
+            <thead class="bg-light">
+              <tr class="text-muted" style="font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;">
+                <th class="ps-4">Branch</th>
+                <th>Loans</th>
+                <th>Disbursed</th>
+                <th>Outstanding</th>
+                <th class="pe-4 text-center">Status (A/C/D)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for b in branch_wise %}
+              <tr>
+                <td class="ps-4 fw-bold text-dark">{{ b.branch__name|default:"—" }}</td>
+                <td>{{ b.loan_count }}</td>
+                <td class="fw-bold">₹{{ b.disbursed|floatformat:0 }}</td>
+                <td class="text-danger fw-bold">₹{{ b.outstanding|floatformat:0 }}</td>
+                <td class="pe-4 text-center">
+                  <div class="d-flex justify-content-center gap-1">
+                    <span class="badge bg-success bg-opacity-10 text-success" title="Active">{{ b.active }}</span>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary" title="Closed">{{ b.closed }}</span>
+                    <span class="badge bg-danger bg-opacity-10 text-danger" title="Default">{{ b.default }}</span>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center py-4 text-muted">No branch data available</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.loan-badge { padding:.3rem .72rem; border-radius:8px; font-size:.72rem; font-weight:700; display: inline-block; }
+.badge-pending  { background:rgba(245,158,11,.1);  color:#d97706; }
+.badge-active   { background:rgba(16,185,129,.1);  color:#059669; }
+.badge-closed   { background:rgba(100,116,139,.1); color:#475569; }
+.badge-default  { background:rgba(239,68,68,.1);   color:#dc2626; }
+.badge-approved { background:rgba(99,102,241,.1);  color:#4f46e5; }
+.badge-rejected { background:rgba(239,68,68,.1);   color:#dc2626; }
+
+.loan-row { cursor: pointer; transition: background 0.2s; }
+.loan-row:hover { background-color: #f8fafc !important; }
+.loan-number-pill { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; background: var(--loan-light); color: var(--loan-accent); padding: .2rem .6rem; border-radius: 6px; font-size: .85rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title mb-0"><i class="bi bi-file-earmark-text me-2" style="color:var(--loan-accent)"></i>Loan Portfolio</h1>
+    <p class="text-muted mb-0" style="font-size:.85rem;">Manage and track all customer loans across branches</p>
+  </div>
+  <a href="{% url 'loan_create' %}" class="btn btn-primary px-4 shadow-sm" style="background:var(--loan-accent);border-color:var(--loan-accent); border-radius: 10px; font-weight:600;">
+    <i class="bi bi-plus-lg me-2"></i> New Loan Application
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 border-0 shadow-sm" style="border-radius: 16px;">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <div class="input-group input-group-merge border-0 bg-light rounded-3">
+          <span class="input-group-text bg-transparent border-0 text-muted"><i class="bi bi-search"></i></span>
+          <input name="q" value="{{ q }}" class="form-control bg-transparent border-0 shadow-none ps-0" placeholder="Search loan #, customer, phone…">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <select name="status" class="form-select border-0 bg-light shadow-none rounded-3">
+          <option value="">All Status</option>
+          {% for val,label in status_choices %}
+          <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="branch" class="form-select border-0 bg-light shadow-none rounded-3">
+          <option value="">All Branches</option>
+          {% for b in branches %}
+          <option value="{{ b.pk }}" {% if branch_id == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100 rounded-3 shadow-none" type="submit" style="background:var(--loan-accent);border-color:var(--loan-accent); font-weight:600;">
+          Apply Filter
+        </button>
+      </div>
+      <div class="col-md-2">
+        <a href="{% url 'loan_list' %}" class="btn btn-light text-muted w-100 rounded-3 border-0">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:.88rem;">
+        <thead class="bg-light">
+          <tr class="text-muted" style="font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;">
+            <th class="ps-4">Loan Details</th>
+            <th>Customer</th>
+            <th>Branch</th>
+            <th>Principal</th>
+            <th>Monthly EMI</th>
+            <th>Outstanding</th>
+            <th>Status</th>
+            <th class="pe-4 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in page_obj %}
+          <tr class="loan-row" style="cursor: pointer;" onclick="window.location.href='{% url 'loan_detail' loan.pk %}';">
+            <td class="ps-4">
+              <span class="loan-number-pill">{{ loan.loan_number }}</span>
+              <div class="fw-bold small text-primary mt-1">
+                <i class="bi {% if loan.loan_type == 'personal' %}bi-person-badge{% elif loan.loan_type == 'home' %}bi-house-heart{% elif loan.loan_type == 'gold' %}bi-gem{% elif loan.loan_type == 'vehicle' %}bi-car-front-fill{% elif loan.loan_type == 'property' %}bi-building-fill{% elif loan.loan_type == 'business' %}bi-briefcase-fill{% elif loan.loan_type == 'education' %}bi-mortarboard-fill{% else %}bi-layers-fill{% endif %} me-1"></i>
+                {{ loan.get_loan_type_display }}
+              </div>
+              <div class="text-muted extra-small"><i class="bi bi-calendar3 me-1"></i>{{ loan.created_at|date:"d M Y" }}</div>
+            </td>
+            <td>
+              <div class="fw-bold text-dark">{{ loan.customer.name }}</div>
+              <small class="text-muted">{{ loan.customer.phone }}</small>
+            </td>
+            <td><span class="badge bg-light text-dark border-0 rounded-pill px-2">{{ loan.branch.name|truncatechars:12 }}</span></td>
+            <td class="fw-bold">₹{{ loan.loan_amount|floatformat:0 }}</td>
+            <td class="text-success fw-bold">₹{{ loan.emi_amount|floatformat:0 }}</td>
+            <td>
+              {% if loan.outstanding_balance %}
+                <span class="fw-bold text-danger">₹{{ loan.outstanding_balance|floatformat:0 }}</span>
+              {% else %} <span class="text-muted">—</span> {% endif %}
+            </td>
+            <td><span class="loan-badge badge-{{ loan.status }}">{{ loan.get_status_display }}</span></td>
+            <td class="pe-4 text-center" onclick="event.stopPropagation()">
+              <div class="d-flex justify-content-center gap-1">
+                <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-sm btn-light text-primary border-0 rounded-pill" title="View Details"><i class="bi bi-eye-fill"></i></a>
+                {% if loan.status == 'pending' and user.role in 'SUPERADMIN,ADMIN' %}
+                <a href="{% url 'loan_approve' loan.pk %}" class="btn btn-sm btn-light text-success border-0 rounded-pill" title="Approve"><i class="bi bi-check-circle-fill"></i></a>
+                {% endif %}
+                {% if loan.status == 'active' %}
+                <a href="{% url 'record_payment' loan.pk %}" class="btn btn-sm btn-light text-warning border-0 rounded-pill" title="Collect EMI"><i class="bi bi-cash-stack"></i></a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-5">
+              <div class="py-4">
+                <i class="bi bi-file-earmark-x text-muted opacity-25" style="font-size: 4rem;"></i>
+                <h5 class="mt-3 text-muted">No loans matches your criteria</h5>
+                <p class="text-muted small">Try searching with a different keyword or filter.</p>
+                <a href="{% url 'loan_create' %}" class="btn btn-sm btn-primary mt-2" style="background:var(--loan-accent);border-color:var(--loan-accent); border-radius: 8px;">Create New Loan</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-footer bg-white border-top-0 py-3 shadow-none">
+    <nav>
+      <ul class="pagination pagination-sm mb-0 justify-content-center gap-1">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link border-0 rounded-3" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&branch={{ branch_id }}"><i class="bi bi-chevron-left"></i></a></li>
+        {% endif %}
+        
+        <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-dark fw-bold">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link border-0 rounded-3" href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&branch={{ branch_id }}"><i class="bi bi-chevron-right"></i></a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

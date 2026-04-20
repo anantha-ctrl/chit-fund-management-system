@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(99, 102, 241, 0.1);
+        --accent-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    }
+
+    .verification-header {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 24px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        margin-bottom: 2rem;
+    }
+
+    .status-tab {
+        padding: 0.6rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status-tab.active {
+        background: var(--accent-gradient);
+        color: white !important;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+    }
+
+    .status-tab:not(.active) {
+        background: #f8fafc;
+        color: #64748b !important;
+    }
+
+    .status-tab:not(.active):hover {
+        background: #fff;
+        border-color: #e2e8f0;
+        transform: translateY(-2px);
+    }
+
+    /* Proof Cards */
+    .proof-card {
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        padding: 1.25rem;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .proof-card:hover {
+        transform: scale(1.01) translateX(5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.04);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .customer-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: var(--loan-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--loan-accent);
+        flex-shrink: 0;
+    }
+
+    .info-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .info-label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
+    }
+
+    .info-value {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .transaction-pill {
+        background: #f1f5f9;
+        padding: 0.35rem 0.85rem;
+        border-radius: 10px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        color: #475569;
+        font-weight: 600;
+    }
+
+    .btn-view-proof {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: #475569;
+        transition: all 0.2s;
+    }
+
+    .btn-view-proof:hover {
+        background: #f8fafc;
+        border-color: var(--loan-accent);
+        color: var(--loan-accent);
+    }
+
+    /* Modal Styling */
+    .proof-modal-content {
+        border-radius: 30px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .proof-modal-image-container {
+        background: #f8fafc;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        position: relative;
+    }
+
+    .proof-modal-image-container img {
+        width: 100%;
+        height: auto;
+        max-height: 600px;
+        object-fit: contain;
+    }
+
+    .process-actions {
+        background: #fff;
+        padding: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .btn-approve {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 14px;
+        font-weight: 800;
+        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        transition: all 0.3s;
+    }
+
+    .btn-approve:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-reject {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 14px;
+        font-weight: 800;
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+        transition: all 0.3s;
+    }
+
+    .btn-reject:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(239, 68, 68, 0.3);
+    }
+
+    .empty-state {
+        padding: 5rem 2rem;
+        text-align: center;
+        background: #fff;
+        border-radius: 24px;
+        border: 1px dashed #cbd5e1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="verification-header d-flex justify-content-between align-items-center flex-wrap gap-4">
+        <div>
+            <h1 class="h3 fw-900 mb-1">Payment Verifications</h1>
+            <p class="text-muted small mb-0 fw-bold">Review customer submissions to finalize loan EMI collections.</p>
+        </div>
+        
+        <div class="d-flex gap-2 bg-light p-2 rounded-4">
+            <a href="?status=PENDING" class="status-tab {% if status_filter == 'PENDING' %}active{% endif %}">
+                <i class="bi bi-clock-history"></i> Pending
+            </a>
+            <a href="?status=APPROVED" class="status-tab {% if status_filter == 'APPROVED' %}active{% endif %}">
+                <i class="bi bi-check-all"></i> Approved
+            </a>
+            <a href="?status=REJECTED" class="status-tab {% if status_filter == 'REJECTED' %}active{% endif %}">
+                <i class="bi bi-x-circle"></i> Rejected
+            </a>
+        </div>
+    </div>
+
+    <!-- Proof List -->
+    <div class="verification-list">
+        {% for proof in proofs %}
+        <div class="proof-card">
+            <!-- Customer Profile -->
+            <div class="customer-avatar">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            
+            <div class="flex-grow-1 row align-items-center g-4">
+                <div class="col-md-3">
+                    <div class="info-group">
+                        <div class="info-label">Customer Details</div>
+                        <div class="info-value">{{ proof.member_name|default:proof.emi_installment.loan.customer.name }}</div>
+                        <div class="extra-small text-muted fw-bold"><i class="bi bi-telephone me-1"></i>{{ proof.phone_no|default:proof.emi_installment.loan.customer.phone }}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="info-group">
+                        <div class="info-label">Loan Account</div>
+                        <div class="info-value text-primary">{{ proof.emi_installment.loan.loan_number }}</div>
+                        <div class="extra-small text-muted fw-bold">Inst #{{ proof.emi_installment.installment_number }}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-2 text-center">
+                    <div class="info-group">
+                        <div class="info-label">EMI Amount</div>
+                        <div class="info-value" style="font-size: 1.1rem; color: #10b981;">₹{{ proof.emi_installment.emi_amount|floatformat:0 }}</div>
+                        <div class="extra-small text-muted fw-bold">Due: {{ proof.emi_installment.due_date|date:"d M Y" }}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="info-group">
+                        <div class="info-label">Transaction Reference</div>
+                        <div class="transaction-pill mb-1">{{ proof.transaction_id }}</div>
+                        <div class="extra-small text-muted fw-bold"><i class="bi bi-calendar3 me-1"></i>{{ proof.submitted_at|date:"d M, h:i A" }}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-2 text-end">
+                    <button class="btn btn-view-proof shadow-sm" data-bs-toggle="modal" data-bs-target="#proofModal{{ proof.id }}">
+                        View Submission <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verification Modal -->
+        <div class="modal fade" id="proofModal{{ proof.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content proof-modal-content shadow-2xl">
+                    <div class="modal-header border-0 p-4">
+                        <h4 class="modal-title fw-900">Verify Payment Submission</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4 pt-0">
+                        <div class="row g-4">
+                            <div class="col-lg-7">
+                                <div class="proof-modal-image-container">
+                                    <img src="{{ proof.screenshot.url }}" alt="Payment Screenshot">
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="bg-light p-4 rounded-4 h-100">
+                                    <h6 class="section-label mb-4">Verification Details</h6>
+                                    
+                                    <div class="mb-4">
+                                        <label class="info-label">Customer Provided Info</label>
+                                        <div class="p-3 bg-white rounded-3 border">
+                                            <div class="fw-bold fs-5 mb-1">{{ proof.member_name }}</div>
+                                            <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ proof.phone_no }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-6">
+                                            <label class="info-label">Transaction ID</label>
+                                            <div class="fw-bold">{{ proof.transaction_id }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="info-label">Submission Date</label>
+                                            <div class="fw-bold">{{ proof.submitted_at|date:"d M Y, h:i A" }}</div>
+                                        </div>
+                                    </div>
+
+                                    {% if proof.member_notes %}
+                                    <div class="mb-4">
+                                        <label class="info-label">Member Notes</label>
+                                        <div class="p-3 bg-white rounded-3 border-start border-primary border-4 text-muted italic">
+                                            "{{ proof.member_notes }}"
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if proof.status == 'PENDING' %}
+                                    <div class="mt-5 pt-4">
+                                        <form action="{% url 'process_loan_proof' proof.id 'reject' %}" method="post" id="rejectForm{{ proof.id }}">
+                                            {% csrf_token %}
+                                            <label class="info-label">Internal Feedback (for rejection)</label>
+                                            <textarea name="admin_notes" class="form-control mb-4 rounded-3" rows="3" placeholder="Reason for rejection..."></textarea>
+                                        </form>
+                                        
+                                        <div class="d-flex gap-3">
+                                            <button type="button" onclick="document.getElementById('rejectForm{{ proof.id }}').submit()" class="btn btn-reject flex-grow-1">Reject Proof</button>
+                                            <form action="{% url 'process_loan_proof' proof.id 'approve' %}" method="post" class="flex-grow-1">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-approve w-100">Approve Now</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="mt-5 p-4 rounded-4 text-center {% if proof.status == 'APPROVED' %}bg-success-light text-success{% else %}bg-danger-light text-danger{% endif %}">
+                                        <i class="bi {% if proof.status == 'APPROVED' %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %} display-4"></i>
+                                        <h5 class="fw-900 mt-2">{{ proof.status }}</h5>
+                                        <p class="small mb-0">Processed by {{ proof.processed_by.get_full_name|default:proof.processed_by.username }}<br>{{ proof.processed_at|date:"d M Y, h:i A" }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class="bi bi-cloud-check display-1 text-muted opacity-25"></i>
+            <h4 class="fw-900 mt-4 text-muted">No Verifications Found</h4>
+            <p class="text-muted">You have no pending payment proofs to review in this category.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .bg-success-light { background-color: rgba(16, 185, 129, 0.1); }
+    .bg-danger-light { background-color: rgba(239, 68, 68, 0.1); }
+</style>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+    :root {
+        --loan-primary: #6366f1;
+        --loan-secondary: #0ea5e9;
+        --loan-success: #10b981;
+        --loan-danger: #ef4444;
+    }
+
+    .stat-card {
+        border-radius: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+    }
+
+    .premium-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border-radius: 28px;
+        padding: 3rem;
+        color: white;
+        box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::after {
+        content: "";
+        position: absolute;
+        top: -20%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        z-index: 1;
+    }
+
+    .section-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        font-weight: 800;
+        color: #64748b;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-title::after {
+        content: "";
+        height: 1px;
+        flex-grow: 1;
+        background: #e2e8f0;
+    }
+
+    .emi-item {
+        padding: 1.25rem;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s;
+    }
+    .emi-item.overdue {
+        background: #fff1f2;
+        border-color: #fecaca;
+    }
+
+    .progress-bar-premium {
+        height: 10px;
+        background: #f1f5f9;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6366f1, #a855f7);
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Premium Hero Section -->
+    <div class="hero-section mb-5">
+        <div class="position-relative z-2">
+            <span class="badge bg-white text-primary px-3 py-2 rounded-pill small mb-3 shadow-sm"><i class="bi bi-shield-lock-fill me-2"></i>SECURE LOAN PORTAL</span>
+            <h1 class="display-4 fw-900 mb-2">Hello, {{ customer.name|title }}</h1>
+            <p class="opacity-75 fs-5 mb-0">Manage your active loans, track EMI schedules, and view payment history.</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="premium-card p-4 h-100" style="background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);border-left: 5px solid #0e6fe6;">
+                <div class="text-primary small fw-bold text-uppercase ls-1 mb-3">Outstanding Principle</div>
+                <div class="h2 fw-900 mb-1">₹{{ total_outstanding|floatformat:0 }}</div>
+                <div class="text-muted extra-small fw-bold">Active in {{ loans.filter.status_active.count|default:1 }} account(s)</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="premium-card p-4 h-100" style="background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%); border-left: 5px solid #ef4444;">
+                <div class="text-danger small fw-bold text-uppercase ls-1 mb-3">Overdue Amount</div>
+                <div class="h2 fw-900 text-danger mb-1">₹{{ total_overdue_amount|floatformat:0 }}</div>
+                <div class="text-muted extra-small fw-bold">Immediate attention required</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="premium-card p-4 h-100" style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);border-left: 5px solid green;">
+                <div class="text-success small fw-bold text-uppercase ls-1 mb-3">Paid Installments</div>
+                {% if active_loan %}
+                <div class="h2 fw-900 mb-1">{{ active_loan.paid_emis }} / {{ active_loan.tenure_months }}</div>
+                <div class="text-muted extra-small fw-bold">{{ active_loan.completion_pct }}% of tenure completed</div>
+                {% else %}
+                <div class="h2 fw-900 mb-1">0 / 0</div>
+                <div class="text-muted extra-small fw-bold">No active loan</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="premium-card p-4 h-100" style="background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);border-left: 5px solid yellow;">
+                <div class="text-warning small fw-bold text-uppercase ls-1 mb-3">Monthly Commitment</div>
+                <div class="h2 fw-900 mb-1">₹{{ active_loan.emi_amount|default:0|floatformat:0 }}</div>
+                <div class="text-muted extra-small fw-bold">Fixed installment amount</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Content Area -->
+        <div class="col-lg-8">
+            {% if active_loan %}
+            <div class="section-title">Active Loan Progress</div>
+            <div class="premium-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Loan #{{ active_loan.loan_number }}</h5>
+                    <span class="badge bg-primary rounded-pill px-3">{{ active_loan.completion_pct }}% Paid</span>
+                </div>
+                <div class="progress rounded-pill" style="height: 6px;">
+                    <div class="progress-bar bg-primary" style="--width-var: {{ active_loan.completion_pct|default:0 }}%; width: var(--width-var) !important;"></div>
+                </div>
+                <div class="row g-3 mt-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4">
+                            <small class="text-muted fw-bold text-uppercase extra-small d-block mb-1">Loan Amount</small>
+                            <span class="fw-extrabold h6">₹{{ active_loan.loan_amount|floatformat:0 }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4">
+                            <small class="text-muted fw-bold text-uppercase extra-small d-block mb-1">Interest Rate</small>
+                            <span class="fw-extrabold h6">{{ active_loan.interest_rate }}% <span class="opacity-50 fs-small">p.a.</span></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4">
+                            <small class="text-muted fw-bold text-uppercase extra-small d-block mb-1">Next Due Date</small>
+                            <span class="fw-extrabold h6">{{ upcoming_emis.0.due_date|date:"d M Y"|default:"All Done!" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-top">
+                    <a href="{% url 'loan_customer_my_emi' active_loan.pk %}" class="btn btn-primary w-100 rounded-pill fw-bold">
+                        <i class="bi bi-file-earmark-spreadsheet me-2"></i>View Detailed EMI Schedule
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="section-title">Recent EMI Repayments</div>
+            <div class="premium-card">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr class="extra-small fw-bold text-uppercase opacity-50">
+                                <th class="ps-4 py-3">Date</th>
+                                <th class="py-3">Installment</th>
+                                <th class="py-3 text-end">Amount</th>
+                                <th class="pe-4 py-3 text-end">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pay in recent_payments %}
+                            <tr>
+                                <td class="ps-4 fw-bold small">{{ pay.payment_date|date:"d M, Y" }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark">#{{ pay.emi_installment.installment_number|default:"—" }}</span>
+                                </td>
+                                <td class="text-end fw-extrabold">₹{{ pay.amount_paid|floatformat:0 }}</td>
+                                <td class="pe-4 text-end">
+                                    <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Success</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">No recent loan payments found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 text-center border-top">
+                    <a href="{% url 'loan_customer_my_payments' %}" class="small fw-bold text-decoration-none">View Full Payment History →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div class="col-lg-4">
+            {% if overdue_emis %}
+            <div class="section-title">Action Required</div>
+            <div class="d-grid gap-3 mb-4">
+                {% for emi in overdue_emis %}
+                <div class="emi-item overdue d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold small">Installment #{{ emi.installment_number }}</div>
+                        <small class="text-danger fw-bold extra-small">DUE: {{ emi.due_date|date:"d M" }}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-extrabold text-danger">₹{{ emi.balance_due|floatformat:0 }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+                <button class="btn btn-danger rounded-pill fw-bold py-2 shadow-sm">PAY OVERDUE BALANCE</button>
+            </div>
+            {% endif %}
+
+            <div class="section-title">Upcoming EMI Schedules</div>
+            <div class="d-grid gap-3 mb-4">
+                {% for emi in upcoming_emis %}
+                <div class="emi-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold small">Installment #{{ emi.installment_number }}</div>
+                        <small class="text-muted extra-small">EXPECTED: {{ emi.due_date|date:"d M" }}</small>
+                    </div>
+                    <div class="fw-bold">₹{{ emi.emi_amount|floatformat:0 }}</div>
+                </div>
+                {% empty %}
+                <div class="p-4 text-center text-muted bg-light rounded-4">
+                    <i class="bi bi-calendar-check fs-2 d-block mb-2 opacity-25"></i>
+                    <small>No upcoming installments due in the next 30 days.</small>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="section-title">Support & Assistance</div>
+            <div class="premium-card p-4 bg-dark text-white text-center">
+                <i class="bi bi-headset display-4 mb-3 text-primary"></i>
+                <h5 class="fw-bold mb-2">Need Financial Help?</h5>
+                <p class="small opacity-75 mb-4">Our dedicated loan officers are ready to assist you with any queries.</p>
+                <div class="d-grid gap-2">
+                    <a href="tel:+919894717941" class="btn btn-primary rounded-pill fw-bold">Call Loan Desk</a>
+                    <a href="https://wa.me/919894717941" class="btn btn-outline-light rounded-pill fw-bold">WhatsApp Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="row g-0">
+                    <!-- Left Side: QR Code & Instructions -->
+                    <div class="col-md-5 bg-premium text-white p-4 p-lg-5 d-flex flex-column justify-content-center align-items-center text-center" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                        <div class="mb-4">
+                            <i class="bi bi-qr-code-scan display-1"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Scan to Pay EMI</h3>
+                        <p class="opacity-75 mb-4">Scan the QR code below to complete your EMI payment of <strong>₹{{ emi.emi_amount|floatformat:0 }}</strong>.</p>
+                        
+                        <div class="bg-white p-3 rounded-4 shadow-sm mb-4" style="max-width: 250px;">
+                            {% if qr_code_url %}
+                                <img src="{{ qr_code_url }}" alt="Payment QR Code" class="img-fluid rounded-3">
+                            {% else %}
+                                <div class="py-5 px-3 text-dark">
+                                    <i class="bi bi-image text-muted d-block fs-1"></i>
+                                    <span class="small text-muted">QR Code not available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-auto">
+                            <p class="small mb-0 opacity-75">Loan Number: {{ emi.loan.loan_number }}</p>
+                            <p class="small opacity-75">Installment #{{ emi.installment_number }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Right Side: Submission Form -->
+                    <div class="col-md-7 bg-white p-4 p-lg-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold mb-0 text-dark">Submit Payment Proof</h4>
+                            <span class="badge bg-primary-light text-primary rounded-pill px-3 py-2">Verification Pending</span>
+                        </div>
+                        
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Member Name</label>
+                                {{ form.member_name }}
+                                {% if form.member_name.errors %}<div class="text-danger small mt-1">{{ form.member_name.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Phone Number</label>
+                                {{ form.phone_no }}
+                                {% if form.phone_no.errors %}<div class="text-danger small mt-1">{{ form.phone_no.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Transaction ID / UTR</label>
+                                {{ form.transaction_id }}
+                                <div class="form-text text-muted extra-small">Enter the 12-digit transaction number from your UPI app.</div>
+                                {% if form.transaction_id.errors %}<div class="text-danger small mt-1">{{ form.transaction_id.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Payment Screenshot</label>
+                                {{ form.screenshot }}
+                                <div class="form-text text-muted extra-small">Upload a screenshot of the payment confirmation.</div>
+                                {% if form.screenshot.errors %}<div class="text-danger small mt-1">{{ form.screenshot.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Notes (Optional)</label>
+                                {{ form.member_notes }}
+                                {% if form.member_notes.errors %}<div class="text-danger small mt-1">{{ form.member_notes.errors }}</div>{% endif %}
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-3">
+                                    Submit for Approval <i class="bi bi-shield-check ms-2"></i>
+                                </button>
+                            </div>
+
+                            <div class="text-center">
+                                <a href="{% url 'loan_customer_portal' %}" class="btn btn-link link-secondary text-decoration-none small fw-bold">
+                                    <i class="bi bi-arrow-left me-1"></i> Back to Portal
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 bg-white rounded-4 shadow-sm border">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary-light text-primary p-2 rounded-circle me-3">
+                        <i class="bi bi-info-circle-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">EMI Verification</h6>
+                        <p class="mb-0 text-muted small">After submission, our team will verify the payment within 24 hours. Your loan balance will be updated automatically upon approval.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary-light { background-color: rgba(99, 102, 241, 0.1); }
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.25);
+    }
+</style>
+{% endblock %}

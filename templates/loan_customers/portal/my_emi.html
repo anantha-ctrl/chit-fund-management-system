@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+    .page-header-premium {
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        padding: 2.5rem;
+        border-radius: 28px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 2.5rem;
+    }
+
+    .premium-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .emi-card {
+        padding: 1.5rem;
+        border-radius: 20px;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+    .emi-card:hover {
+        transform: translateY(-2px);
+        border-color: #6366f1;
+        background: white;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+    }
+
+    .status-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+    }
+
+    .status-paid { background: #dcfce7; color: #15803d; }
+    .status-overdue { background: #fee2e2; color: #b91c1c; }
+    .status-pending { background: #eff6ff; color: #1d4ed8; }
+
+    .summary-box {
+        padding: 2rem;
+        border-radius: 24px;
+        text-align: center;
+        border: 1px solid transparent;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="page-header-premium shadow-sm">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-4">
+                <a href="{% url 'loan_customer_portal' %}" class="btn btn-white shadow-sm border rounded-circle p-2 bg-white">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                <div>
+                    <h1 class="fw-900 mb-1 ls-1">Repayment Schedule</h1>
+                    <p class="text-muted mb-0 fw-bold">EMI Timeline for Loan #{{ loan.loan_number }}</p>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-dark rounded-pill px-4 fw-bold" onclick="window.print()"><i class="bi bi-printer me-2"></i>Download Schedule</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="summary-box bg-success-light border-success-subtle h-100">
+                <div class="text-success small fw-bold text-uppercase ls-1 mb-2">Paid Installments</div>
+                <div class="h1 fw-900 mb-0">{{ emi_stats.paid }}</div>
+                <div class="extra-small text-success fw-bold opacity-75">Completed Successfully</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="summary-box bg-danger-light border-danger-subtle h-100">
+                <div class="text-danger small fw-bold text-uppercase ls-1 mb-2">Delayed / Overdue</div>
+                <div class="h1 fw-900 mb-0">{{ emi_stats.overdue }}</div>
+                <div class="extra-small text-danger fw-bold opacity-75">Payment Required</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="summary-box bg-primary-light border-primary-subtle h-100">
+                <div class="text-primary small fw-bold text-uppercase ls-1 mb-2">Upcoming EMI</div>
+                <div class="h1 fw-900 mb-0">{{ emi_stats.upcoming }}</div>
+                <div class="extra-small text-primary fw-bold opacity-75">Future Commitments</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="premium-card p-4">
+        <div class="section-title">Timeline & Installment Details</div>
+        
+        <div class="mt-4">
+            {% for emi in schedule %}
+            <div class="emi-card">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-1">
+                        <div class="h4 fw-900 text-muted opacity-50 mb-0">#{{ emi.installment_number }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="fw-bold text-dark">₹{{ emi.emi_amount|floatformat:0 }}</div>
+                        <small class="text-muted fw-bold extra-small">DUE: {{ emi.due_date|date:"d M, Y" }}</small>
+                    </div>
+                    <div class="col-md-3">
+                        {% if emi.paid_date %}
+                        <div class="fw-bold text-success small">Paid on {{ emi.paid_date|date:"d M, Y" }}</div>
+                        <div class="extra-small fw-bold opacity-50">₹{{ emi.paid_amount|floatformat:0 }} Total Received</div>
+                        {% else %}
+                        <div class="fw-bold text-muted small">Pending Completion</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        {% if emi.penalty_amount > 0 %}
+                        <div class="fw-bold text-danger small">+ ₹{{ emi.penalty_amount|floatformat:0 }} Penalty</div>
+                        <small class="extra-small text-muted fw-bold">Late fine accrued</small>
+                        {% else %}
+                        <div class="extra-small text-muted fw-bold opacity-50">No Penalty</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-2 text-end">
+                        {% if emi.status != 'paid' %}
+                            {% if emi.proof %}
+                                <span class="badge bg-info-light text-info rounded-pill extra-small px-3 py-2">Verification Pending</span>
+                            {% else %}
+                                {% with dstatus=emi.dynamic_status %}
+                                <div class="d-grid gap-2">
+                                    <span class="badge {% if dstatus == 'OPEN' %}bg-primary{% elif dstatus == 'OVERDUE' %}bg-danger{% else %}bg-light text-muted border{% endif %} rounded-pill extra-small px-3 py-2">
+                                        {{ dstatus }}
+                                    </span>
+                                    {% if dstatus == 'OPEN' or dstatus == 'OVERDUE' %}
+                                        <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-sm {% if dstatus == 'OVERDUE' %}btn-danger{% else %}btn-primary{% endif %} rounded-pill px-3 py-2 fw-bold extra-small shadow-sm">Pay Now</a>
+                                    {% endif %}
+                                </div>
+                                {% endwith %}
+                            {% endif %}
+                        {% else %}
+                            <span class="status-badge status-{{ emi.status }}">{{ emi.status }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <p class="text-muted">No schedule available.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

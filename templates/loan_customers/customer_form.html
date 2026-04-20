@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root { --loan-accent: #6366f1; --loan-light: rgba(99,102,241,0.08); }
+.form-card { border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+.form-section-title { font-size: .75rem; font-weight: 800; color: var(--loan-accent); text-transform: uppercase; letter-spacing: 1px; margin: 2rem 0 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.form-section-title:first-of-type { margin-top: 0; }
+.form-section-title::after { content: ""; flex-grow: 1; height: 1px; background: rgba(99,102,241,0.1); }
+.input-group-merge { border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; transition: all 0.2s; overflow: hidden; }
+.input-group-merge:focus-within { border-color: var(--loan-accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); background: #fff; }
+.form-control, .form-select { border: none !important; background: transparent !important; padding: 0.75rem 1rem; font-weight: 500; color: #1e293b; }
+.form-control:focus, .form-select:focus { box-shadow: none !important; }
+.form-label { font-weight: 700; color: #475569; font-size: .85rem; margin-bottom: 0.4rem; }
+.photo-preview-box { width: 100px; height: 100px; border-radius: 15px; border: 2px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8; font-size: 2rem; cursor: pointer; transition: all 0.2s; }
+.photo-preview-box:hover { border-color: var(--loan-accent); color: var(--loan-accent); background: var(--loan-light); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'loan_customer_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 bg-white shadow-none border-light"><i class="bi bi-arrow-left me-1"></i>Back to List</a>
+  <h1 class="page-title mb-0" style="font-weight: 800; letter-spacing: -0.5px;"><i class="bi bi-person-plus me-2" style="color:var(--loan-accent)"></i>{{ title }}</h1>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="form-card p-4 p-md-5">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-section-title"><i class="bi bi-person"></i>Personal Information</div>
+        <div class="row g-4 mb-2">
+          <div class="col-md-4">
+            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.name }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Date of Birth</label>
+            <div class="input-group-merge">{{ form.date_of_birth }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Gender</label>
+            <div class="input-group-merge">{{ form.gender }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.phone }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Alternative Phone</label>
+            <div class="input-group-merge">{{ form.alternate_phone }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Email Address</label>
+            <div class="input-group-merge">{{ form.email }}</div>
+          </div>
+        </div>
+
+        <div class="form-section-title"><i class="bi bi-geo-alt"></i>Address Details</div>
+        <div class="row g-4 mb-2">
+          <div class="col-md-6">
+            <label class="form-label">Address Line 1 <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.address_line1 }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Address Line 2</label>
+            <div class="input-group-merge">{{ form.address_line2 }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">City/Town <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.city }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">State</label>
+            <div class="input-group-merge">{{ form.state }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Pincode</label>
+            <div class="input-group-merge">{{ form.pincode }}</div>
+          </div>
+        </div>
+
+        <div class="form-section-title"><i class="bi bi-briefcase"></i>Branch & Assignment</div>
+        <div class="row g-4 mb-2">
+          <div class="col-md-6">
+            <label class="form-label">Servicing Branch <span class="text-danger">*</span></label>
+            <div class="input-group-merge">{{ form.branch }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Assigned Agent</label>
+            <div class="input-group-merge">{{ form.loan_agent }}</div>
+          </div>
+        </div>
+
+        <div class="form-section-title"><i class="bi bi-shield-lock"></i>KYC Documentation</div>
+        <div class="row g-4 mb-4">
+          <div class="col-md-4">
+            <label class="form-label">ID Proof Type</label>
+            <div class="input-group-merge">{{ form.id_card_type }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">ID Proof Number</label>
+            <div class="input-group-merge">{{ form.id_number }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Upload ID Proof</label>
+            <div class="py-1">{{ form.id_proof_document }}</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Customer Photo</label>
+            <div class="py-1">{{ form.photo }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 mt-5">
+          <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow" style="background:var(--loan-accent); border-color:var(--loan-accent); border-radius: 12px;">
+            <i class="bi bi-check2-circle me-1"></i> Register Profile
+          </button>
+          <a href="{% url 'loan_customer_list' %}" class="btn btn-light px-4 py-2 text-muted border-0" style="border-radius: 12px;">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add bootstrap classes to form widgets
+document.querySelectorAll('input, select, textarea').forEach(el => {
+  if (el.tagName === 'SELECT') el.classList.add('form-select');
+  else if (el.type !== 'file') el.classList.add('form-control');
+  else el.classList.add('form-control-file');
+});
+</script>
+{% endblock %}

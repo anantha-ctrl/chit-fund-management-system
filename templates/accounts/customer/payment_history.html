@@ -20,7 +20,7 @@
                     <tr>
                         <th class="border-0 px-3">Date</th>
                         <th class="border-0 text-center">Group Name</th>
-                        <th class="border-0 text-center">Installment #</th>
+                        <th class="border-0 text-center">Installment</th>
                         <th class="border-0 text-center">Amount</th>
                         <th class="border-0 text-center">Status</th>
                         <th class="border-0 text-end px-3">Receipt</th>
@@ -36,7 +36,7 @@
                         <td class="text-center">
                             <span class="fw-semibold text-primary">{{ payment.chit_group.name }}</span>
                         </td>
-                        <td class="text-center fw-bold">#{{ payment.installment_number }}</td>
+                        <td class="text-center fw-bold">{{ payment.installment_number }}</td>
                         <td class="text-center fs-5 fw-extrabold text-success">₹{{ payment.amount|floatformat:2 }}</td>
                         <td class="text-center">
                             {% if payment.status == 'PAID' %}
@@ -49,7 +49,7 @@
                         </td>
                         <td class="text-end px-3">
                             {% if payment.status == 'PAID' %}
-                                <a href="{% url 'payment_receipt' payment.id %}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                <a href="{% url 'chit_payment_receipt' payment.id %}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
                                     <i class="bi bi-printer-fill me-1"></i> Receipt
                                 </a>
                             {% else %}
@@ -71,13 +71,96 @@
     </div>
 </div>
 
+<!-- Print Only Header -->
+<div class="d-none d-print-block mb-4 border-bottom pb-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-0" style="color: var(--primary-green);">Smart<span style="color: var(--text-dark);">Chit</span> Management</h2>
+            <p class="text-muted small mb-0">Personal Payment Ledger - Official Statement</p>
+        </div>
+        <div class="text-end">
+            <div class="fw-bold">Member: {{ user.get_full_name|default:request.user.username }}</div>
+            <div class="text-muted small">Generated on: {{ now|date:"d M Y, h:i A" }}</div>
+        </div>
+    </div>
+</div>
+
 <style type="text/css">
     @media print {
-        .sidebar, .top-header, .d-print-none, .btn { display: none !important; }
-        main { padding: 0 !important; width: 100% !important; margin: 0 !important; }
-        .card { border: none !important; box-shadow: none !important; }
-        .table th { background-color: #f8f9fa !important; border: 1px solid #dee2e6 !important; }
-        .bg-success { color: #155724 !important; background-color: #d4edda !important; }
+        /* UI Suppression */
+        .sidebar, .top-header, .mobile-bottom-nav, .whatsapp-fab, .btn, .breadcrumb, footer, .d-print-none {
+            display: none !important;
+        }
+
+        /* Layout Overhaul */
+        body {
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-size: 10pt !important;
+        }
+        
+        .container-fluid, main {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        .ms-sm-auto, .col-md-9, .col-lg-10 {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            flex: 0 0 100% !important;
+        }
+
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+
+        .card-header, .card-body {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        /* Typography */
+        .page-title {
+            font-size: 18pt !important;
+            margin-bottom: 5pt !important;
+        }
+
+        /* Table Optimization */
+        .table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa !important;
+            color: #333 !important;
+            border-bottom: 2pt solid #eee !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .table tbody td {
+            border-bottom: 0.5pt solid #eee !important;
+            padding: 6pt 5pt !important;
+        }
+
+        .badge {
+            border: 0.5pt solid #ddd !important;
+            padding: 2pt 6pt !important;
+            font-size: 8pt !important;
+            color: black !important;
+            background: transparent !important;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 1.5cm;
+        }
     }
 </style>
 {% endblock %}

@@ -13,6 +13,7 @@ urlpatterns = [
     path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
     path('profile/', views.profile_view, name='profile_view'),
     path('my-chits/', views.my_chits_view, name='my_chits'),
+    path('my-chits/<int:mc_id>/passbook/', views.customer_passbook_view, name='customer_passbook'),
     path('my-payments/', views.customer_payment_history_view, name='customer_payment_history'),
     path('my-reports/', views.customer_reports_view, name='customer_reports'),
     path('update-preferences/', views.update_preferences_view, name='update_preferences'),
@@ -28,4 +29,8 @@ urlpatterns = [
     # 2FA URLs
     path('2fa/enable/', views.enable_2fa_view, name='enable_2fa'),
     path('2fa/verify/', views.verify_2fa_view, name='verify_2fa'),
+    path('pay/', views.customer_pay_view, name='customer_pay'),
+    path('payment/success/', views.customer_payment_success, name='customer_payment_success'),
+    path('api/search/', views.global_search_api, name='global_search_api'),
 ]
+

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+    .page-header-premium {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 2.5rem;
+        border-radius: 28px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 2.5rem;
+    }
+
+    .premium-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .loan-num-badge {
+        background: #f1f5f9;
+        color: #1e293b;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 800;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .status-pill {
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .pill-active   { background: #dcfce7; color: #15803d; }
+    .pill-closed   { background: #f1f5f9; color: #64748b; }
+    .pill-overdue  { background: #fee2e2; color: #b91c1c; }
+    .pill-pending  { background: #fef3c7; color: #b45309; }
+
+    .table thead th {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 800;
+        color: #64748b;
+        padding: 1.25rem 1rem;
+        border-bottom-width: 1px;
+    }
+    
+    .table tbody td {
+        padding: 1.25rem 1rem;
+        border-bottom-color: #f1f5f9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="page-header-premium shadow-sm">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-4">
+                <a href="{% url 'loan_customer_portal' %}" class="btn btn-white shadow-sm border rounded-circle p-2 bg-white">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                <div>
+                    <h1 class="fw-900 mb-1 ls-1">Loan Portfolio</h1>
+                    <p class="text-muted mb-0 fw-bold">Comprehensive history and active loan tracking</p>
+                </div>
+            </div>
+            <div class="d-none d-md-block">
+                <span class="badge bg-dark rounded-pill px-4 py-2">{{ loans.count }} Total Records</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="premium-card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Loan Identifer</th>
+                        <th>Sanctioned Amount</th>
+                        <th>EMI Details</th>
+                        <th>Progress</th>
+                        <th>Outstanding</th>
+                        <th>Status</th>
+                        <th class="pe-4 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans %}
+                    <tr class="transition-hover">
+                        <td class="ps-4">
+                            <span class="loan-num-badge">{{ loan.loan_number }}</span>
+                            <div class="fw-bold text-primary extra-small mt-2">
+                                <i class="bi {% if loan.loan_type == 'personal' %}bi-person-badge{% elif loan.loan_type == 'home' %}bi-house-heart{% elif loan.loan_type == 'gold' %}bi-gem{% elif loan.loan_type == 'vehicle' %}bi-car-front-fill{% elif loan.loan_type == 'property' %}bi-building-fill{% elif loan.loan_type == 'business' %}bi-briefcase-fill{% elif loan.loan_type == 'education' %}bi-mortarboard-fill{% else %}bi-layers-fill{% endif %} me-1"></i>
+                                {{ loan.get_loan_type_display }}
+                            </div>
+                            <div class="extra-small text-muted mt-1 fw-bold">{{ loan.created_at|date:"d M, Y" }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-900 text-dark">₹{{ loan.loan_amount|floatformat:0 }}</div>
+                            <small class="text-muted fw-bold extra-small">{{ loan.interest_rate }}% Interest</small>
+                        </td>
+                        <td>
+                            <div class="fw-bold">₹{{ loan.emi_amount|floatformat:0 }} <span class="text-muted small">/mo</span></div>
+                            <small class="text-muted fw-bold extra-small">{{ loan.tenure_months }} Months Tenure</small>
+                        </td>
+                        <td style="min-width: 150px;">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="extra-small fw-bold">{{ loan.completion_pct }}%</span>
+                            </div>
+                            <div class="progress rounded-pill" style="height: 6px;">
+                                <div class="progress-bar bg-primary animate-progress" data-percent="{{ loan.completion_pct|default:0 }}"></div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if loan.status == 'active' %}
+                            <div class="fw-900 text-danger">₹{{ loan.outstanding_balance|floatformat:0 }}</div>
+                            <small class="text-muted fw-bold extra-small">Remaining Principle</small>
+                            {% else %}
+                            <span class="text-muted fw-bold small">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-pill pill-{{ loan.status }}">{{ loan.get_status_display }}</span>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <a href="{% url 'loan_customer_my_emi' loan.pk %}" class="btn btn-sm btn-dark rounded-pill px-4 fw-bold">
+                                Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="py-5">
+                                <i class="bi bi-inbox-fill display-1 text-muted opacity-10"></i>
+                                <h5 class="mt-4 fw-bold text-muted">No loan accounts found</h5>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        document.querySelectorAll('.animate-progress').forEach(bar => {
+            const pct = bar.getAttribute('data-percent') || 0;
+            bar.style.transition = 'width 1.2s cubic-bezier(0.2, 0, 0, 1)';
+            bar.style.width = pct + '%';
+        });
+    }, 300);
+});
+</script>
+{% endblock %}

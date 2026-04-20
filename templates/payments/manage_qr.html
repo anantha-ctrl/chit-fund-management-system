@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h1 class="page-title">Manage Payment QR</h1>
+        <p class="text-muted small">Upload your company UPI QR Code here for customer payments.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold">Upload New QR</div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Select Image file</label>
+                        <input type="file" name="qr_code" class="form-control" accept="image/*" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Upload & Activate</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold">Active & History</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">QR Preview</th>
+                                <th>Status</th>
+                                <th>Uploaded</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for qr in qrs %}
+                            <tr>
+                                <td class="ps-4">
+                                    <img src="{{ qr.qr_code.url }}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: contain;">
+                                </td>
+                                <td>
+                                    {% if qr.is_active %}
+                                    <span class="badge bg-success rounded-pill">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary rounded-pill">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-muted">{{ qr.created_at|date:"d M Y" }}</small></td>
+                                <td class="text-end pe-4">
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="qr_id" value="{{ qr.id }}">
+                                        <button type="submit" name="delete" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this QR?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-5 text-muted">No QR codes uploaded yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

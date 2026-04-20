@@ -1,98 +1,210 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
-    <h1 class="page-title mb-0">{{ title }}</h1>
-    <a href="{% url 'auction_list' %}" class="btn btn-light border shadow-sm rounded-pill px-4 btn-sm py-2">
-        <i class="bi bi-arrow-left me-1"></i> Back
-    </a>
-</div>
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-5 gap-3">
+        <div>
+            <h1 class="page-title fs-2 mb-1">{{ title }}</h1>
+            <p class="text-muted small mb-0">Enter the monthly bidding details to automatically distribute dividends.</p>
+        </div>
+        <a href="{% url 'auction_list' %}" class="btn btn-light border shadow-sm rounded-pill px-4 btn-sm py-2">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </div>
 
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
-        <div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
-            <!-- Header Section -->
-            <div class="p-4 bg-primary bg-opacity-10 d-flex align-items-center">
-                <div class="rounded-circle p-3 bg-white text-primary me-3 shadow-sm">
-                    <i class="bi bi-hammer fs-4"></i>
+    <div class="row g-4">
+        <!-- Main Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 24px;">
+                <div class="p-4 bg-primary bg-opacity-10 d-flex align-items-center">
+                    <div class="rounded-circle p-3 bg-white text-primary me-3 shadow-sm" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-hammer fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Auction Event Recording</h5>
+                        <p class="text-muted small mb-0">Record and verify monthly auction data results</p>
+                    </div>
                 </div>
-                <div>
-                    <h5 class="fw-bold mb-0">Auction Event Recording</h5>
-                    <p class="text-muted small mb-0">Record and verify monthly auction data results</p>
+
+                <div class="card-body p-4 p-xl-5">
+                    <form method="post" id="auctionForm">
+                        {% csrf_token %}
+                        <div class="row g-4">
+                            <div class="col-md-6 text-start">
+                                <label class="subscription-label small fw-bold text-muted text-uppercase mb-2">Chit Group</label>
+                                <select name="chit_group" class="form-select border-0 bg-light p-3 rounded-4 shadow-none fw-bold" id="id_chit_group" required onchange="updateProjection()">
+                                    <option value="" disabled selected>Select Group</option>
+                                    {% for choice in active_groups %}
+                                        <option value="{{ choice.pk }}" 
+                                            data-amount="{{ choice.amount }}" 
+                                            data-comm="{{ choice.commission_percentage }}"
+                                            data-members="{{ choice.members.count }}"
+                                            data-next-month="{{ choice.next_month }}"
+                                            data-next-date="{{ choice.next_date }}"
+                                            {% if choice.pk == form.instance.chit_group_id %}selected{% endif %}>
+                                            {{ choice.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 text-start">
+                                <label class="subscription-label small fw-bold text-muted text-uppercase mb-2">Month Number</label>
+                                <input type="number" name="month_number" class="form-control border-0 bg-light p-3 rounded-4 shadow-none fw-bold" id="id_month_number" placeholder="e.g. 1" required value="{{ form.instance.month_number|default:'' }}">
+                            </div>
+
+                            <div class="col-md-6 text-start">
+                                <label class="subscription-label small fw-bold text-muted text-uppercase mb-2">Auction Date</label>
+                                <input type="date" name="auction_date" class="form-control border-0 bg-light p-3 rounded-4 shadow-none fw-bold" id="id_auction_date" required value="{{ form.instance.auction_date|date:'Y-m-d'|default:'' }}">
+                            </div>
+
+                            <div class="col-md-6 text-start">
+                                <label class="subscription-label small fw-bold text-muted text-uppercase mb-2">Winner Name</label>
+                                <select name="winner" class="form-select border-0 bg-light p-3 rounded-4 shadow-none fw-bold" id="id_winner" required>
+                                    <option value="" disabled selected>Select Winner</option>
+                                    {% for choice in form.fields.winner.queryset %}
+                                        <option value="{{ choice.pk }}" {% if choice.pk == form.instance.winner_id %}selected{% endif %}>{{ choice.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-12 text-start">
+                                <label class="subscription-label small fw-bold text-muted text-uppercase mb-2 text-primary">Bid (Discount) Amount (₹)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text border-0 bg-primary bg-opacity-10 text-primary border-start rounded-start-4 px-3"><i class="bi bi-cash-coin fs-5"></i></span>
+                                    <input type="number" step="1" name="bid_amount" class="form-control border-0 bg-light p-3 rounded-end-4 shadow-none fw-extrabold fs-4" id="id_bid_amount" placeholder="0.00" required value="{{ form.instance.bid_amount|floatformat:0|default:'' }}" oninput="updateProjection()">
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger fade show rounded-4 shadow-sm border-0 mt-4 mb-4" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i> <strong>Validation Errors:</strong>
+                            <ul class="mb-0 mt-1 small">
+                                {% for field in form %}{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}{% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-5 border-top pt-4 d-flex gap-3">
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-lg hover-up">
+                                <i class="bi bi-shield-check me-2"></i> Finalize Results
+                            </button>
+                            <a href="{% url 'auction_list' %}" class="btn btn-light border px-4 rounded-pill py-3 fw-medium">Discard Change</a>
+                        </div>
+                    </form>
                 </div>
             </div>
+        </div>
 
-            <div class="card-body p-4 p-xl-5">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="row g-4">
-                        <!-- Chit Group Select -->
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <select name="chit_group" class="form-select" id="id_chit_group" required>
-                                    {% for choice in form.fields.chit_group.queryset %}
-                                        <option value="{{ choice.pk }}" {% if choice.pk == form.instance.chit_group_id %}selected{% endif %}>{{ choice }}</option>
-                                    {% endfor %}
-                                </select>
-                                <label for="id_chit_group"><i class="bi bi-collection-play me-2"></i>Chit Group</label>
-                            </div>
+        <!-- Real-time Projection Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 position-sticky" style="top: 100px;">
+                <div class="card-header bg-dark text-white p-4 border-0" style="border-radius: 24px 24px 0 0;">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-calculator-fill me-2 text-warning"></i>Live Payout Projection</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div id="projection-content">
+                        <div class="mb-4 text-center opacity-50 py-5" id="no-projection">
+                            <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+                            <p class="small">Enter bid amount to start calculation</p>
                         </div>
-
-                        <!-- Month Number -->
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="number" name="month_number" class="form-control" id="id_month_number" placeholder="Month #" required value="{{ form.instance.month_number|default:'' }}">
-                                <label for="id_month_number"><i class="bi bi-hash me-2"></i>Month Number</label>
+                        
+                        <div id="results-display" class="d-none">
+                            <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                <span class="text-muted small">Gross Chit Amount</span>
+                                <span class="fw-bold fs-6" id="gross-val">₹0</span>
                             </div>
-                        </div>
-
-                        <!-- Auction Date -->
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="date" name="auction_date" class="form-control" id="id_auction_date" placeholder="Date" required value="{{ form.instance.auction_date|date:'Y-m-d'|default:'' }}">
-                                <label for="id_auction_date"><i class="bi bi-calendar-event me-2"></i>Auction Date</label>
+                            <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                <span class="text-muted small">Winner's Bid (Discount)</span>
+                                <span class="fw-bold text-danger fs-6" id="bid-val">₹0</span>
                             </div>
-                        </div>
-
-                        <!-- Winner Select -->
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <select name="winner" class="form-select" id="id_winner" required>
-                                    {% for choice in form.fields.winner.queryset %}
-                                        <option value="{{ choice.pk }}" {% if choice.pk == form.instance.winner_id %}selected{% endif %}>{{ choice }}</option>
-                                    {% endfor %}
-                                </select>
-                                <label for="id_winner"><i class="bi bi-trophy me-2"></i>Winner Name</label>
+                            <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                <span class="text-muted small">Foreman Commission</span>
+                                <span class="fw-bold text-muted fs-6" id="comm-val">₹0</span>
                             </div>
-                        </div>
+                            
+                            <div class="bg-success-subtle p-3 rounded-4 mb-4 mt-4 shadow-sm border border-success border-opacity-10">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-success fw-bold small">Net Winner Payout</span>
+                                    <span class="badge bg-success text-white rounded-pill px-3">SAFE</span>
+                                </div>
+                                <h3 class="fw-extrabold text-success mb-0" id="net-payout">₹0</h3>
+                            </div>
 
-                        <!-- Bid Amount -->
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="number" step="0.01" name="bid_amount" class="form-control" id="id_bid_amount" placeholder="Bid" required value="{{ form.instance.bid_amount|default:'' }}">
-                                <label for="id_bid_amount"><i class="bi bi-cash-stack me-2"></i>Bid Amount (₹)</label>
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-primary fw-bold small" id="div-label">Dividend Per Member</span>
+                                    <i class="bi bi-people text-primary"></i>
+                                </div>
+                                <h4 class="fw-extrabold text-primary mb-0" id="div-val">₹0</h4>
+                                <div class="text-muted x-small mt-1 fw-bold">Note: Winner is excluded from dividend.</div>
                             </div>
                         </div>
                     </div>
-
-                    {% if form.errors %}
-                    <div class="alert alert-danger fade show rounded-4 shadow-sm border-0 mt-4 mb-4" role="alert">
-                        <i class="bi bi-exclamation-triangle me-2"></i> <strong>Validation Errors:</strong>
-                        <ul class="mb-0 mt-2">
-                            {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-
-                    <div class="mt-5 border-top pt-4 d-flex gap-3">
-                        <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
-                            <i class="bi bi-shield-check me-2"></i> Finalize Results
-                        </button>
-                        <a href="{% url 'auction_list' %}" class="btn btn-light border px-4 rounded-pill py-2 fw-medium">Discard</a>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function updateProjection() {
+    const select = document.getElementById('id_chit_group');
+    const option = select.options[select.selectedIndex];
+    const bidInput = document.getElementById('id_bid_amount');
+    const monthInput = document.getElementById('id_month_number');
+    const dateInput = document.getElementById('id_auction_date');
+    
+    if (!option.value) return;
+
+    // AUTO-FILL Month & Date logic
+    if (option.getAttribute('data-next-month') && !monthInput.value) {
+        monthInput.value = option.getAttribute('data-next-month');
+    }
+    if (option.getAttribute('data-next-date') && !dateInput.value) {
+        dateInput.value = option.getAttribute('data-next-date');
+    }
+
+    if (!bidInput.value) {
+        document.getElementById('no-projection').classList.remove('d-none');
+        document.getElementById('results-display').classList.add('d-none');
+        return;
+    }
+
+    document.getElementById('no-projection').classList.add('d-none');
+    document.getElementById('results-display').classList.remove('d-none');
+
+    const amount = parseFloat(option.getAttribute('data-amount'));
+    const commPerc = parseFloat(option.getAttribute('data-comm'));
+    const members = parseInt(option.getAttribute('data-members'));
+    const bidValue = parseFloat(bidInput.value) || 0;
+
+    const foremanComm = (commPerc / 100) * amount;
+    const netPayout = amount - bidValue - foremanComm;
+    
+    // Logic: Dividend split only among non-winners (Members - 1)
+    const eligibleMembers = Math.max(1, members - 1);
+    const totalDiv = bidValue; 
+    const divPerMember = totalDiv / eligibleMembers;
+
+    // Update UI
+    document.getElementById('gross-val').textContent = '₹' + amount.toLocaleString();
+    document.getElementById('bid-val').textContent = '₹' + bidValue.toLocaleString();
+    document.getElementById('comm-val').textContent = '₹' + foremanComm.toLocaleString();
+    document.getElementById('net-payout').textContent = '₹' + Math.max(0, netPayout).toLocaleString();
+    document.getElementById('div-val').textContent = '₹' + Math.round(divPerMember).toLocaleString();
+    document.getElementById('div-label').textContent = `Dividend (to ${eligibleMembers} Members)`;
+}
+
+// Initial Run if edit
+document.addEventListener('DOMContentLoaded', updateProjection);
+</script>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+    .bg-primary-light { background: rgba(13, 110, 253, 0.1); }
+    .hover-up { transition: all 0.3s ease; }
+    .hover-up:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
+</style>
 {% endblock %}

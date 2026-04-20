@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+:root{--loan-accent:#6366f1;}
+.loan-badge{padding:.3rem .7rem;border-radius:8px;font-size:.72rem;font-weight:700;}
+.badge-pending{background:rgba(245,158,11,.1);color:#d97706;}
+.badge-active{background:rgba(16,185,129,.1);color:#059669;}
+.badge-closed{background:rgba(100,116,139,.1);color:#475569;}
+.badge-default{background:rgba(239,68,68,.1);color:#dc2626;}
+.badge-approved{background:rgba(99,102,241,.1);color:#4f46e5;}
+.badge-rejected{background:rgba(239,68,68,.1);color:#dc2626;}
+.info-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;font-weight:700;}
+.info-value{font-size:.95rem;font-weight:600;color:#0f172a;}
+.progress-loan{height:8px;border-radius:50px;background:#f1f5f9;}
+.progress-loan-bar{height:8px;border-radius:50px;background:linear-gradient(90deg,var(--loan-accent),#818cf8);}
+.emi-status-paid{color:#059669;font-weight:700;}
+.emi-status-overdue{color:#dc2626;font-weight:700;}
+.emi-status-pending{color:#d97706;}
+.emi-status-partial{color:#7c3aed;}
+.status-banner{border-radius:12px;}
+.status-banner-active{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);}
+.status-banner-pending{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);}
+.status-banner-default,.status-banner-rejected{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);}
+.status-banner-closed,.status-banner-approved{background:rgba(100,116,139,.08);border-color:rgba(100,116,139,.2);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+  <a href="{% url 'loan_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <div class="flex-grow-1">
+    <h1 class="page-title mb-0" style="font-size:1.4rem;">{{ loan.loan_number }}</h1>
+    <small class="text-muted">{{ loan.customer.full_name }} • {{ loan.branch.name }}</small>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if loan.status == 'pending' and user.role in 'SUPERADMIN,ADMIN' %}
+    <a href="{% url 'loan_approve' loan.pk %}" class="btn btn-success btn-sm"><i class="bi bi-check-lg me-1"></i>Approve</a>
+    {% endif %}
+    {% if loan.status == 'approved' and user.role in 'SUPERADMIN,ADMIN' %}
+    <a href="{% url 'loan_disburse' loan.pk %}" class="btn btn-primary btn-sm" style="background:var(--loan-accent);border-color:var(--loan-accent);"><i class="bi bi-send me-1"></i>Disburse</a>
+    {% endif %}
+    {% if loan.status == 'active' %}
+    <a href="{% url 'record_payment' loan.pk %}" class="btn btn-primary btn-sm" style="background:var(--loan-accent);border-color:var(--loan-accent);"><i class="bi bi-cash-coin me-1"></i>Record Payment</a>
+    <a href="{% url 'loan_topup' loan.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-plus-circle me-1"></i>Top-Up</a>
+    {% endif %}
+    <a href="{% url 'loan_emi_schedule' loan.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-table me-1"></i>Schedule</a>
+  </div>
+</div>
+
+<!-- Status Banner -->
+<div class="alert d-flex align-items-center gap-2 mb-3 py-2 status-banner status-banner-{{ loan.status }}">
+  <span class="loan-badge badge-{{ loan.status }}">{{ loan.get_status_display }}</span>
+  <span class="small text-muted">
+    {% if loan.status == 'active' %}Disbursed on {{ loan.disbursed_at|date:"d M Y" }} via {{ loan.get_disbursement_mode_display }}
+    {% elif loan.status == 'approved' %}Approved by {{ loan.approved_by.get_full_name }} on {{ loan.approved_at|date:"d M Y" }}
+    {% elif loan.status == 'pending' %}Awaiting admin approval
+    {% elif loan.status == 'rejected' %}Rejected: {{ loan.rejection_reason }}
+    {% elif loan.status == 'closed' %}Loan fully repaid
+    {% endif %}
+  </span>
+</div>
+
+<div class="row g-3">
+  <!-- Loan Info -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-bold"><i class="bi bi-info-circle me-2" style="color:var(--loan-accent)"></i>Loan Details</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="info-label">Loan Amount</div>
+            <div class="info-value"><i class="bi bi-cash me-1"></i>₹{{ loan.loan_amount|floatformat:0 }}</div>
+          </div>
+          <div class="col-6">
+            <div class="info-label">Monthly EMI</div>
+            <div class="info-value" style="color:var(--loan-accent)"><i class="bi bi-calendar-check me-1"></i>₹{{ loan.emi_amount|floatformat:0 }}</div>
+          </div>
+          <div class="col-6">
+            <div class="info-label">Loan Type</div>
+            <div class="info-value text-primary">
+              <i class="bi {% if loan.loan_type == 'personal' %}bi-person-badge{% elif loan.loan_type == 'home' %}bi-house-heart{% elif loan.loan_type == 'gold' %}bi-gem{% elif loan.loan_type == 'vehicle' %}bi-car-front-fill{% elif loan.loan_type == 'property' %}bi-building-fill{% elif loan.loan_type == 'business' %}bi-briefcase-fill{% elif loan.loan_type == 'education' %}bi-mortarboard-fill{% else %}bi-layers-fill{% endif %} me-1"></i>
+              {{ loan.get_loan_type_display }}
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="info-label">Interest Rate</div>
+            <div class="info-value"><i class="bi bi-percent me-1"></i>{{ loan.interest_rate }}% p.a.</div>
+          </div>
+          <div class="col-6">
+            <div class="info-label">Int. Method</div>
+            <div class="info-value"><i class="bi bi-calculator me-1"></i>{{ loan.get_interest_type_display }}</div>
+          </div>
+          <div class="col-6">
+            <div class="info-label">Tenure</div>
+            <div class="info-value"><i class="bi bi-clock-history me-1"></i>{{ loan.tenure_months }} months</div>
+          </div>
+          <div class="col-6">
+            <div class="info-label">Start Date</div>
+            <div class="info-value"><i class="bi bi-calendar3 me-1"></i>{{ loan.start_date|date:"d M Y" }}</div>
+          </div>
+          <div class="col-6">
+            <div class="info-label">Total Payable</div>
+            <div class="info-value"><i class="bi bi-piggy-bank me-1"></i>₹{{ loan.total_payable|floatformat:0 }}</div>
+          </div>
+          <div class="col-6">
+            <div class="info-label">Total Interest</div>
+            <div class="info-value text-danger"><i class="bi bi-graph-up-arrow me-1"></i>₹{{ loan.total_interest|floatformat:0 }}</div>
+          </div>
+          {% if loan.outstanding_balance is not None %}
+          <div class="col-12">
+            <div class="info-label mb-1">Repayment Progress</div>
+            <div class="d-flex justify-content-between mb-1">
+              <small class="text-muted">{{ loan.completion_pct }}% completed</small>
+              <small class="text-muted">₹{{ loan.outstanding_balance|floatformat:0 }} left</small>
+            </div>
+            <div class="progress-loan"><div class="progress-loan-bar" data-width="{{ loan.completion_pct }}"></div></div>
+          </div>
+          {% endif %}
+          {% if loan.parent_loan %}
+          <div class="col-12"><div class="info-label">Parent Loan</div><a href="{% url 'loan_detail' loan.parent_loan.pk %}" style="color:var(--loan-accent)">{{ loan.parent_loan.loan_number }}</a></div>
+          {% endif %}
+          {% if loan.notes %}
+          <div class="col-12"><div class="info-label">Notes</div><div class="info-value small">{{ loan.notes }}</div></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Info -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-bold"><i class="bi bi-person me-2" style="color:var(--loan-accent)"></i>Customer</div>
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div style="width:52px;height:52px;border-radius:14px;background:rgba(99,102,241,.1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;color:var(--loan-accent);">
+            {{ loan.customer.full_name|make_list|first|upper }}
+          </div>
+          <div>
+            <div class="fw-bold">{{ loan.customer.full_name }}</div>
+            <div class="text-muted small">{{ loan.customer.phone }}</div>
+          </div>
+        </div>
+        <div class="row g-2">
+          <div class="col-12"><div class="info-label">Address</div><div class="info-value small">{{ loan.customer.full_address }}</div></div>
+          {% if loan.customer.id_proof_type %}<div class="col-12"><div class="info-label">ID Proof</div><div class="info-value small">{{ loan.customer.get_id_proof_type_display }}: {{ loan.customer.id_proof_number }}</div></div>{% endif %}
+          <div class="col-12"><div class="info-label">Branch</div><div class="info-value">{{ loan.branch.name }}</div></div>
+          {% if loan.customer.agent %}<div class="col-12"><div class="info-label">Agent</div><div class="info-value">{{ loan.customer.agent }}</div></div>{% endif %}
+        </div>
+        <a href="{% url 'loan_customer_detail' loan.customer.pk %}" class="btn btn-sm w-100 mt-3" style="background:rgba(99,102,241,.08);color:var(--loan-accent);">View Full Profile</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMI Summary -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-bold"><i class="bi bi-calendar-check me-2" style="color:var(--loan-accent)"></i>EMI Status</div>
+      <div class="card-body">
+        <div class="row g-2 text-center mb-3">
+          <div class="col-4"><div class="bg-success bg-opacity-10 rounded-3 p-2"><div class="fw-800 fs-5 text-success">{{ loan.paid_emis }}</div><small class="text-muted">Paid</small></div></div>
+          <div class="col-4"><div class="bg-warning bg-opacity-10 rounded-3 p-2"><div class="fw-800 fs-5 text-warning">{{ loan.pending_emis }}</div><small class="text-muted">Due</small></div></div>
+          <div class="col-4"><div class="bg-danger bg-opacity-10 rounded-3 p-2"><div class="fw-800 fs-5 text-danger">{{ loan.emi_schedule.filter_overdue|default:"—" }}</div><small class="text-muted">Overdue</small></div></div>
+        </div>
+        <!-- Last 5 EMIs -->
+        <div class="table-responsive">
+          <table class="table table-sm mb-0" style="font-size:.8rem;">
+            <thead><tr><th>#</th><th>Due</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for emi in loan.emi_schedule.all|slice:":5" %}
+              <tr>
+                <td>{{ emi.installment_number }}</td>
+                <td>{{ emi.due_date|date:"d M" }}</td>
+                <td>₹{{ emi.emi_amount|floatformat:0 }}</td>
+                <td><span class="emi-status-{{ emi.status }}">{{ emi.get_status_display }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <a href="{% url 'loan_emi_schedule' loan.pk %}" class="btn btn-sm w-100 mt-2" style="background:rgba(99,102,241,.08);color:var(--loan-accent);">Full Schedule</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment History -->
+<div class="card mt-3">
+  <div class="card-header d-flex justify-content-between align-items-center fw-bold">
+    <span><i class="bi bi-receipt me-2" style="color:var(--loan-accent)"></i>Payment History</span>
+    {% if loan.status == 'active' %}<a href="{% url 'record_payment' loan.pk %}" class="btn btn-sm btn-primary" style="background:var(--loan-accent);border-color:var(--loan-accent);">+ Record Payment</a>{% endif %}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.85rem;">
+        <thead class="table-light"><tr>
+          <th>Receipt #</th><th>EMI #</th><th>Date</th><th>Amount</th><th>Mode</th><th>Penalty</th><th>Collected By</th>
+        </tr></thead>
+        <tbody>
+          {% for p in payments %}
+          <tr>
+            <td><a href="{% url 'loan_payment_receipt' p.pk %}" style="color:var(--loan-accent)">{{ p.receipt_number }}</a></td>
+            <td>{% if p.emi_installment %}#{{ p.emi_installment.installment_number }}{% else %}—{% endif %}</td>
+            <td>{{ p.payment_date|date:"d M Y" }}</td>
+            <td class="fw-bold text-success">₹{{ p.amount_paid|floatformat:0 }}</td>
+            <td>{{ p.get_payment_mode_display }}</td>
+            <td>{% if p.penalty_paid > 0 %}<span class="text-danger">₹{{ p.penalty_paid|floatformat:0 }}</span>{% else %}—{% endif %}</td>
+            <td>{{ p.collected_by.get_full_name|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center py-4 text-muted">No payments recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

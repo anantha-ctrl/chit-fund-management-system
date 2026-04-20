@@ -11,7 +11,9 @@ class ChitGroup(models.Model):
     start_date = models.DateField()
     status = models.CharField(max_length=20, choices=[('ACTIVE', 'Active'), ('COMPLETED', 'Completed')], default='ACTIVE')
     commission_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
-    members = models.ManyToManyField(Member, through='ChitMember')
+    due_day = models.IntegerField(default=10, help_text="Monthly installment due day (e.g., 10th of every month)")
+    penalty_per_day = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Penalty amount to be charged per day after the due date")
+    members = models.ManyToManyField(Member, through='ChitMember', related_name='chit_groups')
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

@@ -18,4 +18,9 @@ urlpatterns = [
     path('system/', include('system_settings.urls')),
     path('notifications/', include('notifications.urls')),
     path('reports/', include('reports_export.urls')),
+    # ── Loan Management System ──
+    path('loan/', include('loans.urls')),
+    path('loan/customers/', include('loan_customers.urls')),
+    path('loan/payments/', include('loan_payments.urls')),
+    path('loan/reports/', include('loan_reports.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
