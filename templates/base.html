@@ -494,8 +494,8 @@
                     <img src="https://res.cloudinary.com/de1tywvqm/image/upload/q_auto/f_auto/v1775131032/Gemini_Generated_Image__1_qoe19x.png" width="30" height="30" class="rounded-2" alt="Logo">
                 </div>
                 <div class="lh-1">
-                    <span class="fw-800 text-dark" style="font-size: 1.15rem; letter-spacing: -0.5px;">Smart<span class="text-primary-green">Chit</span></span>
-                    <small class="d-block text-muted extra-small fw-bold opacity-50 text-uppercase ls-1" style="font-size: 0.55rem;">Management</small>
+                    <span class="fw-800 text-dark" style="font-size: 1.15rem; letter-spacing: -0.5px;">Smart<span class="text-primary-green">Finance</span></span>
+                    <small class="d-block text-muted extra-small fw-bold opacity-50 text-uppercase ls-1" style="font-size: 0.55rem;">Unified Management</small>
                 </div>
             </a>
             <div class="sidebar-sticky">
@@ -755,7 +755,7 @@
                 <div class="d-md-none fw-bold ms-2 d-flex align-items-center" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.05rem; letter-spacing: -0.5px;">
                     <a href="{% url 'dashboard' %}" class="sidebar-brand p-0 border-0 h-auto">
                         <img src="https://res.cloudinary.com/de1tywvqm/image/upload/q_auto/f_auto/v1775131032/Gemini_Generated_Image__1_qoe19x.png" width="28" height="28" class="me-2 rounded-2" alt="Logo">
-                        Smart<span style="color: var(--primary-green);">Chit</span>
+                        Smart<span style="color: var(--primary-green);">Finance</span>
                     </a>
                 </div>
 
@@ -1162,6 +1162,8 @@
                                     let icon = 'bi-person';
                                     if(item.type === 'Chit Group') icon = 'bi-collection-play';
                                     if(item.type === 'Auction Result') icon = 'bi-hammer';
+                                    if(item.type === 'Loan Record') icon = 'bi-file-earmark-text';
+                                    if(item.type === 'Loan Customer') icon = 'bi-person-lines-fill';
 
                                     const html = `
                                         <a href="${item.url}" class="search-item">

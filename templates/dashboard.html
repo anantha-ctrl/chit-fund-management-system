@@ -55,7 +55,7 @@
 <div class="card border-0 shadow-sm mb-3 mb-md-4" style="border-radius: 24px; background: #fff;">
     <div class="card-body p-2 p-md-4">
         <div class="row g-2 g-md-3">
-            <div class="col-6 col-md-2-4"> <!-- Custom 5-column layout on desktop -->
+            <div class="col-6 col-md-2">
                 <a href="{% url 'field_collection' %}" class="text-decoration-none">
                     <div class="p-2 py-md-4 rounded-4 text-center transition-hover h-100" style="background: rgba(79, 70, 229, 0.05); border: 1px solid rgba(79, 70, 229, 0.1);">
                         <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2 mb-md-3 transition-hover" style="width: 50px; height: 50px; border: 1px solid rgba(79, 70, 229, 0.2);">
@@ -65,17 +65,17 @@
                     </div>
                 </a>
             </div>
-            <div class="col-6 col-md-2-4">
-                <a href="{% url 'payment_create' %}" class="text-decoration-none">
-                    <div class="p-2 py-md-4 rounded-4 text-center transition-hover h-100" style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.1);">
-                        <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2 mb-md-3 transition-hover" style="width: 50px; height: 50px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                            <i class="bi bi-plus-circle-fill fs-3" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"></i>
+            <div class="col-6 col-md-2">
+                <a href="{% url 'loan_dashboard' %}" class="text-decoration-none">
+                    <div class="p-2 py-md-4 rounded-4 text-center transition-hover h-100" style="background: rgba(236, 72, 153, 0.05); border: 1px solid rgba(236, 72, 153, 0.1);">
+                        <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2 mb-md-3 transition-hover" style="width: 50px; height: 50px; border: 1px solid rgba(236, 72, 153, 0.2);">
+                            <i class="bi bi-bank2 fs-3" style="background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"></i>
                         </div>
-                        <h6 class="mb-0 fw-extrabold text-dark extra-small">New Payment</h6>
+                        <h6 class="mb-0 fw-extrabold text-dark extra-small">Loan Stream</h6>
                     </div>
                 </a>
             </div>
-            <div class="col-6 col-md-2-4">
+            <div class="col-6 col-md-2">
                 <a href="{% url 'member_create' %}" class="text-decoration-none">
                     <div class="p-2 py-md-4 rounded-4 text-center transition-hover h-100" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.1);">
                         <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2 mb-md-3 transition-hover" style="width: 50px; height: 50px; border: 1px solid rgba(245, 158, 11, 0.2);">
@@ -85,7 +85,7 @@
                     </div>
                 </a>
             </div>
-            <div class="col-6 col-md-2-4">
+            <div class="col-6 col-md-2">
                 <a href="{% url 'admin_proof_list' %}" class="text-decoration-none position-relative">
                     {% if pending_verifications_count > 0 %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm pulse-badge" style="z-index: 5; margin-left: -15px; margin-top: 10px;">
@@ -100,13 +100,23 @@
                     </div>
                 </a>
             </div>
-            <div class="col-6 col-md-2-4">
+            <div class="col-6 col-md-2">
                 <a href="{% url 'staff_report' %}" class="text-decoration-none">
                     <div class="p-2 py-md-4 rounded-4 text-center transition-hover h-100" style="background: rgba(14, 165, 233, 0.05); border: 1px solid rgba(14, 165, 233, 0.1);">
                         <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2 mb-md-3 transition-hover" style="width: 50px; height: 50px; border: 1px solid rgba(14, 165, 233, 0.2);">
                             <i class="bi bi-briefcase-fill fs-3" style="background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"></i>
                         </div>
                         <h6 class="mb-0 fw-extrabold text-dark extra-small">Workspace</h6>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-2">
+                <a href="{% url 'log_list' %}" class="text-decoration-none">
+                    <div class="p-2 py-md-4 rounded-4 text-center transition-hover h-100" style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.1);">
+                        <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2 mb-md-3 transition-hover" style="width: 50px; height: 50px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                            <i class="bi bi-shield-lock-fill fs-3" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                        </div>
+                        <h6 class="mb-0 fw-extrabold text-dark extra-small">Audit Hub</h6>
                     </div>
                 </a>
             </div>

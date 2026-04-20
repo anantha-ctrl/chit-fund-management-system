@@ -264,4 +264,14 @@ def kyc_center(request):
         else:
             member.kyc_status = 'PENDING'
 
-    return render(request, 'members/kyc_center.html', {'members': members})
+    compliant_count = sum(1 for m in members if m.kyc_status == 'COMPLIANT')
+    pending_count = sum(1 for m in members if any(doc.status == 'PENDING' for doc in m.documents.all()))
+    missing_count = sum(1 for m in members if m.kyc_status in ['PARTIAL', 'PENDING'])
+
+    context = {
+        'members': members,
+        'compliant_count': compliant_count,
+        'pending_count': pending_count,
+        'missing_count': missing_count,
+    }
+    return render(request, 'members/kyc_center.html', context)

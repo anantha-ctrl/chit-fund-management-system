@@ -12,8 +12,38 @@
                         <div class="mb-4">
                             <i class="bi bi-qr-code-scan display-1"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Scan to Pay</h3>
-                        <p class="opacity-75 mb-4">Scan the QR code below using any UPI app (GPay, PhonePe, Paytm) to complete your payment of <strong>₹{{ payment.amount }}</strong>.</p>
+                        <h3 class="fw-bold mb-3">Scan to Pay Total Dues</h3>
+                        <div class="mb-4">
+                            <h2 class="display-5 fw-bold mb-0">₹{{ total_payable|floatformat:0 }}</h2>
+                            <p class="opacity-75 small">Unified Payment (Chit + Dues)</p>
+                        </div>
+
+                        <div class="dues-breakdown bg-white bg-opacity-10 rounded-3 p-3 mb-4 text-start">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small opacity-75">Current Installment:</span>
+                                <span class="small fw-bold">₹{{ payment.net_amount|floatformat:0 }}</span>
+                            </div>
+                            {% if payment.penalty_amount > 0 %}
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small opacity-75">Late Penalty:</span>
+                                <span class="small fw-bold">₹{{ payment.penalty_amount|floatformat:0 }}</span>
+                            </div>
+                            {% endif %}
+                            {% if chit_overdue > 0 %}
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small opacity-75">Chit Arrears:</span>
+                                <span class="small fw-bold text-warning">₹{{ chit_overdue|floatformat:0 }}</span>
+                            </div>
+                            {% endif %}
+                            {% if loan_overdue > 0 %}
+                            <div class="d-flex justify-content-between">
+                                <span class="small opacity-75">Loan Dues:</span>
+                                <span class="small fw-bold text-warning">₹{{ loan_overdue|floatformat:0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <p class="opacity-75 mb-4 small">Scan the QR code below using any UPI app (GPay, PhonePe, Paytm) to clear your unified financial commitment.</p>
                         
                         <div class="bg-white p-3 rounded-4 shadow-sm mb-4" style="max-width: 250px;">
                             {% if qr_code_url %}

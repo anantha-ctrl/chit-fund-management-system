@@ -5,13 +5,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, F
 from django.core.paginator import Paginator
 from django.utils import timezone
 from datetime import date
 from .models import LoanPayment, LoanTransaction, LoanPaymentProof
 from .forms import LoanPaymentForm, LoanPaymentProofForm
 from loans.models import Loan, EMISchedule
+from payments.models import Payment
 
 
 def staff_required(view_func):
@@ -250,6 +251,30 @@ def customer_loan_submit_proof(request, emi_pk):
         }
         form = LoanPaymentProofForm(initial=initial_data)
 
+    # ── CALCULATE TOTAL DUES (Loan + Chit) ──────────
+    from django.utils import timezone
+    today = timezone.now().date()
+    
+    # 1. Overdue Loan Dues (Across all member loans)
+    loan_overdue = EMISchedule.objects.filter(
+        loan__customer=member,
+        status__in=['pending', 'overdue', 'partial'],
+        due_date__lt=today
+    ).aggregate(
+        total=Sum(F('emi_amount') + F('penalty_amount') - F('paid_amount'))
+    )['total'] or 0
+    
+    # 2. Overdue Chit Dues
+    chit_overdue = Payment.objects.filter(
+        member=member,
+        status__in=['PENDING', 'LATE'],
+        due_date__lt=today
+    ).aggregate(
+        total=Sum(F('amount') - F('dividend_amount') + F('penalty_amount'))
+    )['total'] or 0
+
+    total_payable = emi.emi_amount + emi.penalty_amount + loan_overdue + chit_overdue
+
     from payments.models import PaymentQR
     qr = PaymentQR.objects.filter(is_active=True).first()
     qr_code_url = qr.qr_code.url if qr else None
@@ -258,6 +283,9 @@ def customer_loan_submit_proof(request, emi_pk):
         'emi': emi,
         'form': form,
         'qr_code_url': qr_code_url,
+        'loan_overdue': loan_overdue,
+        'chit_overdue': chit_overdue,
+        'total_payable': total_payable,
     })
 
 

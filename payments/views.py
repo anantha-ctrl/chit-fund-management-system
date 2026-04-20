@@ -2,9 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django import forms
-from .models import Payment, PaymentProof
+from django.db.models import Sum, Q, F
+from .models import Payment, PaymentProof, PaymentQR
 from chits.models import ChitGroup
 from members.models import Member
+from loans.models import EMISchedule  # Import for total debt check
 from notifications.utils import send_payment_receipt_email
 
 class PaymentForm(forms.ModelForm):
@@ -628,15 +630,42 @@ def customer_submit_proof(request, payment_id):
             }
         form = PaymentProofForm(initial=initial_data)
 
-    from payments.models import PaymentQR
-    # Fetch the active QR code from the new model
+    # ── CALCULATE TOTAL DUES (Loan + Chit) ──────────
+    from django.utils import timezone
+    today = timezone.now().date()
+    member = payment.member
+    
+    # 1. Overdue Chit Dues (excluding current payment if it's already overdue)
+    chit_overdue = Payment.objects.filter(
+        member=member,
+        status__in=['PENDING', 'LATE'],
+        due_date__lt=today
+    ).exclude(pk=payment.pk).aggregate(
+        total=Sum(F('amount') - F('dividend_amount') + F('penalty_amount'))
+    )['total'] or 0
+    
+    # 2. Overdue Loan Dues
+    loan_overdue = EMISchedule.objects.filter(
+        loan__customer=member,
+        status__in=['pending', 'overdue', 'partial'],
+        due_date__lt=today
+    ).aggregate(
+        total=Sum(F('emi_amount') + F('penalty_amount') - F('paid_amount'))
+    )['total'] or 0
+
+    total_payable = payment.net_amount + chit_overdue + loan_overdue
+
+    # Fetch the active QR code
     active_qr = PaymentQR.objects.filter(is_active=True).first()
     qr_code_url = active_qr.qr_code.url if active_qr else None
 
     return render(request, 'payments/customer_submit_proof.html', {
         'form': form,
         'payment': payment,
-        'qr_code_url': qr_code_url
+        'qr_code_url': qr_code_url,
+        'chit_overdue': chit_overdue,
+        'loan_overdue': loan_overdue,
+        'total_payable': total_payable,
     })
 
 @login_required

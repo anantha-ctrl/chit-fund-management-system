@@ -7,4 +7,5 @@ urlpatterns = [
     path('overdue/', views.overdue_report, name='loan_overdue_report'),
     path('branch-performance/', views.branch_performance_report, name='loan_branch_performance'),
     path('monthly-collection/', views.monthly_collection_report, name='loan_monthly_collection'),
+    path('periodic-collection/', views.loan_collection_report, name='loan_collection_report'),
 ]

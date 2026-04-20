@@ -234,8 +234,12 @@ def dashboard_view(request):
         }
         return render(request, 'accounts/customer/dashboard.html', context)
 
-    # ADMIN / STAFF DASHBOARD (Full/Shared)
+    # ADMIN / STAFF DASHBOARD (Unified Chit & Loan)
     from payments.models import PaymentProof
+    from loan_payments.models import LoanPayment
+    from loans.models import Loan, EMISchedule
+    from django.db.models import F
+
     try:
         # Get period filter (default to 6 months)
         period = request.GET.get('period', '6m')
@@ -251,39 +255,52 @@ def dashboard_view(request):
             months_back = 6
             period_label = 'Last 6 Months'
             
-        # Collection Logic
-        total_received = Payment.objects.filter(status='PAID').aggregate(Sum('amount'))['amount__sum'] or 0
-        total_pending = Payment.objects.filter(status__in=['PENDING', 'LATE']).aggregate(Sum('amount'))['amount__sum'] or 0
+        # ── REVENUE AGGREGATION (Unified) ──────────
+        chit_received = Payment.objects.filter(status='PAID').aggregate(Sum('amount'))['amount__sum'] or 0
+        loan_received = LoanPayment.objects.aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
+        total_received = chit_received + loan_received
         
-        # Monthly Collection Trend based on selected period
+        # ── LIABILITY AGGREGATION (Unified) ──────────
+        chit_pending = Payment.objects.filter(status__in=['PENDING', 'LATE']).aggregate(Sum('amount'))['amount__sum'] or 0
+        loan_pending = EMISchedule.objects.filter(status__in=['pending', 'overdue', 'partial'], due_date__lt=now.date()).aggregate(
+            total=Sum(F('emi_amount') + F('penalty_amount') - F('paid_amount'))
+        )['total'] or 0
+        total_pending = chit_pending + loan_pending
+        
+        # Monthly Collection Trend based on selected period (Unified)
         chart_labels = []
         chart_data = []
         for i in range(months_back - 1, -1, -1):
-            # Calculate month for the iteration
             target_date = now - datetime.timedelta(days=i*30)
             month_label = target_date.strftime('%b')
-            month_sum = Payment.objects.filter(
+            
+            # Chit Revenue
+            chit_sum = Payment.objects.filter(
                 status='PAID', 
                 payment_date__year=target_date.year, 
                 payment_date__month=target_date.month
             ).aggregate(Sum('amount'))['amount__sum'] or 0
+            
+            # Loan Revenue
+            loan_sum = LoanPayment.objects.filter(
+                payment_date__year=target_date.year, 
+                payment_date__month=target_date.month
+            ).aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
+            
             chart_labels.append(month_label)
-            chart_data.append(float(month_sum))
+            chart_data.append(float(chit_sum + loan_sum))
 
         # Branch-wise Member Distribution (Volume Density)
         branch_dist = Branch.objects.annotate(count=Count('members')).values('name', 'count')
         group_labels = [b['name'] for b in branch_dist]
         group_counts = [b['count'] for b in branch_dist]
 
-        # Performance and Periodical Logic (New)
+        # Performance and Periodical Logic (Today's Unified Collection)
         now_date = now.date()
-        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        week_start = (now - datetime.timedelta(days=7)).date()
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).date()
-
-        daily_collected = Payment.objects.filter(status='PAID', payment_date__gte=now_date).aggregate(Sum('amount'))['amount__sum'] or 0
+        chit_today = Payment.objects.filter(status='PAID', payment_date__gte=now_date).aggregate(Sum('amount'))['amount__sum'] or 0
+        loan_today = LoanPayment.objects.filter(payment_date__gte=now_date).aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
+        daily_collected = chit_today + loan_today
         
-
         # PROJECTION for Upcoming Auctions (Admin All Groups)
         upcoming_global_auctions = []
         active_groups = ChitGroup.objects.filter(status='ACTIVE')
@@ -307,32 +324,39 @@ def dashboard_view(request):
         # Sort by date
         upcoming_global_auctions = sorted(upcoming_global_auctions, key=lambda x: x['expected_date'])[:5]
         
+        # Performance Context
+        total_potential = total_received + total_pending
+        perf_pct = round((total_received / total_potential) * 100, 1) if total_potential > 0 else 0
+        
         context = {
             'role': request.user.role,
             'total_members': Member.objects.count(),
-            'active_chits': active_groups.count(),
             'total_branches': Branch.objects.count(),
             'total_auctions': Auction.objects.count(),
+            'active_chits': active_groups.count(),
+            'active_loans': Loan.objects.filter(status='active').count(),
             'total_received': total_received,
             'total_pending': total_pending,
+            'daily_collected': daily_collected,
+            
+            # Recent & Followups
             'recent_payments': Payment.objects.select_related('member').order_by('-payment_date')[:5],
             'followup_list': Payment.objects.filter(status__in=['PENDING', 'LATE']).select_related('member', 'chit_group').order_by('due_date')[:5],
             'upcoming_auctions': upcoming_global_auctions,
             'recent_logs': LogEntry.objects.all().order_by('-timestamp')[:8],
             'pending_verifications_count': PaymentProof.objects.filter(status='PENDING').count(),
-            'notifications': notifications,
             
-            'today_notifications_count': today_notifications_count,
-            'daily_collected': daily_collected,
             # Chart & Filter Info
             'chart_labels': chart_labels,
             'chart_data': chart_data,
             'group_labels': group_labels,
             'group_counts': group_counts,
-            'performance_percent': round((total_received / (total_received + total_pending)) * 100, 1) if (total_received + total_pending) > 0 else 0,
+            'performance_percent': perf_pct,
             'active_period': period,
             'period_label': period_label,
+            'notifications': notifications,
             'today_notifications_count': today_notifications_count,
+            'now': now,
         }
     except Exception as e:
         context = {'role': request.user.role, 'notifications': notifications, 'error': str(e)}
@@ -1036,6 +1060,32 @@ def global_search_api(request):
                 'type': 'Auction Result',
                 'url': reverse('auction_detail', args=[a.id]),
                 'info': f'Group: {a.chit_group.name}'
+            })
+
+        # 4. Search Loans (By Customer Name or Loan ID)
+        from loans.models import Loan
+        loans = Loan.objects.filter(
+            Q(customer__name__icontains=query) | Q(id__icontains=query)
+        ).select_related('customer')[:5]
+        for l in loans:
+            results.append({
+                'title': f'Loan #{l.id}: {l.customer.name}',
+                'type': 'Loan Record',
+                'url': reverse('loan_detail', args=[l.id]),
+                'info': f'Amount: ₹{l.loan_amount} ({l.status})'
+            })
+
+        # 5. Search Loan Customers (By Name or Phone)
+        from loan_customers.models import LoanCustomer
+        l_customers = LoanCustomer.objects.filter(
+            Q(name__icontains=query) | Q(phone__icontains=query)
+        )[:5]
+        for lc in l_customers:
+            results.append({
+                'title': lc.name,
+                'type': 'Loan Customer',
+                'url': reverse('loan_customer_detail', args=[lc.id]),
+                'info': f'Phone: {lc.phone}'
             })
 
     return JsonResponse({'results': results})

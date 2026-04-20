@@ -1,11 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Count, Q, Avg
-from django.db.models.functions import TruncMonth
-from datetime import date
+from django.db.models.functions import TruncMonth, TruncDay, TruncWeek, TruncYear, Cast
+from django.db.models import Sum, Count, Q, Avg, DecimalField
+from datetime import date, timedelta
 from loans.models import Loan, EMISchedule
 from loan_payments.models import LoanPayment
-# LoanCustomer removed in favor of Member
 from branches.models import Branch
 
 
@@ -170,4 +169,64 @@ def monthly_collection_report(request):
 
     return render(request, 'loan_reports/monthly_collection.html', {
         'monthly': monthly,
+    })
+@login_required
+@staff_required
+def loan_collection_report(request):
+    """
+    Comprehensive Periodic Collection Report (Daily, Weekly, Monthly, Yearly).
+    """
+    period = request.GET.get('period', 'monthly')
+    branch_id = request.GET.get('branch', '')
+    from_date = request.GET.get('from_date', '')
+    to_date = request.GET.get('to_date', '')
+    
+    # Base Queryset
+    payments_qs = LoanPayment.objects.all()
+    if branch_id:
+        payments_qs = payments_qs.filter(loan__branch_id=branch_id)
+    
+    if from_date:
+        payments_qs = payments_qs.filter(payment_date__gte=from_date)
+    if to_date:
+        payments_qs = payments_qs.filter(payment_date__lte=to_date)
+        
+    # Periodic Logic
+    if period == 'daily':
+        trunc_func = TruncDay('payment_date')
+        date_format = 'Y-m-d'
+        limit = 31 if from_date else 30 # Show more if filtered
+    elif period == 'weekly':
+        trunc_func = TruncWeek('payment_date')
+        date_format = 'W Y'
+        limit = 52 if from_date else 12
+    elif period == 'yearly':
+        trunc_func = TruncYear('payment_date')
+        date_format = 'Y'
+        limit = 10 if from_date else 5
+    else: # monthly
+        trunc_func = TruncMonth('payment_date')
+        date_format = 'M Y'
+        limit = 24 if from_date else 12
+
+    report_data = payments_qs.annotate(
+        time_unit=trunc_func
+    ).values('time_unit').annotate(
+        total=Sum('amount_paid'),
+        count=Count('id'),
+        avg=Avg('amount_paid')
+    ).order_by('-time_unit')
+    
+    # Only slice if NOT filtering by date to avoid truncated reports
+    if not from_date and not to_date:
+        report_data = report_data[:limit]
+
+    return render(request, 'loan_reports/collection_report.html', {
+        'report_data': report_data,
+        'period': period,
+        'branches': Branch.objects.all(),
+        'branch_id': branch_id,
+        'date_format': date_format,
+        'from_date': from_date,
+        'to_date': to_date,
     })

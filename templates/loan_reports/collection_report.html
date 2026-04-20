@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --loan-accent: #6366f1;
+        --loan-light: rgba(99,102,241,0.08);
+    }
+
+    .report-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        margin-bottom: 2rem;
+    }
+
+    .period-selector {
+        background: #f8fafc;
+        padding: 0.5rem;
+        border-radius: 16px;
+        display: inline-flex;
+        gap: 0.25rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .period-btn {
+        padding: 0.5rem 1.25rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #64748b;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: none;
+        background: transparent;
+    }
+
+    .period-btn:hover {
+        color: var(--loan-accent);
+        background: white;
+    }
+
+    .period-btn.active {
+        background: white;
+        color: var(--loan-accent);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
+    }
+
+    .chart-row {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .chart-label {
+        width: 140px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: #475569;
+        flex-shrink: 0;
+    }
+
+    .chart-bar-container {
+        flex-grow: 1;
+        height: 32px;
+        background: #f1f5f9;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .chart-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+        display: flex;
+        align-items: center;
+        padding-left: 1rem;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 800;
+        transition: width 1s ease-out;
+        min-width: 40px;
+    }
+
+    .chart-value {
+        width: 120px;
+        text-align: right;
+        font-weight: 900;
+        color: #1e293b;
+    }
+
+    @media print {
+        .no-print { display: none !important; }
+        .report-card { border: 1px solid #eee !important; box-shadow: none !important; }
+        .chart-bar-fill { background: #6366f1 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .sidebar, .navbar, .top-header, footer { display: none !important; }
+        body { background: white !important; }
+        .container-fluid { width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'loan_dashboard' %}" class="btn btn-light rounded-circle shadow-sm border d-flex align-items-center justify-content-center no-print" style="width: 48px; height: 48px;" title="Back to Dashboard">
+                <i class="bi bi-arrow-left fs-5"></i>
+            </a>
+            <div>
+                <h1 class="h3 fw-900 mb-1"><i class="bi bi-calendar-check me-2 text-primary"></i>Collection Audit Report</h1>
+                <p class="text-muted small mb-0 fw-bold">Periodic recovery analysis for Loan Stream.</p>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-3 no-print">
+            <div class="period-selector">
+                <a href="?period=daily&branch={{ branch_id }}&from_date={{ from_date }}&to_date={{ to_date }}" class="period-btn {% if period == 'daily' %}active{% endif %}">Daily</a>
+                <a href="?period=weekly&branch={{ branch_id }}&from_date={{ from_date }}&to_date={{ to_date }}" class="period-btn {% if period == 'weekly' %}active{% endif %}">Weekly</a>
+                <a href="?period=monthly&branch={{ branch_id }}&from_date={{ from_date }}&to_date={{ to_date }}" class="period-btn {% if period == 'monthly' %}active{% endif %}">Monthly</a>
+                <a href="?period=yearly&branch={{ branch_id }}&from_date={{ from_date }}&to_date={{ to_date }}" class="period-btn {% if period == 'yearly' %}active{% endif %}">Yearly</a>
+            </div>
+            <button onclick="window.print()" class="btn btn-light rounded-pill px-4 border shadow-sm fw-bold">
+                <i class="bi bi-printer me-2"></i> Print
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters (No Print) -->
+    <div class="report-card py-4 no-print mb-4">
+        <form method="GET" class="row g-3 align-items-end">
+            <input type="hidden" name="period" value="{{ period }}">
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted mb-1">Branch</label>
+                <select name="branch" class="form-select form-select-sm rounded-pill px-3 shadow-none border-0 bg-light" style="height: 42px;">
+                    <option value="">All Branches</option>
+                    {% for b in branches %}
+                    <option value="{{ b.id }}" {% if branch_id == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted mb-1">From Date</label>
+                <input type="date" name="from_date" value="{{ from_date }}" class="form-control form-control-sm rounded-pill px-3 shadow-none border-0 bg-light" style="height: 42px;">
+            </div>
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted mb-1">To Date</label>
+                <input type="date" name="to_date" value="{{ to_date }}" class="form-control form-control-sm rounded-pill px-3 shadow-none border-0 bg-light" style="height: 42px;">
+            </div>
+            <div class="col-md-3">
+                <div class="d-grid gap-2 d-md-flex">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" style="height: 42px;">
+                        <i class="bi bi-funnel-fill me-1"></i> Filter
+                    </button>
+                    <a href="?period={{ period }}" class="btn btn-light rounded-pill px-3 border" style="height: 42px; line-height: 28px;" title="Reset Filters">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if report_data %}
+    {% with max_val=report_data.0.total %}
+    <!-- Chart Visualization -->
+    <div class="report-card">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <h5 class="fw-900 mb-0">{{ period|capfirst }} Performance Trend</h5>
+            <span class="badge bg-primary rounded-pill px-3 py-2 extra-small">RECOVERY METRICS</span>
+        </div>
+        
+        <div class="py-2">
+            {% for row in report_data %}
+            <div class="chart-row">
+                <div class="chart-label">
+                    {% if period == 'daily' %}{{ row.time_unit|date:"d M Y" }}
+                    {% elif period == 'weekly' %}Week {{ row.time_unit|date:"W, Y" }}
+                    {% elif period == 'yearly' %}{{ row.time_unit|date:"Y" }}
+                    {% else %}{{ row.time_unit|date:"F Y" }}{% endif %}
+                </div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar-fill" style="--w: {% widthratio row.total max_val 100 %}%; width: var(--w) !important;">
+                        {{ row.count }} txns
+                    </div>
+                </div>
+                <div class="chart-value">₹{{ row.total|floatformat:0 }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="report-card p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 small fw-bold text-muted text-uppercase">Time Period</th>
+                        <th class="text-center small fw-bold text-muted text-uppercase">Transactions</th>
+                        <th class="text-end small fw-bold text-muted text-uppercase">Total Amount</th>
+                        <th class="text-end pe-4 small fw-bold text-muted text-uppercase">Average / Txn</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report_data %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <span class="fw-900">
+                                {% if period == 'daily' %}{{ row.time_unit|date:"l, d M Y" }}
+                                {% elif period == 'weekly' %}Week {{ row.time_unit|date:"W, Y" }}
+                                {% elif period == 'yearly' %}{{ row.time_unit|date:"Year Y" }}
+                                {% else %}{{ row.time_unit|date:"F Y" }}{% endif %}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark rounded-pill px-3">{{ row.count }} Settlements</span>
+                        </td>
+                        <td class="text-end fw-900 text-success">₹{{ row.total|floatformat:2 }}</td>
+                        <td class="text-end pe-4 text-muted small fw-bold">₹{{ row.avg|floatformat:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endwith %}
+    {% else %}
+    <div class="report-card text-center py-5">
+        <i class="bi bi-calendar-x display-1 text-muted opacity-25"></i>
+        <h4 class="fw-900 mt-4 text-muted">No Data Found</h4>
+        <p class="text-muted">No loan payments were recorded for the selected period/branch.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .extra-small { font-size: 0.7rem; }
+</style>
+{% endblock %}
