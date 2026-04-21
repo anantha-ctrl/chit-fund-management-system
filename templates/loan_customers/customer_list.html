@@ -66,8 +66,8 @@
           </tr>
         </thead>
         <tbody>
-          {% for c in page_obj %}
-          <tr class="customer-row" onclick="window.location='{% url 'loan_customer_detail' c.pk %}';">
+          {% url 'loan_customer_detail' c.pk as detail_url %}
+          <tr class="customer-row" onclick="location.href='{{ detail_url }}'">
             <td class="ps-4">
               <div class="d-flex align-items-center gap-3">
                 <div class="customer-avatar shadow-sm border border-white">

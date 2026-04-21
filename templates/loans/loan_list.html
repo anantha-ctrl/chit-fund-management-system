@@ -85,8 +85,8 @@
           </tr>
         </thead>
         <tbody>
-          {% for loan in page_obj %}
-          <tr class="loan-row" style="cursor: pointer;" onclick="window.location.href='{% url 'loan_detail' loan.pk %}';">
+          {% url 'loan_detail' loan.pk as loan_url %}
+          <tr class="loan-row" style="cursor: pointer;" onclick="location.href='{{ loan_url }}'">
             <td class="ps-4">
               <span class="loan-number-pill">{{ loan.loan_number }}</span>
               <div class="fw-bold small text-primary mt-1">

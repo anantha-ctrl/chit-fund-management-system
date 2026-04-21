@@ -155,8 +155,9 @@
                         <span class="metric-label">Portfolio Health</span>
                         <span class="fw-900 text-dark" style="font-size: 0.8rem;">{% widthratio b.closed_loans b.total_loans 100 %}% Recovery</span>
                     </div>
+                    {% widthratio b.closed_loans b.total_loans 100 as recovery_val %}
                     <div class="progress-track">
-                        <div class="progress-fill" style="width: {% widthratio b.closed_loans b.total_loans 100 %}%"></div>
+                        <div class="progress-fill" style="width: {{ recovery_val|default:0 }}%;"></div>
                     </div>
                 </div>
                 {% endif %}

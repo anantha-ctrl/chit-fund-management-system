@@ -74,8 +74,8 @@
           </tr>
         </thead>
         <tbody>
-          {% for p in page_obj %}
-          <tr class="history-row" onclick="window.location='{% url 'loan_payment_receipt' p.pk %}';">
+          {% url 'loan_payment_receipt' p.pk as receipt_url %}
+          <tr class="history-row" onclick="location.href='{{ receipt_url }}'">
             <td class="ps-4"><span class="rcpt-number">{{ p.receipt_number }}</span></td>
             <td><a href="{% url 'loan_detail' p.loan.pk %}" class="fw-bold text-decoration-none" style="color:var(--loan-accent)" onclick="event.stopPropagation()">{{ p.loan.loan_number }}</a></td>
             <td class="fw-bold">{{ p.loan.customer.name }}</td>
