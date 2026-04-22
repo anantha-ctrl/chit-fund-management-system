@@ -8,29 +8,43 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 from django.conf import settings
 import django
 
-try:
-    import pymysql
-    pymysql.version_info = (2, 2, 1, 'final', 0)
-    pymysql.install_as_MySQLdb()
-    print("PyMySQL patched successfully.")
-except ImportError:
-    print("PyMySQL NOT FOUND! Run: pip install pymysql")
-
 # Set a timeout for the connection
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'chit_fund_db',
-        'USER': 'root',
-        'PASSWORD': '',
+        'USER': 'postgres',
+        'PASSWORD': 'anantha',
         'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'PORT': '5432',
         'OPTIONS': {
             'connect_timeout': 5,
         }
     }
 }
-settings.configure(DATABASES=DATABASES, INSTALLED_APPS=['accounts', 'members', 'chits', 'payments', 'auctions', 'settlements', 'branches', 'system_settings', 'logs', 'notifications', 'reports_export'])
+settings.configure(DATABASES=DATABASES, INSTALLED_APPS=[
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'accounts',
+    'members',
+    'chits',
+    'payments',
+    'auctions',
+    'settlements',
+    'branches',
+    'system_settings',
+    'logs',
+    'notifications',
+    'reports_export',
+    'loan_customers',
+    'loans',
+    'loan_payments',
+    'loan_reports',
+])
 
 try:
     print("Initializing Django (with 5s Timeout)...")

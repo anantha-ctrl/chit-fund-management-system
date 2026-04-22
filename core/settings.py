@@ -77,21 +77,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'chit_fund_db',
-        'USER': 'root',
-        'PASSWORD': '',
+        'USER': 'postgres',
+        'PASSWORD': 'anantha',
         'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'PORT': '5432',
     }
 }
 
-try:
-    import pymysql
-    pymysql.version_info = (2, 2, 1, 'final', 0)
-    pymysql.install_as_MySQLdb()
-except ImportError:
-    pass
+
 
 # Password validation disabled for development flexibility
 AUTH_PASSWORD_VALIDATORS = []

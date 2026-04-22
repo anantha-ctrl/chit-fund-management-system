@@ -40,9 +40,9 @@ A high-performance, enterprise-grade Django ecosystem designed for unified finan
 
 ## 🛠️ Technology Stack
 
-- **Backend Core:** Python 3.14+ & Django 5.x/6.x
-- **Data Persistence:** MySQL / MariaDB (Optimized via PyMySQL)
-- **Frontend Architecture:** Vanilla Framework, Bootstrap 5.3, Bi-Icons (Plus Jakarta Sans & Glassmorphism Design Standards)
+- **Backend Technology**: Python 3.14+ & Django 6.x (Secure & Modular)
+- **Data Persistence**: **PostgreSQL** (Enterprise-grade reliability and concurrency handling)
+- **Frontend Architecture**: Custom Vanilla CSS, Plus Jakarta Sans, and Glassmorphism Design Standards
 - **Visual Intelligence:** Chart.js (Stacked Analytics & Performance Pulse)
 
 ## 📥 Installation
@@ -62,10 +62,10 @@ A high-performance, enterprise-grade Django ecosystem designed for unified finan
    pip install -r requirements.txt
    ```
 
-3. **Configure Database (XAMPP):**
-   - Ensure **MySQL** is running in your XAMPP Control Panel.
+3. **Configure Database (PostgreSQL):**
+   - Ensure **PostgreSQL** is installed and running.
    - Create the target local database: `CREATE DATABASE chit_fund_db;`
-   - Update `core/settings.py` with your database credentials.
+   - Update `core/settings.py` with your PostgreSQL `USER` and `PASSWORD`.
 
 4. **Initialize System State:**
 
@@ -109,11 +109,18 @@ The platform has evolved from a simple record-keeping tool into a sophisticated,
 - **Unified Member Dossier:** Reimagined the member profile to provide a 360-degree financial snapshot.
 - **SmartFinance Rebranding:** Consolidated all modules under a unified, premium brand identity.
 
-### ✨ Phase 5: High-Fidelity UI Transformation (Current)
+### ✨ Phase 5: High-Fidelity UI Transformation
 
 - **Aesthetic Overhaul:** Transitioned to **Plus Jakarta Sans** and high-density Glassmorphism standards.
 - **Executive Dashboards:** Implemented mesh-gradient headers and advanced data visualization.
-- **System Stability:** Hardened the URL nexus and refined cross-module data binding.
+- **System Stability**: Hardened the URL nexus and refined cross-module data binding.
+- **Enterprise Database**: Transitioned the core infrastructure to **PostgreSQL** for superior transaction integrity.
+
+### 🚀 Phase 6: Enterprise Performance & Scaling (Current)
+
+- **PostgreSQL Migration**: Fully migrated the data layer for high-concurrency financial operations.
+- **Environment Hardening**: Implemented standalone database check tools and migration verification scripts.
+- **System Action Nexus**: Finalized the unified interface for rapid audit log tracking and administrative actions.
 
 ---
 
