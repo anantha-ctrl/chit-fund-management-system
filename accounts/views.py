@@ -11,8 +11,11 @@ import string
 from members.models import Member, MemberDocument
 from members.views import MemberDocumentForm
 import datetime
+from datetime import date, timedelta
+from django.db.models import Sum, F
 from .models import User
 from .forms import CustomUserCreationForm, CustomUserChangeForm, UserProfileUpdateForm
+from payments.models import Payment, PaymentProof, PaymentQR
 
 def is_superadmin(user):
     return user.is_superadmin()
@@ -89,7 +92,7 @@ def dashboard_view(request):
 
     # CUSTOMER PERSONALIZED DASHBOARD (Chit Fund member)
     if request.user.role == 'CUSTOMER' and hasattr(request.user, 'member_profile'):
-        from django.db.models import F
+        from django.db.models import Sum, F
         member = request.user.member_profile
         my_chit_members = ChitMember.objects.filter(member=member).select_related('chit_group')
         my_groups_count = my_chit_members.count()
@@ -175,14 +178,79 @@ def dashboard_view(request):
             status__in=['PENDING', 'LATE', 'AWAITING_VERIFICATION']
         ).select_related('chit_group').order_by('due_date')
 
+        # Enrich pending payments with days_left and dynamic penalties
+        for p in pending_payments_list:
+            if p.due_date:
+                p.days_left = (p.due_date - date.today()).days
+                p.abs_days_left = abs(p.days_left)
+                
+                # Dynamic Status & Penalty Logic (Request: Open from 1st till due_date, then Penalty)
+                today = date.today()
+                if p.due_date.year == today.year and p.due_date.month == today.month:
+                    p.is_open = today.day <= p.chit_group.due_day
+                else:
+                    p.is_open = False
+                
+                p.calculated_penalty = 0
+                if p.days_left < 0:
+                    # Calculate penalty: abs(days_left) * penalty_per_day
+                    p.calculated_penalty = abs(p.days_left) * p.chit_group.penalty_per_day
+                    p.total_amount_with_penalty = p.amount + p.calculated_penalty
+                else:
+                    p.total_amount_with_penalty = p.amount
+            else:
+                p.days_left = 99
+                p.abs_days_left = 99
+                p.is_open = False
+                p.calculated_penalty = 0
+                p.total_amount_with_penalty = p.amount
+
+        # Projected Chit Installments (If no pending record exists in DB)
+        projected_chit_payments = []
+        for mc in my_chit_members:
+            if mc.chit_group.status == 'ACTIVE':
+                # Check if there is any pending/late/verification payment for this group
+                has_pending = pending_payments_list.filter(chit_group=mc.chit_group).exists()
+                if not has_pending:
+                    # Look for last recorded payment to predict next
+                    last_p = Payment.objects.filter(member=member, chit_group=mc.chit_group).order_by('-installment_number').first()
+                    next_inst = (last_p.installment_number + 1) if last_p else 1
+                    
+                    if next_inst <= mc.chit_group.duration_months:
+                        # Estimate due date based on start date
+                        # Simplistic date math: start_date + N months
+                        next_due = mc.chit_group.start_date + timedelta(days=30 * (next_inst - 1))
+                        
+                        projected_chit_payments.append({
+                            'mc_id': mc.id,
+                            'group_name': mc.chit_group.name,
+                            'installment_number': next_inst,
+                            'amount': mc.chit_group.installment_amount,
+                            'due_date': next_due,
+                            'days_left': (next_due - date.today()).days,
+                            'abs_days_left': abs((next_due - date.today()).days)
+                        })
+
         # Chart Data: Total Contribution vs Total Possible Target
         total_target_value = sum(ac['group'].amount for ac in active_chits)
 
         # ── LOAN DATA UNIFICATION ─────────────────────
         loans = Loan.objects.filter(customer=member)
-        # Include active, approved, pending (applications), and default (unpaid) loans
         active_loans = loans.filter(status__in=['active', 'approved', 'default', 'pending'])
         
+        # Calculate Loan Totals based on actual EMI schedules for accuracy
+        loan_stats = EMISchedule.objects.filter(loan__customer=member).aggregate(
+            total_payable=Sum('emi_amount'),
+            total_paid=Sum('paid_amount')
+        )
+        
+        total_loan_amount = loan_stats['total_payable'] or 0
+        loan_paid_amount = loan_stats['total_paid'] or 0
+        total_loan_outstanding = total_loan_amount - loan_paid_amount
+        
+        loan_paid_pct = int((loan_paid_amount / total_loan_amount * 100)) if total_loan_amount > 0 else 0
+        chit_paid_pct = int((total_paid / total_target_value * 100)) if total_target_value > 0 else 0
+
         upcoming_emis = EMISchedule.objects.filter(
             loan__customer=member, 
             status='pending',
@@ -190,21 +258,26 @@ def dashboard_view(request):
             due_date__lte=date.today() + timedelta(days=30)
         ).select_related('loan').order_by('due_date')
 
+        # Enrich EMIs with days_left and penalties
+        for emi in upcoming_emis:
+            emi.days_left = (emi.due_date - date.today()).days
+            emi.abs_days_left = abs(emi.days_left)
+            
+            emi.calculated_penalty = 0
+            if emi.days_left < 0:
+                daily_rate = (emi.emi_amount * emi.loan.penalty_rate / 100) / 30
+                emi.calculated_penalty = round(abs(emi.days_left) * daily_rate, 2)
+            
+            emi.total_amount_with_penalty = emi.emi_amount + emi.calculated_penalty
+
         overdue_emis = EMISchedule.objects.filter(
             loan__customer=member,
             status='overdue'
         ).select_related('loan').order_by('due_date')
-        
-        total_loan_outstanding = loans.filter(status='active').aggregate(
-            s=Sum('outstanding_balance'))['s'] or 0
-            
+
         recent_loan_payments = LoanPayment.objects.filter(
             loan__customer=member
         ).select_related('emi_installment', 'loan').order_by('-payment_date')[:5]
-
-        # Consolidated Financial Stats
-        total_chit_rem = sum(ac['remaining_commitment'] for ac in active_chits)
-        total_liability = total_chit_rem + total_loan_outstanding
 
         context = {
             'role': 'CUSTOMER',
@@ -214,11 +287,15 @@ def dashboard_view(request):
             'total_pending': total_pending, # Chit pending
             'total_dividend': total_dividend,
             'total_target_value': total_target_value,
+            'chit_paid_pct': chit_paid_pct,
+            'loan_paid_pct': loan_paid_pct,
             'active_chits': active_chits,
             'upcoming_auctions': upcoming_auctions_list,
             'recent_payments': recent_my_payments,
             'pending_payments_list': pending_payments_list,
             'recent_auctions': recent_group_auctions,
+            'projected_chit_payments': projected_chit_payments,
+            'active_qr': PaymentQR.objects.filter(is_active=True).first(),
 
             # Unified Loan Context
             'loans': loans,
@@ -226,8 +303,11 @@ def dashboard_view(request):
             'upcoming_emis': upcoming_emis,
             'overdue_emis': overdue_emis,
             'total_loan_outstanding': total_loan_outstanding,
+            'total_loan_amount': total_loan_amount,
+            'loan_paid_amount': loan_paid_amount,
+            'chit_remaining_amount': total_target_value - total_paid,
             'recent_loan_payments': recent_loan_payments,
-            'total_liability': total_liability,
+            'total_liability': (total_target_value - total_paid) + total_loan_outstanding,
 
             'notifications': notifications,
             'today_notifications_count': today_notifications_count,

@@ -74,6 +74,7 @@
           </tr>
         </thead>
         <tbody>
+          {% for p in page_obj %}
           {% url 'loan_payment_receipt' p.pk as receipt_url %}
           <tr class="history-row" onclick="location.href='{{ receipt_url }}'">
             <td class="ps-4"><span class="rcpt-number">{{ p.receipt_number }}</span></td>

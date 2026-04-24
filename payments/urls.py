@@ -18,6 +18,7 @@ urlpatterns = [
     path('follow-up/<int:pk>/complete/', views.complete_follow_up, name='complete_follow_up'),
     # Payment Verification System
     path('submit-proof/<int:payment_id>/', views.customer_submit_proof, name='customer_submit_proof'),
+    path('initiate-payment/<int:mc_id>/', views.initiate_chit_payment, name='initiate_chit_payment'),
     path('verifications/', views.admin_proof_list, name='admin_proof_list'),
     path('verifications/<int:pk>/<str:action>/', views.admin_process_proof, name='admin_process_proof'),
     path('manage-qr/', views.manage_payment_qr, name='manage_payment_qr'),

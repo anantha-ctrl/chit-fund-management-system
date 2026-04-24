@@ -8,6 +8,7 @@ from .models import LoanAgent
 from members.models import Member
 from .forms import LoanCustomerForm, LoanAgentForm
 from django.conf import settings as django_settings
+from payments.models import PaymentQR
 
 
 def staff_required(view_func):
@@ -344,6 +345,15 @@ def loan_customer_portal(request):
             status__in=['overdue', 'pending'],
             due_date__lt=today
         ).order_by('due_date'))
+        
+        # Enrich EMIs
+        for emi in upcoming_emis:
+            emi.days_left = (emi.due_date - today).days
+            emi.abs_days_left = abs(emi.days_left)
+            
+        for emi in overdue_emis:
+            emi.days_left = (emi.due_date - today).days
+            emi.abs_days_left = abs(emi.days_left)
 
     recent_payments = LoanPayment.objects.filter(
         loan__customer=customer
@@ -365,6 +375,7 @@ def loan_customer_portal(request):
         'total_overdue_amount': total_overdue,
         'recent_payments': recent_payments,
         'total_outstanding': total_outstanding,
+        'active_qr': PaymentQR.objects.filter(is_active=True).first(),
     })
 
 

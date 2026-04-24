@@ -480,6 +480,23 @@
         .search-results-dropdown:hover {
             display: block !important;
         }
+
+        /* PREMIUM UI UTILITIES */
+        .premium-card {
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .premium-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
+        }
+        .fw-900 { font-weight: 900; }
+        .ls-1 { letter-spacing: 1px; }
+        .opacity-05 { opacity: 0.05; }
+        .count-up { transition: all 2s ease-out; }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -1134,6 +1151,33 @@
         }
         setInterval(updateLiveTime, 1000);
         updateLiveTime();
+
+        // Count-Up Animation Engine
+        function initCountUp() {
+            document.querySelectorAll('.count-up').forEach(el => {
+                const target = parseFloat(el.getAttribute('data-value'));
+                const duration = 1500;
+                const start = 0;
+                let startTime = null;
+
+                const animate = (currentTime) => {
+                    if (!startTime) startTime = currentTime;
+                    const progress = Math.min((currentTime - startTime) / duration, 1);
+                    const current = Math.floor(progress * (target - start) + start);
+                    
+                    // Format with commas for currency feel if needed
+                    el.innerText = current.toLocaleString();
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        el.innerText = target.toLocaleString();
+                    }
+                };
+                requestAnimationFrame(animate);
+            });
+        }
+        initCountUp();
         // Global Omnisearch Engine
         const setupOmnisearch = (inputId, resultsId, suggestionsId) => {
             const input = document.getElementById(inputId);

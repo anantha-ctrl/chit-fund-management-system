@@ -153,53 +153,67 @@
                     <div class="section-title">Critical Attention Needed</div>
                     <div class="d-grid gap-3 mb-4">
                         {% for p in pending_payments_list %}
-                        <div class="premium-card p-3 border-start border-4 border-warning d-flex justify-content-between align-items-center">
-                            <div>
-                                <small class="text-muted fw-bold text-uppercase extra-small">Chit Installment {{ p.installment_number }}</small>
-                                <div class="fw-bold fs-6">{{ p.chit_group.name }}</div>
-                                {% with dstatus=p.dynamic_status %}
-                                <span class="badge {% if dstatus == 'OPEN' %}bg-primary{% elif dstatus == 'OVERDUE' %}bg-danger{% else %}bg-warning-light text-warning{% endif %} rounded-pill extra-small mt-1">
-                                    {{ dstatus }}
-                                </span>
-                                {% endwith %}
-                            </div>
-                            <div class="text-end">
-                                <div class="fw-extrabold text-dark">₹{{ p.amount|floatformat:0 }}</div>
-                                {% if p.status == 'AWAITING_VERIFICATION' %}
-                                    {% if p.proof.status == 'REJECTED' %}
-                                        <div class="d-grid gap-1 mt-1">
-                                            <span class="badge bg-danger-light text-danger rounded-pill extra-small">Rejected</span>
-                                            <a href="{% url 'customer_submit_proof' p.id %}" class="btn btn-xs btn-outline-danger rounded-pill fw-bold extra-small">Fix Now</a>
-                                        </div>
+                            {% with dstatus=p.dynamic_status %}
+                            {% if dstatus == 'OVERDUE' or p.status == 'AWAITING_VERIFICATION' or p.proof.status == 'REJECTED' %}
+                            <div class="premium-card p-3 border-start border-4 border-danger d-flex justify-content-between align-items-center shadow-sm">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-danger-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted fw-bold text-uppercase extra-small">Chit Installment #{{ p.installment_number }}</small>
+                                        <div class="fw-bold fs-6">{{ p.chit_group.name }}</div>
+                                        <span class="badge bg-danger-light text-danger rounded-pill extra-small mt-1">
+                                            {% if p.proof.status == 'REJECTED' %}
+                                                <i class="bi bi-exclamation-circle me-1"></i>REJECTED: {{ p.proof.admin_notes|default:"Invalid Proof" }}
+                                            {% else %}
+                                                {{ dstatus }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-extrabold text-dark h5 mb-1">₹{{ p.amount|floatformat:0 }}</div>
+                                    {% if p.status == 'AWAITING_VERIFICATION' %}
+                                        {% if p.proof.status == 'REJECTED' %}
+                                            <a href="{% url 'customer_submit_proof' p.id %}" class="btn btn-xs btn-danger rounded-pill fw-bold px-3 shadow-sm border-2">Re-Upload Proof</a>
+                                        {% else %}
+                                            <span class="badge bg-info-light text-info rounded-pill extra-small px-3">Pending Review</span>
+                                        {% endif %}
                                     {% else %}
-                                        <span class="badge bg-info-light text-info rounded-pill extra-small mt-1">Verification Pending</span>
+                                        <div class="d-flex flex-column gap-1">
+                                            <a href="{% url 'customer_submit_proof' p.id %}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm fw-bold">Pay Now</a>
+                                            <small class="text-danger extra-small fw-bold">{% if p.days_left < 0 %}Overdue by {{ p.abs_days_left }} days{% elif p.days_left == 0 %}Due Today{% else %}Due in {{ p.days_left }} days{% endif %}</small>
+                                        </div>
                                     {% endif %}
-                                {% else %}
-                                    <a href="{% url 'customer_submit_proof' p.id %}" class="btn btn-sm btn-primary rounded-pill px-3 mt-1 shadow-sm">Pay Now</a>
-                                {% endif %}
+                                </div>
                             </div>
-                        </div>
+                            {% endif %}
+                            {% endwith %}
                         {% endfor %}
                         
                         {% for emi in overdue_emis %}
-                        <div class="premium-card p-3 border-start border-4 border-danger d-flex justify-content-between align-items-center">
-                            <div>
-                                <small class="text-muted fw-bold text-uppercase extra-small">Overdue Loan EMI {{ emi.installment_number }}</small>
-                                <div class="fw-bold fs-6">{{ emi.loan.loan_number }}</div>
+                        <div class="premium-card p-3 border-start border-4 border-danger d-flex justify-content-between align-items-center shadow-sm">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-danger-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-bank2 text-danger"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted fw-bold text-uppercase extra-small">Overdue Loan EMI #{{ emi.installment_number }}</small>
+                                    <div class="fw-bold fs-6">{{ emi.loan.loan_number }}</div>
+                                    <span class="badge bg-danger-light text-danger rounded-pill extra-small mt-1">OVERDUE</span>
+                                </div>
                             </div>
                             <div class="text-end">
-                                <div class="fw-extrabold text-danger">₹{{ emi.balance_due|floatformat:0 }}</div>
+                                <div class="fw-extrabold text-danger h5 mb-1">₹{{ emi.balance_due|floatformat:0 }}</div>
                                 {% if emi.proof %}
                                     {% if emi.proof.status == 'REJECTED' %}
-                                        <div class="d-grid gap-1 mt-1">
-                                            <span class="badge bg-danger-light text-danger rounded-pill extra-small">Rejected</span>
-                                            <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-xs btn-outline-danger rounded-pill fw-bold extra-small">Pay Again</a>
-                                        </div>
+                                        <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-xs btn-danger rounded-pill fw-bold px-3">Retry Payment</a>
                                     {% else %}
-                                        <span class="badge bg-info-light text-info rounded-pill extra-small mt-1">Verification Pending</span>
+                                        <span class="badge bg-info-light text-info rounded-pill extra-small px-3">Verifying...</span>
                                     {% endif %}
                                 {% else %}
-                                    <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-sm btn-danger rounded-pill px-3 mt-1 shadow-sm">Pay Now</a>
+                                    <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm fw-bold">Pay EMI</a>
                                 {% endif %}
                             </div>
                         </div>
@@ -207,9 +221,15 @@
                     </div>
                     {% endif %}
 
+
                     <!-- Upcoming Schedule -->
-                    {% if upcoming_emis or upcoming_auctions %}
-                    <div class="section-title">Upcoming Schedule</div>
+                    {% if upcoming_emis or upcoming_auctions or pending_payments_list or projected_chit_payments %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="section-title mb-0">Upcoming Schedule</div>
+                        <!-- <button class="btn btn-sm btn-primary rounded-pill fw-bold px-4 shadow-sm border-0 d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#quickPayModal">
+                            <i class="bi bi-qr-code-scan me-2"></i> SmartPay QR
+                        </button> -->
+                    </div>
                     <div class="row g-3 mb-4">
                         {% for emi in upcoming_emis %}
                         <div class="col-md-6">
@@ -220,30 +240,103 @@
                                         <div class="fw-bold">{{ emi.loan.loan_number }}</div>
                                     </div>
                                     <div class="text-end">
-                                        <div class="fw-extrabold text-primary">₹{{ emi.emi_amount|floatformat:0 }}</div>
+                                        <div class="fw-extrabold text-primary">₹{{ emi.total_amount_with_penalty|floatformat:0 }}</div>
+                                        {% if emi.calculated_penalty > 0 %}
+                                            <div class="text-danger extra-small fw-bold">+₹{{ emi.calculated_penalty|floatformat:0 }} Penalty</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <div class="extra-small text-muted fw-bold">
-                                        <i class="bi bi-calendar-event me-1"></i>Due: {{ emi.due_date|date:"d M" }}
+                                    <div class="extra-small fw-bold">
+                                        <div class="text-muted mb-1"><i class="bi bi-calendar-check me-1"></i>Due Date: {{ emi.due_date|date:"d M, Y" }}</div>
+                                        <div class="{% if emi.days_left < 0 %}text-danger{% elif emi.days_left <= 3 %}text-warning{% else %}text-primary{% endif %}">
+                                            {% if emi.days_left < 0 %}LATE BY {{ emi.abs_days_left }} DAYS{% elif emi.days_left == 0 %}DUE TODAY{% else %}OPEN (DUE IN {{ emi.days_left }} DAYS){% endif %}
+                                        </div>
                                     </div>
-                                    {% if emi.proof %}
-                                        {% if emi.proof.status == 'REJECTED' %}
-                                            <div class="d-grid gap-1">
-                                                <span class="badge bg-danger-light text-danger rounded-pill extra-small">Rejected</span>
-                                                <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-xs btn-outline-danger rounded-pill fw-bold extra-small">Retry</a>
-                                            </div>
-                                        {% else %}
-                                            <span class="badge bg-info-light text-info rounded-pill extra-small">Processing</span>
-                                        {% endif %}
+                                    {% if emi.proof and emi.proof.status == 'PENDING' %}
+                                        <span class="badge bg-info-light text-info rounded-pill extra-small">Verifying...</span>
+                                    {% elif emi.proof and emi.proof.status == 'REJECTED' %}
+                                        <div class="d-flex flex-column align-items-end">
+                                            <span class="badge bg-danger-light text-danger rounded-pill extra-small mb-1">Payment Rejected</span>
+                                            <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-sm btn-danger rounded-pill fw-bold px-3">RE-PAY</a>
+                                        </div>
                                     {% else %}
-                                        {% with dstatus=emi.dynamic_status %}
-                                        <span class="badge {% if dstatus == 'OPEN' %}bg-primary{% elif dstatus == 'OVERDUE' %}bg-danger{% else %}bg-light text-muted{% endif %} rounded-pill extra-small me-2">
-                                            {{ dstatus }}
-                                        </span>
-                                        <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-sm {% if dstatus == 'OVERDUE' %}btn-danger{% else %}btn-outline-primary{% endif %} rounded-pill px-3 py-1 extra-small fw-bold">Pay Now</a>
-                                        {% endwith %}
+                                        <div class="d-flex align-items-center">
+                                            <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-sm btn-primary rounded-pill fw-bold px-4 shadow-sm">PAY</a>
+                                        </div>
                                     {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        {% for p in pending_payments_list %}
+                            {% with dstatus=p.dynamic_status %}
+                            {% if dstatus == 'OPEN' or dstatus == 'UPCOMING' %}
+                            {% if p.status != 'AWAITING_VERIFICATION' %}
+                            <div class="col-md-6">
+                                <div class="premium-card p-3 border-start border-4 border-warning h-100">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <small class="text-muted fw-bold text-uppercase extra-small">Next Chit Installment</small>
+                                            <div class="fw-bold">{{ p.chit_group.name }}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-extrabold text-warning">₹{{ p.total_amount_with_penalty|floatformat:0 }}</div>
+                                            {% if p.calculated_penalty > 0 %}
+                                                <div class="text-danger extra-small fw-bold">+₹{{ p.calculated_penalty|floatformat:0 }} Penalty</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="extra-small fw-bold">
+                                            <div class="text-muted mb-1"><i class="bi bi-calendar-check me-1"></i>Due Date: {{ p.due_date|date:"d M, Y" }}</div>
+                                            <div class="{% if p.days_left < 0 %}text-danger{% elif p.days_left <= 3 %}text-warning{% else %}text-success{% endif %}">
+                                                {% if p.days_left < 0 %}OVERDUE BY {{ p.abs_days_left }} DAYS{% elif p.days_left == 0 %}DUE TODAY{% elif p.is_open %}OPEN (DUE IN {{ p.days_left }} DAYS){% else %}UPCOMING (IN {{ p.days_left }} DAYS){% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            {% if p.proof and p.proof.status == 'PENDING' %}
+                                                <span class="badge bg-info-light text-info rounded-pill extra-small">Verifying...</span>
+                                            {% elif p.proof and p.proof.status == 'REJECTED' %}
+                                                <div class="d-flex flex-column align-items-end">
+                                                    <span class="badge bg-danger-light text-danger rounded-pill extra-small mb-1">Rejected</span>
+                                                    <a href="{% url 'customer_submit_proof' p.id %}" class="btn btn-sm btn-danger rounded-pill fw-bold px-3">RE-PAY</a>
+                                                </div>
+                                            {% else %}
+                                                <a href="{% url 'customer_submit_proof' p.id %}" class="btn btn-sm btn-warning rounded-pill fw-bold px-4 shadow-sm text-dark">PAY</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+
+                        {% for p in projected_chit_payments %}
+                        <div class="col-md-6">
+                            <div class="premium-card p-3 border-start border-4 border-warning h-100">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <small class="text-muted fw-bold text-uppercase extra-small">Next Chit Installment</small>
+                                        <div class="fw-bold">{{ p.group_name }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-extrabold text-warning">₹{{ p.amount|floatformat:0 }}</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="extra-small fw-bold">
+                                        <div class="text-muted mb-1"><i class="bi bi-calendar-check me-1"></i>Next Pay: {{ p.due_date|date:"d M, Y" }}</div>
+                                        <div class="text-muted">
+                                            {% if p.days_left < 0 %}DUE SINCE {{ p.abs_days_left }} DAYS{% elif p.days_left == 0 %}DUE TODAY{% else %}UPCOMING IN {{ p.days_left }} DAYS{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <a href="{% url 'initiate_chit_payment' p.mc_id %}" class="btn btn-sm btn-outline-warning rounded-pill fw-bold px-4">PAY</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -271,28 +364,43 @@
                     </div>
                     {% endif %}
 
+
                     <!-- Analytics Matrix -->
                     <div class="section-title">Financial Portfolio Pulse</div>
                     <div class="premium-card p-4 mb-4">
                         <div class="row align-items-center">
                             <div class="col-md-7">
-                                <div class="chart-container-member" style="height: 250px;">
+                                <div class="chart-container-member" style="height: 250px; position: relative;">
                                     <canvas id="unifiedChart"></canvas>
+                                    <div class="chart-center-label text-center" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                                        <div class="extra-small fw-bold text-muted text-uppercase" style="font-size: 0.6rem;">Portfolio Health</div>
+                                        <div class="h4 fw-900 mb-0">{{ chit_paid_pct|add:loan_paid_pct|divisibleby:2|default:"Healthy" }}</div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-5">
-                                <div class="p-4 bg-light rounded-4 mb-3">
-                                    <div class="text-muted extra-small fw-bold text-uppercase mb-1">Chit Contribution</div>
-                                    <div class="h4 fw-900 text-success mb-0">₹{{ total_paid|floatformat:0 }}</div>
-                                    <div class="progress mt-2" style="height: 4px;">
-                                        <div class="progress-bar bg-success" style="width: 65%;"></div>
+                                <div class="p-4 bg-light rounded-4 mb-3 border-start border-4 border-success">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="text-muted extra-small fw-bold text-uppercase">Amount Paid (Chit)</div>
+                                        <div class="fw-extrabold text-success small"><span class="count-up" data-value="{{ chit_paid_pct }}">0</span>%</div>
+                                    </div>
+                                    <div class="h4 fw-900 text-dark mb-0">₹<span class="count-up" data-value="{{ total_paid|floatformat:0 }}">0</span></div>
+                                    <div class="text-muted extra-small fw-bold mt-1">Remaining to Pay: ₹{{ chit_remaining_amount|floatformat:0 }}</div>
+                                    <div class="progress mt-2" style="height: 6px; border-radius: 10px; background: #e2e8f0;">
+                                        <div class="progress-bar bg-success animate-progress" style="width: 0%;" data-percent="{{ chit_paid_pct }}"></div>
                                     </div>
                                 </div>
-                                <div class="p-4 bg-light rounded-4">
-                                    <div class="text-muted extra-small fw-bold text-uppercase mb-1">Loan Repayment</div>
-                                    <div class="h4 fw-900 text-primary mb-0">₹{{ total_loan_outstanding|floatformat:0 }} <small class="fs-6 opacity-50">rem.</small></div>
-                                    <div class="progress mt-2" style="height: 4px;">
-                                        <div class="progress-bar bg-primary" style="width: 40%;"></div>
+                                <div class="p-4 bg-light rounded-4 border-start border-4 border-primary">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="text-muted extra-small fw-bold text-uppercase">Amount Paid (Loan)</div>
+                                        <div class="fw-extrabold text-primary small"><span class="count-up" data-value="{{ loan_paid_pct }}">0</span>%</div>
+                                    </div>
+                                    <div class="h4 fw-900 text-dark mb-0">₹<span class="count-up" data-value="{{ loan_paid_amount|floatformat:0 }}">0</span></div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small class="text-muted extra-small fw-bold">Remaining to Pay: ₹{{ total_loan_outstanding|floatformat:0 }}</small>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 6px; border-radius: 10px; background: #e2e8f0;">
+                                        <div class="progress-bar bg-primary animate-progress" style="width: 0%;" data-percent="{{ loan_paid_pct }}"></div>
                                     </div>
                                 </div>
                             </div>
@@ -545,24 +653,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Read chart data from data attributes to avoid IDE syntax errors
     const chartContainer = document.getElementById('unifiedChart');
     if (!chartContainer) return;
-
-    const chitPaid = parseFloat("{{ total_paid|default:1 }}") || 1;
-    const loanOutstanding = parseFloat("{{ total_loan_outstanding|default:1 }}") || 1;
+    const chitPaid = parseFloat("{{ total_paid|default:0 }}") || 0;
+    const loanPaid = (parseFloat("{{ total_loan_amount|default:0 }}") - parseFloat("{{ total_loan_outstanding|default:0 }}")) || 0;
+    const chitRemaining = parseFloat("{{ chit_remaining_amount|default:0 }}") || 0;
+    const loanRemaining = parseFloat("{{ total_loan_outstanding|default:0 }}") || 0;
 
     const ctx = chartContainer.getContext('2d');
     new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Chit Funds', 'Loans'],
+            labels: ['Chit Paid', 'Loan Paid', 'Chit Remaining', 'Loan Remaining'],
             datasets: [{
-                data: [chitPaid, loanOutstanding],
-                backgroundColor: ['#10b981', '#6366f1'],
+                data: [chitPaid, loanPaid, chitRemaining, loanRemaining],
+                backgroundColor: ['#10b981', '#6366f1', '#fcd34d', '#f43f5e'],
                 borderWidth: 0,
-                hoverOffset: 10
+                hoverOffset: 15
             }]
         },
         options: {
-            cutout: '80%',
+            cutout: '82%',
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -571,20 +680,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     labels: {
                         usePointStyle: true,
                         padding: 20,
-                        font: { weight: 'bold', size: 12 }
+                        font: { weight: 'bold', size: 11 }
                     }
                 }
             }
         }
     });
+    // Count-up animation function
+    function animateValue(obj, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    // Animate Numbers
+    setTimeout(() => {
+        document.querySelectorAll('.count-up').forEach(el => {
+            const target = parseInt(el.getAttribute('data-value').replace(/,/g, '')) || 0;
+            animateValue(el, 0, target, 1500);
+        });
+    }, 200);
+
     // Animate Progress Bars
     setTimeout(() => {
         document.querySelectorAll('.animate-progress').forEach(bar => {
             const pct = bar.getAttribute('data-percent') || 0;
-            bar.style.transition = 'width 1.2s cubic-bezier(0.2, 0, 0, 1)';
+            bar.style.transition = 'width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
             bar.style.width = pct + '%';
         });
-    }, 300);
-});
+    }, 400);
+    });
 </script>
+
 {% endblock %}

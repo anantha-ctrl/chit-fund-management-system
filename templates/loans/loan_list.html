@@ -85,6 +85,7 @@
           </tr>
         </thead>
         <tbody>
+          {% for loan in page_obj %}
           {% url 'loan_detail' loan.pk as loan_url %}
           <tr class="loan-row" style="cursor: pointer;" onclick="location.href='{{ loan_url }}'">
             <td class="ps-4">

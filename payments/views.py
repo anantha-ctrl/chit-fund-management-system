@@ -618,6 +618,14 @@ def customer_submit_proof(request, payment_id):
                     priority='info'
                 )
             
+            # Notify Customer for confirmation
+            Notification.objects.create(
+                user=request.user,
+                title="Payment Proof Received",
+                message=f"Your proof for ₹{payment.amount} has been received and is now being verified by our team.",
+                priority='success'
+            )
+            
             messages.success(request, "Payment proof submitted successfully! Our team will verify it shortly.")
             return redirect('dashboard')
     else:
@@ -756,3 +764,56 @@ def manage_payment_qr(request):
 
     qrs = PaymentQR.objects.all().order_by('-created_at')
     return render(request, 'payments/manage_qr.html', {'qrs': qrs})
+@login_required
+def initiate_chit_payment(request, mc_id):
+    """
+    Allows a customer to initiate the next available installment payment for a chit group.
+    Creates the Payment object if it doesn't exist and redirects to proof submission.
+    """
+    from chits.models import ChitMember
+    from django.db.models import Max
+    import datetime
+    
+    mc = get_object_or_404(ChitMember, id=mc_id, member__user=request.user)
+    group = mc.chit_group
+    
+    # 1. Find the next installment number
+    last_inst = Payment.objects.filter(chit_group=group, member=mc.member).aggregate(Max('installment_number'))['installment_number__max'] or 0
+    next_inst = last_inst + 1
+    
+    if next_inst > group.duration_months:
+        messages.info(request, "All installments for this chit group have been completed.")
+        return redirect('dashboard')
+        
+    # 2. Check if a pending/awaiting payment already exists for this installment
+    existing_p = Payment.objects.filter(chit_group=group, member=mc.member, installment_number=next_inst).first()
+    
+    if existing_p:
+        return redirect('customer_submit_proof', payment_id=existing_p.id)
+        
+    # 3. Create the payment record
+    # Determine due date based on group start date or last payment
+    last_p = Payment.objects.filter(chit_group=group, member=mc.member).order_by('-installment_number').first()
+    if last_p and last_p.due_date:
+        d = last_p.due_date
+        year = d.year + (d.month // 12)
+        month = (d.month % 12) + 1
+        if month > 12: month = 1; year += 1
+        try:
+            next_due = d.replace(year=year, month=month)
+        except ValueError:
+            next_due = d + datetime.timedelta(days=30)
+    else:
+        # Simplistic approach: start_date + (N-1) months
+        next_due = group.start_date + datetime.timedelta(days=30 * (next_inst - 1))
+        
+    payment = Payment.objects.create(
+        chit_group=group,
+        member=mc.member,
+        installment_number=next_inst,
+        amount=group.installment_amount,
+        due_date=next_due,
+        status='PENDING'
+    )
+    
+    return redirect('customer_submit_proof', payment_id=payment.id)

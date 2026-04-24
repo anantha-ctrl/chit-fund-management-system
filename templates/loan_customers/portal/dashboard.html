@@ -224,17 +224,24 @@
             <div class="section-title">Action Required</div>
             <div class="d-grid gap-3 mb-4">
                 {% for emi in overdue_emis %}
-                <div class="emi-item overdue d-flex justify-content-between align-items-center">
+                <div class="emi-item overdue d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <div class="fw-bold small">Installment #{{ emi.installment_number }}</div>
-                        <small class="text-danger fw-bold extra-small">DUE: {{ emi.due_date|date:"d M" }}</small>
+                        <small class="text-danger fw-bold extra-small">OVERDUE BY {{ emi.abs_days_left }} DAYS</small>
                     </div>
                     <div class="text-end">
-                        <div class="fw-extrabold text-danger">₹{{ emi.balance_due|floatformat:0 }}</div>
+                        <div class="fw-extrabold text-danger mb-1">₹{{ emi.balance_due|floatformat:0 }}</div>
+                        {% if emi.proof and emi.proof.status == 'REJECTED' %}
+                            <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-xs btn-danger rounded-pill fw-bold px-3">RE-PAY</a>
+                        {% else %}
+                            <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-xs btn-danger rounded-pill fw-bold px-3">PAY NOW</a>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
-                <button class="btn btn-danger rounded-pill fw-bold py-2 shadow-sm">PAY OVERDUE BALANCE</button>
+                <button class="btn btn-outline-danger w-100 rounded-pill fw-bold py-2 mt-2 extra-small" data-bs-toggle="modal" data-bs-target="#quickPayModal">
+                    <i class="bi bi-qr-code-scan me-1"></i> VIEW QR CODE
+                </button>
             </div>
             {% endif %}
 
@@ -244,9 +251,18 @@
                 <div class="emi-item d-flex justify-content-between align-items-center">
                     <div>
                         <div class="fw-bold small">Installment #{{ emi.installment_number }}</div>
-                        <small class="text-muted extra-small">EXPECTED: {{ emi.due_date|date:"d M" }}</small>
+                        <small class="text-muted extra-small">DUE IN {{ emi.days_left }} DAYS</small>
                     </div>
-                    <div class="fw-bold">₹{{ emi.emi_amount|floatformat:0 }}</div>
+                    <div class="text-end">
+                        <div class="fw-bold mb-1">₹{{ emi.emi_amount|floatformat:0 }}</div>
+                        {% if emi.proof and emi.proof.status == 'PENDING' %}
+                            <span class="badge bg-info-light text-info rounded-pill extra-small px-3">Verifying...</span>
+                        {% elif emi.proof and emi.proof.status == 'REJECTED' %}
+                            <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-xs btn-danger rounded-pill fw-bold px-3">RE-PAY</a>
+                        {% else %}
+                            <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-xs btn-primary rounded-pill fw-bold px-3">PAY</a>
+                        {% endif %}
+                    </div>
                 </div>
                 {% empty %}
                 <div class="p-4 text-center text-muted bg-light rounded-4">
@@ -265,6 +281,39 @@
                     <a href="tel:+919876543210" class="btn btn-primary rounded-pill fw-bold">Call Loan Desk</a>
                     <a href="https://wa.me/919876543210" class="btn btn-outline-light rounded-pill fw-bold">WhatsApp Support</a>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SmartPay Modal -->
+<div class="modal fade" id="quickPayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-extrabold text-primary d-flex align-items-center">
+                    <i class="bi bi-qr-code-scan me-2"></i> SmartPay QR Terminal
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                {% if active_qr %}
+                <img src="{{ active_qr.qr_code.url }}" class="img-fluid rounded-3 mb-3 shadow-sm" style="max-width: 250px;" alt="UPI QR">
+                {% else %}
+                <div class="py-4 text-muted"><i class="bi bi-qr-code h1"></i><br>QR Code not available</div>
+                {% endif %}
+                <div class="bg-light p-3 rounded-3 text-start mb-3">
+                    <div class="extra-small fw-bold text-uppercase text-muted mb-2">Instructions</div>
+                    <ul class="extra-small fw-bold mb-0 ps-3">
+                        <li>Scan QR with PhonePe/GPay/Paytm</li>
+                        <li>Enter the exact EMI amount</li>
+                        <li>Complete the transaction</li>
+                        <li>Upload screenshot by clicking <strong>PAY</strong></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary w-100 rounded-pill fw-bold py-2" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
