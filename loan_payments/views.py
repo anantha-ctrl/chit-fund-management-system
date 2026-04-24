@@ -13,6 +13,8 @@ from .models import LoanPayment, LoanTransaction, LoanPaymentProof
 from .forms import LoanPaymentForm, LoanPaymentProofForm
 from loans.models import Loan, EMISchedule
 from payments.models import Payment
+from notifications.models import Notification
+from accounts.models import User
 
 
 def staff_required(view_func):
@@ -27,6 +29,18 @@ def staff_required(view_func):
             return redirect('loan_dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped
+
+
+def notify_admins(title, message, priority='info'):
+    """Helper to send notifications to all SUPERADMIN and ADMIN users."""
+    admins = User.objects.filter(role__in=['SUPERADMIN', 'ADMIN'])
+    for admin in admins:
+        Notification.objects.create(
+            user=admin,
+            title=title,
+            message=message,
+            priority=priority
+        )
 
 
 # ──────────────────────────────────────────────────────────
@@ -49,6 +63,14 @@ def record_payment(request, loan_pk):
             payment.loan = loan
             payment.collected_by = request.user
             payment.save()
+            
+            # Notify Admins
+            notify_admins(
+                title="Loan Payment Recorded",
+                message=f"A payment of ₹{payment.amount_paid} has been recorded for {loan.customer.name} (Loan: {loan.loan_number}) by {request.user.username}.",
+                priority='success'
+            )
+            
             messages.success(request, f"Payment of ₹{payment.amount_paid} recorded. Receipt: {payment.receipt_number}")
             return redirect('loan_payment_receipt', pk=payment.pk)
     else:
@@ -230,17 +252,35 @@ def customer_loan_submit_proof(request, emi_pk):
         return redirect('loan_customer_portal')
     
     if hasattr(emi, 'proof'):
-        messages.info(request, "A payment proof has already been submitted for this EMI.")
-        return redirect('loan_customer_portal')
+        if emi.proof.status == 'APPROVED':
+            messages.info(request, "This EMI has been verified and approved.")
+            return redirect('loan_customer_portal')
+        elif emi.proof.status == 'PENDING':
+            messages.info(request, "Your payment proof is currently being verified. Please wait.")
+            return redirect('loan_customer_portal')
+        # If REJECTED, we fall through and allow a new submission
+        # We will handle deleting/updating the old proof in the POST logic
 
     if request.method == 'POST':
         form = LoanPaymentProofForm(request.POST, request.FILES)
         if form.is_valid():
+            # If there was a rejected proof, delete it first to allow the new OneToOne mapping
+            if hasattr(emi, 'proof') and emi.proof.status == 'REJECTED':
+                emi.proof.delete()
+                
             proof = form.save(commit=False)
             proof.emi_installment = emi
             proof.member_name = member.name
             proof.phone_no = member.phone
             proof.save()
+            
+            # Notify Admins
+            notify_admins(
+                title="New Loan Payment Proof",
+                message=f"Customer {member.name} has submitted a payment proof for Loan {emi.loan.loan_number} (EMI #{emi.installment_number}). Please review it.",
+                priority='warning'
+            )
+            
             messages.success(request, "Payment proof submitted successfully for verification.")
             return redirect('loan_customer_portal')
     else:

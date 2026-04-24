@@ -7,16 +7,27 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 # Override settings for the check to avoid hanging
 from django.conf import settings
 import django
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+try:
+    import pymysql
+    pymysql.version_info = (2, 2, 1, 'final', 0)
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
 
 # Set a timeout for the connection
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chit_fund_db',
-        'USER': 'postgres',
-        'PASSWORD': 'anantha',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME', 'chit_fund_db'),
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
             'connect_timeout': 5,
         }

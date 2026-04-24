@@ -238,18 +238,24 @@ def member_document_upload(request, pk):
 @login_required
 def kyc_center(request):
     """Centralized view for monitoring member compliance and documents"""
-    members = Member.objects.prefetch_related('documents').all().order_by('name')
+    status_filter = request.GET.get('status', 'ALL')
+    query = request.GET.get('q', '')
     
-    # Logic to determine compliance status
-    for member in members:
-        # Only count documents that have been APPROVED by admin
+    # We prefetch for performance
+    members_qs = Member.objects.prefetch_related('documents').all().order_by('name')
+    
+    if query:
+        members_qs = members_qs.filter(name__icontains=query) | members_qs.filter(phone__icontains=query)
+    
+    all_processed_members = []
+    
+    # Process the logic for the members in the current queryset
+    for member in members_qs:
         member.approved_doc_count = member.documents.filter(status='APPROVED').count()
         member.total_doc_count = member.documents.count()
-        
         member.has_bank_info = all([member.bank_name, member.account_number, member.ifsc_code])
         member.has_photo = bool(member.photo)
         
-        # Detailed Status Logic
         all_docs_approved = (member.total_doc_count > 0 and member.approved_doc_count == member.total_doc_count)
         any_doc_rejected = member.documents.filter(status='REJECTED').exists()
         
@@ -263,15 +269,42 @@ def kyc_center(request):
             member.kyc_status = 'PARTIAL'
         else:
             member.kyc_status = 'PENDING'
+            
+        # Add to the list to be displayed if it matches the status filter
+        if status_filter == 'ALL' or member.kyc_status == status_filter:
+            all_processed_members.append(member)
 
-    compliant_count = sum(1 for m in members if m.kyc_status == 'COMPLIANT')
-    pending_count = sum(1 for m in members if any(doc.status == 'PENDING' for doc in m.documents.all()))
-    missing_count = sum(1 for m in members if m.kyc_status in ['PARTIAL', 'PENDING'])
+    # For the Global Stats (always based on all members)
+    total_members = Member.objects.all()
+    compliant_count = 0
+    pending_review_count = 0
+    missing_info_count = 0
+    
+    # We do a separate pass for accurate global stats
+    for m in total_members:
+        docs = m.documents.all()
+        has_pending = any(d.status == 'PENDING' for d in docs)
+        if has_pending:
+            pending_review_count += 1
+            
+        # Re-run a simplified status logic for stats
+        app_docs = sum(1 for d in docs if d.status == 'APPROVED')
+        tot_docs = len(docs)
+        bank = all([m.bank_name, m.account_number, m.ifsc_code])
+        photo = bool(m.photo)
+        
+        if app_docs >= 2 and tot_docs > 0 and app_docs == tot_docs and bank and photo:
+            compliant_count += 1
+        elif not (app_docs >= 2 and bank and photo):
+            missing_info_count += 1
 
     context = {
-        'members': members,
+        'members': all_processed_members,
         'compliant_count': compliant_count,
-        'pending_count': pending_count,
-        'missing_count': missing_count,
+        'pending_count': pending_review_count,
+        'missing_count': missing_info_count,
+        'status_filter': status_filter,
+        'query': query,
+        'total_count': total_members.count()
     }
     return render(request, 'members/kyc_center.html', context)

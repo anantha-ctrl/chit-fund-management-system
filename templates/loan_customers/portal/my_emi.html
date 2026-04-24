@@ -131,7 +131,16 @@
                     <div class="col-md-2 text-end">
                         {% if emi.status != 'paid' %}
                             {% if emi.proof %}
-                                <span class="badge bg-info-light text-info rounded-pill extra-small px-3 py-2">Verification Pending</span>
+                                {% if emi.proof.status == 'APPROVED' %}
+                                    <span class="badge bg-success-light text-success rounded-pill extra-small px-3 py-2">Verified</span>
+                                {% elif emi.proof.status == 'PENDING' %}
+                                    <span class="badge bg-info-light text-info rounded-pill extra-small px-3 py-2">Verification Pending</span>
+                                {% elif emi.proof.status == 'REJECTED' %}
+                                    <div class="d-grid gap-2">
+                                        <span class="badge bg-danger-light text-danger rounded-pill extra-small px-3 py-2">Rejected</span>
+                                        <a href="{% url 'customer_loan_submit_proof' emi.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-2 fw-bold extra-small">Pay Again</a>
+                                    </div>
+                                {% endif %}
                             {% else %}
                                 {% with dstatus=emi.dynamic_status %}
                                 <div class="d-grid gap-2">

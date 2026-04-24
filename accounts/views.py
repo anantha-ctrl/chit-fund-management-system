@@ -94,10 +94,11 @@ def dashboard_view(request):
         my_chit_members = ChitMember.objects.filter(member=member).select_related('chit_group')
         my_groups_count = my_chit_members.count()
         
-        # Calculate Net Totals: (Gross Amount - Dividend + Penalty)
+        # Calculate Gross Contributions: (Amount + Penalty)
+        # We don't subtract dividend here because it's shown in its own card as "Earned"
         total_paid = Payment.objects.filter(member=member, status='PAID').aggregate(
-            net_sum=Sum(F('amount') - F('dividend_amount') + F('penalty_amount'))
-        )['net_sum'] or 0
+            gross_sum=Sum(F('amount') + F('penalty_amount'))
+        )['gross_sum'] or 0
         
         total_pending = Payment.objects.filter(member=member, status__in=['PENDING', 'LATE']).aggregate(
             net_sum=Sum(F('amount') - F('dividend_amount') + F('penalty_amount'))
@@ -116,8 +117,8 @@ def dashboard_view(request):
                     chit_group=mc.chit_group, 
                     status='PAID'
                 ).aggregate(
-                    net_sum=Sum(F('amount') - F('dividend_amount') + F('penalty_amount'))
-                )['net_sum'] or 0
+                    gross_sum=Sum(F('amount') + F('penalty_amount'))
+                )['gross_sum'] or 0
                 
                 total_inst = mc.chit_group.duration_months
                 paid_inst = Payment.objects.filter(member=member, chit_group=mc.chit_group, status='PAID').count()
@@ -478,15 +479,21 @@ def customer_passbook_view(request, mc_id):
     )
     
     # 5. Final context for the passbook layout
+    total_invested = stats['total_paid'] or 0
+    total_earned = stats['total_dividend'] or 0
+    total_penalty = stats['total_penalty'] or 0
+    net_val = total_invested - total_earned + total_penalty
+
     context = {
         'mc': mc,
         'group': group,
         'schedule': full_schedule,
         'summary': {
-            'invested': stats['total_paid'] or 0,
-            'earned': stats['total_dividend'] or 0,
-            'penalties': stats['total_penalty'] or 0,
-            'net_outflow': (stats['total_paid'] or 0) - (stats['total_dividend'] or 0) + (stats['total_penalty'] or 0)
+            'invested': total_invested,
+            'earned': total_earned,
+            'penalties': total_penalty,
+            'net_outflow': net_val,
+            'is_gain': net_val < 0
         }
     }
     return render(request, 'accounts/customer/passbook.html', context)

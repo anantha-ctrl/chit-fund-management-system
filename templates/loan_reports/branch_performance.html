@@ -90,6 +90,8 @@
         font-weight: 800;
         text-transform: uppercase;
     }
+
+    .extra-small { font-size: 0.72rem; }
 </style>
 {% endblock %}
 
@@ -157,7 +159,7 @@
                     </div>
                     {% widthratio b.closed_loans b.total_loans 100 as recovery_val %}
                     <div class="progress-track">
-                        <div class="progress-fill" style="width: {{ recovery_val|default:0 }}%;"></div>
+                        <div class="progress-fill" style="width:{{ recovery_val }}%;"></div>
                     </div>
                 </div>
                 {% endif %}
@@ -175,7 +177,4 @@
     </div>
 </div>
 
-<style>
-    .extra-small { font-size: 0.72rem; }
-</style>
 {% endblock %}

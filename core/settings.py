@@ -3,12 +3,16 @@ Django settings for core project.
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-dummy-key-for-chit-fund'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dummy-key-fallback')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000', 
@@ -77,14 +81,22 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chit_fund_db',
-        'USER': 'postgres',
-        'PASSWORD': 'anantha',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME', 'chit_fund_db'),
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', '3306'),
     }
 }
+
+try:
+    import pymysql
+    pymysql.version_info = (2, 2, 1, 'final', 0)
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
+
 
 
 
@@ -118,6 +130,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'anantha130404@gmail.com'
-EMAIL_HOST_PASSWORD = 'oyruzfodvrhvzbck'  # Use Google App Password (removed spaces as it might be individual letters)
-DEFAULT_FROM_EMAIL = 'anantha130404@gmail.com'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'anantha130404@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER', 'anantha130404@gmail.com')

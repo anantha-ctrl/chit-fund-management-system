@@ -62,8 +62,12 @@
                     </div>
                     <div class="pt-3 border-top border-white border-opacity-10">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 text-uppercase fw-bold extra-small text-white text-opacity-70">Net Outflow</h6>
-                            <h2 class="mb-0 fw-extrabold text-primary" style="letter-spacing: -1.5px;">₹{{ summary.net_outflow|floatformat:0 }}</h2>
+                            <h6 class="mb-0 text-uppercase fw-bold extra-small text-white text-opacity-70">
+                                {% if summary.is_gain %}Net Profit{% else %}Net Outflow{% endif %}
+                            </h6>
+                            <h2 class="mb-0 fw-extrabold {% if summary.is_gain %}text-success{% else %}text-primary{% endif %}" style="letter-spacing: -1.5px;">
+                                ₹{{ summary.net_outflow|floatformat:0|cut:"-" }}
+                            </h2>
                         </div>
                     </div>
                 </div>
@@ -129,7 +133,14 @@
                         <td class="text-center text-success fw-bold">₹{{ p.dividend_amount|floatformat:0 }}</td>
                         <td class="text-end pe-4">
                             <span class="fs-6 fw-extrabold {% if p.status == 'PAID' %}text-primary{% else %}text-muted opacity-50{% endif %}">
-                                ₹{% if p.net_amount %}{{ p.net_amount|floatformat:0 }}{% else %}{{ p.amount|floatformat:0 }}{% endif %}
+                                {% if p.net_amount < 0 %}
+                                    <div class="d-flex flex-column align-items-end">
+                                        <span class="text-success fw-extrabold">₹0</span>
+                                        <span class="extra-small text-success fw-bold" style="font-size: 0.6rem; margin-top: -4px;">Covered by Dividend</span>
+                                    </div>
+                                {% else %}
+                                    ₹{{ p.net_amount|default:p.amount|floatformat:0 }}
+                                {% endif %}
                             </span>
                         </td>
                     </tr>
