@@ -34,10 +34,11 @@ A management command `calculate_penalties` will:
 ## 3. Implementation Steps
 
 ### Done
-- [ ] Update `chits/models.py`
-- [ ] Update `auctions/models.py` (Add fields + calculation logic)
-- [ ] Update `payments/models.py` (Add penalty fields)
-- [ ] Create `Guarantor` model
-- [ ] Implement `calculate_penalties` management command
-- [ ] Update Views & Templates for Auctions to show Dividend info
-- [ ] Update Settlement logic to include these new fields
+- [x] Update `chits/models.py` (Commission Logic)
+- [x] Update `auctions/models.py` (Dividend Calculation)
+- [x] Update `payments/models.py` (Penalty & Status Tracking)
+- [x] Implement dynamic penalty calculations in Dashboard and EMI Views
+- [x] Update Dashboard KPIs to include consolidated collections and overdue stats
+- [x] Implement High-Fidelity UI for Dividend and Recovery tracking
+- [ ] Create `Guarantor` model (Planned for next sprint)
+- [ ] Finalize automated `calculate_penalties` management command (Background worker)
