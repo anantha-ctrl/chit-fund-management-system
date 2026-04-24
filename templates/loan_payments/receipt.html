@@ -3,8 +3,26 @@
 <style>
 :root{--loan-accent:#6366f1;}
 @media print{
-  .no-print{display:none!important;}
-  .receipt-box{border:2px solid #000!important;box-shadow:none!important;}
+  @page { size: A4; margin: 1.5cm; }
+  body { background: white !important; margin: 0 !important; padding: 0 !important; }
+  .no-print, #sidebarMenu, header, .top-header, .navbar, .alert, .mb-4, footer, #nprogress, .mobile-bottom-nav, .whatsapp-fab { display: none !important; }
+  main { padding: 0 !important; margin: 0 !important; width: 100% !important; display: block !important; min-height: auto !important; }
+  .flex-grow-1 { padding: 0 !important; margin: 0 !important; }
+  .receipt-box { 
+    border: 1.5px solid #000 !important; 
+    box-shadow: none !important; 
+    max-width: 100% !important; 
+    width: 100% !important; 
+    margin: 0 !important;
+    break-inside: avoid;
+    border-radius: 0 !important;
+  }
+  .container-fluid { padding: 0 !important; margin: 0 !important; }
+  .row { display: block !important; margin: 0 !important; }
+  .col-md-9, .col-lg-10 { width: 100% !important; flex: none !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+  .rcpt-header { background: #f1f5f9 !important; color: #000 !important; border-bottom: 2px solid #000; }
+  .rcpt-header * { color: #000 !important; }
+  .rcpt-footer { background: #fff !important; border-top: 1px solid #000; }
 }
 .receipt-box{border:1px solid rgba(99,102,241,.2);border-radius:20px;max-width:580px;margin:0 auto;background:#fff;overflow:hidden;}
 .rcpt-header{background:linear-gradient(135deg,#6366f1,#818cf8);color:#fff;padding:1.5rem 2rem;}
@@ -49,7 +67,7 @@
   <!-- Body -->
   <div class="px-4 py-3">
     <table class="table rcpt-row mb-0">
-      <tr><td>Customer Name</td><td>{{ payment.loan.customer.full_name }}</td></tr>
+      <tr><td>Customer Name</td><td>{{ payment.loan.customer.name }}</td></tr>
       <tr><td>Phone</td><td>{{ payment.loan.customer.phone }}</td></tr>
       <tr><td>Loan Number</td><td>{{ payment.loan.loan_number }}</td></tr>
       <tr><td>EMI Instalment</td><td>{% if payment.emi_installment %}#{{ payment.emi_installment.installment_number }} of {{ payment.loan.tenure_months }}{% else %}—{% endif %}</td></tr>

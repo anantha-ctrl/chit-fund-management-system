@@ -23,4 +23,8 @@ urlpatterns = [
     path('loan/customers/', include('loan_customers.urls')),
     path('loan/payments/', include('loan_payments.urls')),
     path('loan/reports/', include('loan_reports.urls')),
+    # ── Insurance Module ──
+    # path('insurance/', include('insurance.urls')),
+    # ── Documents Module ──
+    # path('docs/', include('documents.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

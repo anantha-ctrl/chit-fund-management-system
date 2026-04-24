@@ -10,10 +10,22 @@
     }
 
     @media print {
-        .no-print { display: none !important; }
-        body { background: white !important; }
-        .card { border: 1px solid #e2e8f0 !important; box-shadow: none !important; }
-        .report-header { background: #0f172a !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        @page { size: A4; margin: 1cm; }
+        .no-print, #sidebarMenu, header, .top-header, .navbar, .alert, .mb-4, footer, .mobile-bottom-nav, .whatsapp-fab { display: none !important; }
+        body { background: white !important; padding: 0 !important; margin: 0 !important; }
+        main { padding: 0 !important; margin: 0 !important; width: 100% !important; display: block !important; }
+        .container-fluid { padding: 0 !important; margin: 0 !important; }
+        .row { display: block !important; margin: 0 !important; }
+        .col-md-9, .col-lg-10, .col-lg-4, .col-lg-8, .col-md-4 { width: 100% !important; flex: none !important; max-width: 100% !important; margin-bottom: 1rem !important; }
+        .card, .report-header { border: 1px solid #000 !important; box-shadow: none !important; border-radius: 0 !important; }
+        .report-header { background: #f8fafc !important; color: #000 !important; padding: 1.5rem !important; }
+        .report-header * { color: #000 !important; }
+        .stat-card-mini { border: 1px solid #eee !important; background: #fff !important; color: #000 !important; }
+        .stat-card-mini * { color: #000 !important; }
+        .collection-table { border-radius: 0 !important; border: 1px solid #000 !important; box-shadow: none !important; }
+        .table thead th { background: #eee !important; color: #000 !important; border: 1px solid #000 !important; padding: 0.5rem 1rem !important; }
+        .table tbody td { border: 1px solid #eee !important; padding: 0.5rem 1rem !important; }
+        .receipt-badge { border: 1px solid #000 !important; background: #fff !important; }
     }
 
     .report-header {
@@ -112,6 +124,7 @@
         color: var(--loan-accent);
         transform: translateY(-2px);
     }
+    .extra-small { font-size: 0.72rem; }
 </style>
 {% endblock %}
 
@@ -262,7 +275,4 @@
     </div>
 </div>
 
-<style>
-    .extra-small { font-size: 0.72rem; }
-</style>
 {% endblock %}
